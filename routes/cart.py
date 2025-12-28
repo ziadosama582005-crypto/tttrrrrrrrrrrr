@@ -210,6 +210,31 @@ def api_cart_remove():
         return jsonify({'status': 'error', 'message': 'حدث خطأ'})
 
 
+@cart_bp.route('/checkout')
+def checkout_page():
+    """صفحة الدفع - اختيار طريقة الدفع"""
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect('/')
+    
+    balance = get_balance(user_id)
+    cart = get_user_cart(user_id) or {}
+    
+    # حساب إجمالي السلة
+    total = 0
+    for item in cart.get('items', []):
+        product_doc = db.collection('products').document(item['product_id']).get()
+        if product_doc.exists:
+            product = product_doc.to_dict()
+            if not product.get('sold', False):
+                total += float(product.get('price', item.get('price', 0)))
+    
+    if total <= 0:
+        return redirect('/cart')
+    
+    return render_template('payment_options.html', user_id=user_id, balance=balance, cart_total=total)
+
+
 @cart_bp.route('/api/cart/checkout', methods=['POST'])
 def api_cart_checkout():
     """إتمام شراء السلة"""
