@@ -1,0 +1,473 @@
+<!-- ميزة #6 و #23: خيارات الدفع واقتراح الشحن -->
+
+<!-- 1️⃣ قسم خيارات الدفع -->
+<div class="payment-section">
+    <h3>💳 اختر طريقة الدفع:</h3>
+    
+    <div class="payment-methods">
+        <!-- خيار 1: المحفظة -->
+        <label class="payment-option">
+            <input type="radio" name="payment_method" value="wallet" checked>
+            <div class="payment-card">
+                <div class="payment-icon">💰</div>
+                <div class="payment-info">
+                    <div class="payment-name">من المحفظة</div>
+                    <div class="payment-desc">استخدم رصيدك الحالي</div>
+                    <div class="payment-balance" id="walletBalance">الرصيد: 150 ريال</div>
+                </div>
+                <div class="payment-check">✓</div>
+            </div>
+        </label>
+
+        <!-- خيار 2: بطاقة ائتمان -->
+        <label class="payment-option">
+            <input type="radio" name="payment_method" value="card">
+            <div class="payment-card">
+                <div class="payment-icon">🏦</div>
+                <div class="payment-info">
+                    <div class="payment-name">بطاقة ائتمان</div>
+                    <div class="payment-desc">فيزا أو ماستركارد</div>
+                    <div class="payment-fee">بدون رسوم إضافية</div>
+                </div>
+                <div class="payment-check">✓</div>
+            </div>
+        </label>
+
+        <!-- خيار 3: التقسيط -->
+        <label class="payment-option">
+            <input type="radio" name="payment_method" value="installments">
+            <div class="payment-card">
+                <div class="payment-icon">📅</div>
+                <div class="payment-info">
+                    <div class="payment-name">تقسيط 3 أشهر</div>
+                    <div class="payment-desc">ادفع بدون فوائد</div>
+                    <div class="payment-fee" id="monthlyPayment">الدفعة: 21.99 ريال/شهر</div>
+                </div>
+                <div class="payment-check">✓</div>
+            </div>
+        </label>
+    </div>
+</div>
+
+<!-- 2️⃣ تنبيه عدم كفاية الرصيد -->
+<div id="balanceWarning" class="balance-warning" style="display: none;">
+    <div class="warning-icon">⚠️</div>
+    <div class="warning-content">
+        <div class="warning-title">رصيدك غير كافي</div>
+        <div class="warning-message" id="warningMessage">
+            تحتاج إلى <span id="shortageAmount">15.00</span> ريال إضافي
+        </div>
+    </div>
+</div>
+
+<!-- 3️⃣ اقتراحات شحن الرصيد -->
+<div id="chargeSuggestions" class="charge-suggestions" style="display: none;">
+    <h3>💡 اقتراحات لك:</h3>
+    
+    <!-- الاقتراح الأول: المبلغ بالضبط -->
+    <div class="suggestion-card recommended">
+        <div class="suggestion-icon">✨</div>
+        <div class="suggestion-info">
+            <div class="suggestion-title">الخيار الأمثل</div>
+            <div class="suggestion-desc" id="exactAmountDesc">اشحن 15.00 ريال فقط</div>
+        </div>
+        <button class="charge-btn" onclick="quickCharge(15.00, 'exact')">اشحن الآن</button>
+    </div>
+
+    <!-- الاقتراح الثاني: مع هدية -->
+    <div class="suggestion-card offer">
+        <div class="suggestion-icon">🎁</div>
+        <div class="suggestion-info">
+            <div class="suggestion-title">عرض خاص</div>
+            <div class="suggestion-desc" id="bonusDesc">اشحن 65.00 ريال + 50 ريال هدية</div>
+            <div class="suggestion-badge">🎉 احصل على هدية</div>
+        </div>
+        <button class="charge-btn offer-btn" onclick="quickCharge(65.00, 'bonus')">اشحن الآن</button>
+    </div>
+
+    <!-- المبالغ الموصى بها -->
+    <h4 style="margin-top: 20px;">أو اختر من المبالغ الموصى بها:</h4>
+    <div class="quick-amounts" id="quickAmounts">
+        <!-- سيتم ملؤها بـ JavaScript -->
+    </div>
+</div>
+
+<!-- 4️⃣ مربع الملخص والدفع -->
+<div class="payment-summary">
+    <div class="summary-row">
+        <span>الإجمالي:</span>
+        <span id="totalAmount">65.97 ريال</span>
+    </div>
+    <div class="summary-row" id="balanceRow">
+        <span>رصيدك:</span>
+        <span id="currentBalance">150.00 ريال</span>
+    </div>
+    <div class="summary-row balance-after" id="balanceAfterRow" style="display: none;">
+        <span>رصيدك بعد الشراء:</span>
+        <span id="balanceAfter" style="color: #00b894;">84.03 ريال</span>
+    </div>
+
+    <button class="checkout-btn" id="checkoutBtn" onclick="processPayment()">
+        ✅ إتمام الشراء
+    </button>
+</div>
+
+<style>
+    /* خيارات الدفع */
+    .payment-section {
+        margin: 20px 0;
+    }
+    
+    .payment-section h3 {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        color: #ffffff;
+    }
+    
+    .payment-methods {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .payment-option {
+        cursor: pointer;
+    }
+    
+    .payment-option input {
+        display: none;
+    }
+    
+    .payment-card {
+        background: #1a1a2e;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 14px;
+        padding: 16px;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        transition: all 0.3s;
+        position: relative;
+    }
+    
+    .payment-option input:checked + .payment-card {
+        border-color: #6c5ce7;
+        background: rgba(108, 92, 231, 0.1);
+        box-shadow: 0 0 20px rgba(108, 92, 231, 0.3);
+    }
+    
+    .payment-icon {
+        font-size: 32px;
+        min-width: 50px;
+    }
+    
+    .payment-info {
+        flex: 1;
+    }
+    
+    .payment-name {
+        font-weight: bold;
+        font-size: 15px;
+        margin-bottom: 4px;
+    }
+    
+    .payment-desc, .payment-fee, .payment-balance {
+        font-size: 13px;
+        color: #888;
+    }
+    
+    .payment-check {
+        width: 24px;
+        height: 24px;
+        border: 2px solid #ddd;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: transparent;
+        transition: all 0.3s;
+    }
+    
+    .payment-option input:checked + .payment-card .payment-check {
+        background: #6c5ce7;
+        border-color: #6c5ce7;
+        color: white;
+    }
+    
+    /* تنبيه الرصيد */
+    .balance-warning {
+        background: rgba(231, 76, 60, 0.1);
+        border: 2px solid rgba(231, 76, 60, 0.3);
+        border-radius: 14px;
+        padding: 16px;
+        margin: 15px 0;
+        display: flex;
+        gap: 12px;
+    }
+    
+    .warning-icon {
+        font-size: 24px;
+    }
+    
+    .warning-content {
+        flex: 1;
+    }
+    
+    .warning-title {
+        font-weight: bold;
+        color: #e74c3c;
+        margin-bottom: 4px;
+    }
+    
+    .warning-message {
+        color: #888;
+        font-size: 14px;
+    }
+    
+    /* الاقتراحات */
+    .charge-suggestions {
+        background: rgba(108, 92, 231, 0.05);
+        border: 2px solid rgba(108, 92, 231, 0.2);
+        border-radius: 14px;
+        padding: 15px;
+        margin: 15px 0;
+    }
+    
+    .charge-suggestions h3 {
+        margin-bottom: 12px;
+    }
+    
+    .suggestion-card {
+        background: #1a1a2e;
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 12px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s;
+    }
+    
+    .suggestion-card.recommended {
+        border: 2px solid #6c5ce7;
+        background: rgba(108, 92, 231, 0.1);
+    }
+    
+    .suggestion-card.offer {
+        border: 2px solid #f1c40f;
+        background: rgba(241, 196, 15, 0.05);
+    }
+    
+    .suggestion-icon {
+        font-size: 24px;
+        min-width: 40px;
+    }
+    
+    .suggestion-info {
+        flex: 1;
+    }
+    
+    .suggestion-title {
+        font-weight: bold;
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+    
+    .suggestion-desc {
+        font-size: 13px;
+        color: #888;
+    }
+    
+    .suggestion-badge {
+        font-size: 11px;
+        color: #f1c40f;
+        margin-top: 4px;
+        font-weight: bold;
+    }
+    
+    .charge-btn {
+        background: #6c5ce7;
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+    
+    .charge-btn:hover {
+        background: #5d4db5;
+        transform: scale(1.05);
+    }
+    
+    .charge-btn.offer-btn {
+        background: linear-gradient(135deg, #f1c40f, #f39c12);
+        color: black;
+    }
+    
+    /* المبالغ السريعة */
+    .quick-amounts {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    
+    .quick-amount-btn {
+        background: #1a1a2e;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+        padding: 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s;
+        text-align: center;
+    }
+    
+    .quick-amount-btn:hover {
+        background: #6c5ce7;
+        border-color: #6c5ce7;
+    }
+    
+    .quick-amount-btn.recommended {
+        background: #6c5ce7;
+        border-color: #6c5ce7;
+    }
+    
+    .quick-amount-badge {
+        display: block;
+        font-size: 10px;
+        color: #f1c40f;
+        margin-top: 4px;
+    }
+</style>
+
+<script>
+    // 📊 تحديث الملخص المالي
+    function updatePaymentSummary() {
+        const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+        const cartTotal = parseFloat(document.getElementById('totalAmount').innerText);
+        const currentBalance = parseFloat(document.getElementById('currentBalance').innerText);
+        
+        if (paymentMethod === 'wallet') {
+            const balanceAfter = currentBalance - cartTotal;
+            
+            if (balanceAfter < 0) {
+                // ❌ رصيد غير كافي
+                showBalanceWarning(cartTotal, currentBalance);
+                loadChargeSuggestions(Math.abs(balanceAfter), currentBalance);
+                document.getElementById('checkoutBtn').disabled = true;
+            } else {
+                // ✅ رصيد كافي
+                document.getElementById('balanceWarning').style.display = 'none';
+                document.getElementById('chargeSuggestions').style.display = 'none';
+                document.getElementById('balanceAfterRow').style.display = 'flex';
+                document.getElementById('balanceAfter').innerText = balanceAfter.toFixed(2) + ' ريال';
+                document.getElementById('checkoutBtn').disabled = false;
+            }
+        } else {
+            // خيارات دفع أخرى (بطاقة، تقسيط)
+            document.getElementById('balanceWarning').style.display = 'none';
+            document.getElementById('chargeSuggestions').style.display = 'none';
+            document.getElementById('balanceAfterRow').style.display = 'none';
+            document.getElementById('checkoutBtn').disabled = false;
+        }
+    }
+
+    // ⚠️ عرض تنبيه عدم كفاية الرصيد
+    function showBalanceWarning(total, balance) {
+        const shortage = total - balance;
+        document.getElementById('balanceWarning').style.display = 'flex';
+        document.getElementById('shortageAmount').innerText = shortage.toFixed(2);
+        document.getElementById('warningMessage').innerHTML = 
+            `تحتاج إلى <span style="color: #e74c3c; font-weight: bold;">${shortage.toFixed(2)} ريال</span> إضافي`;
+    }
+
+    // 💡 تحميل اقتراحات الشحن
+    async function loadChargeSuggestions(shortage, balance) {
+        document.getElementById('chargeSuggestions').style.display = 'block';
+        
+        // تحديث الاقتراح الأول
+        document.getElementById('exactAmountDesc').innerText = 
+            `اشحن ${shortage.toFixed(2)} ريال فقط`;
+        
+        // تحديث الاقتراح الثاني (مع هدية)
+        const bonusAmount = shortage + 50;
+        document.getElementById('bonusDesc').innerText = 
+            `اشحن ${bonusAmount.toFixed(2)} ريال + 50 ريال هدية`;
+        
+        // تحميل المبالغ الموصى بها
+        const response = await fetch('/api/charge/recommended-amounts');
+        const data = await response.json();
+        
+        const quickAmounts = document.getElementById('quickAmounts');
+        quickAmounts.innerHTML = '';
+        
+        data.recommended_amounts.forEach(item => {
+            const btn = document.createElement('button');
+            btn.className = 'quick-amount-btn';
+            btn.onclick = () => quickCharge(item.amount, 'recommended');
+            btn.innerHTML = `
+                ${item.amount} ريال
+                ${item.badge ? `<span class="quick-amount-badge">${item.badge}</span>` : ''}
+            `;
+            quickAmounts.appendChild(btn);
+        });
+    }
+
+    // 💳 معالجة الدفع
+    async function processPayment() {
+        const method = document.querySelector('input[name="payment_method"]:checked').value;
+        const total = parseFloat(document.getElementById('totalAmount').innerText);
+        
+        const response = await fetch('/api/payment/process', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: '{{ user_id }}',
+                payment_method: method,
+                total_amount: total
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+            alert(result.message);
+            window.location.href = '/';
+        } else {
+            alert('❌ ' + result.message);
+        }
+    }
+
+    // ⚡ شحن سريع
+    async function quickCharge(amount, type) {
+        const response = await fetch('/api/charge/quick-charge', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: '{{ user_id }}',
+                amount: amount
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+            alert(`✅ تم فتح صفحة الشحن\nالمبلغ: ${amount} ريال`);
+            window.location.href = result.redirect_url;
+        }
+    }
+
+    // 🎯 التعديل على خيار الدفع
+    document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+        radio.addEventListener('change', updatePaymentSummary);
+    });
+
+    // 🚀 تحديث عند التحميل
+    window.addEventListener('load', updatePaymentSummary);
+</script>
