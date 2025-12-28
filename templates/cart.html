@@ -694,10 +694,37 @@
         }
         
         // تنفيذ الشراء
-        function processCheckout() {
+        async function processCheckout() {
             closeModal();
-            // انتقل إلى صفحة الدفع
-            window.location.href = '/checkout';
+            
+            const checkoutBtn = document.querySelector('.checkout-btn');
+            checkoutBtn.textContent = '⏳ جاري الشراء...';
+            checkoutBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/cart/checkout', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ user_id: userId })
+                });
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    document.getElementById('successText').innerHTML = `
+                        تم شراء ${data.purchased_count} منتج بنجاح!<br>
+                        <small style="color: #888;">ستجد البيانات في صفحة مشترياتي وفي رسائل البوت</small>
+                    `;
+                    document.getElementById('successModal').classList.add('show');
+                } else {
+                    showToast(data.message || 'حدث خطأ', 'error');
+                    checkoutBtn.textContent = '✅ إتمام الشراء';
+                    checkoutBtn.disabled = false;
+                }
+            } catch (error) {
+                showToast('حدث خطأ في الاتصال', 'error');
+                checkoutBtn.textContent = '✅ إتمام الشراء';
+                checkoutBtn.disabled = false;
+            }
         }
         
         // العداد التنازلي
