@@ -16,8 +16,8 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN", "default_token_123456789:ABCDEFGHIJKLMNO
 SITE_URL = os.environ.get("SITE_URL", "http://localhost:5000")
 
 # === إعدادات بوابة الدفع EdfaPay ===
-EDFAPAY_MERCHANT_ID = os.environ.get("ADFALY_MERCHANT_ID", "")
-EDFAPAY_PASSWORD = os.environ.get("ADFALY_PASSWORD", "")
+EDFAPAY_MERCHANT_ID = os.environ.get("EDFAPAY_MERCHANT_ID", "")
+EDFAPAY_PASSWORD = os.environ.get("EDFAPAY_PASSWORD", "")
 EDFAPAY_API_URL = "https://api.edfapay.com/payment/initiate"
 
 # === إعدادات Firebase ===
