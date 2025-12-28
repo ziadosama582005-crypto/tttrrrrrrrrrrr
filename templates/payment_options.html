@@ -11,6 +11,7 @@
         <div style="text-align: center; margin-bottom: 30px;">
             <h1 style="font-size: 28px; margin-bottom: 8px; color: #6c5ce7;">💳 طريقة الدفع</h1>
             <p style="color: #888; font-size: 14px;">اختر الطريقة الأنسب لك</p>
+            <div id="loadingIndicator" style="font-size: 12px; color: #6c5ce7;">جاري تحميل البيانات...</div>
         </div>
 
 <!-- 1️⃣ قسم خيارات الدفع -->
@@ -360,11 +361,52 @@
 </style>
 
 <script>
+    // � متغيرات عالمية
+    let cartData = {
+        balance: 0,
+        cart_total: 0,
+        shortage: 0
+    };
+
+    // 🚀 تحميل البيانات من Firebase عند التحميل
+    async function loadCheckoutData() {
+        try {
+            const response = await fetch('/api/checkout/data');
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                cartData = data;
+                
+                // تحديث الواجهة بالبيانات الحقيقية
+                document.getElementById('currentBalance').innerText = cartData.balance.toFixed(2) + ' ريال';
+                document.getElementById('walletBalance').innerText = `الرصيد: ${cartData.balance.toFixed(2)} ريال`;
+                document.getElementById('totalAmount').innerText = cartData.cart_total.toFixed(2) + ' ريال';
+                
+                // تحديث الدفعة الشهرية للتقسيط
+                const monthly = (cartData.cart_total / 3).toFixed(2);
+                document.getElementById('monthlyPayment').innerText = `الدفعة: ${monthly} ريال/شهر`;
+                
+                // إخفاء مؤشر التحميل
+                document.getElementById('loadingIndicator').style.display = 'none';
+                
+                // تحديث ملخص الدفع
+                updatePaymentSummary();
+            } else {
+                alert('❌ ' + (data.message || 'خطأ في جلب البيانات'));
+                window.location.href = '/cart';
+            }
+        } catch (error) {
+            console.error('❌ خطأ:', error);
+            alert('❌ حدث خطأ في تحميل البيانات');
+            window.location.href = '/cart';
+        }
+    }
+
     // 📊 تحديث الملخص المالي
     function updatePaymentSummary() {
         const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
-        const cartTotal = parseFloat(document.getElementById('totalAmount').innerText);
-        const currentBalance = parseFloat(document.getElementById('currentBalance').innerText);
+        const cartTotal = cartData.cart_total;
+        const currentBalance = cartData.balance;
         
         if (paymentMethod === 'wallet') {
             const balanceAfter = currentBalance - cartTotal;
@@ -381,6 +423,7 @@
                 document.getElementById('balanceAfterRow').style.display = 'flex';
                 document.getElementById('balanceAfter').innerText = balanceAfter.toFixed(2) + ' ريال';
                 document.getElementById('checkoutBtn').disabled = false;
+                document.getElementById('checkoutBtn').textContent = '✅ إتمام الشراء';
             }
         } else {
             // خيارات دفع أخرى (بطاقة، تقسيط)
@@ -388,6 +431,7 @@
             document.getElementById('chargeSuggestions').style.display = 'none';
             document.getElementById('balanceAfterRow').style.display = 'none';
             document.getElementById('checkoutBtn').disabled = false;
+            document.getElementById('checkoutBtn').textContent = '✅ إتمام الشراء';
         }
     }
 
@@ -432,28 +476,47 @@
         });
     }
 
-    // 💳 معالجة الدفع
+    // 💳 معالجة الدفع - ربط مع Firebase
     async function processPayment() {
         const method = document.querySelector('input[name="payment_method"]:checked').value;
-        const total = parseFloat(document.getElementById('totalAmount').innerText);
+        const total = cartData.cart_total;
+        const balance = cartData.balance;
         
-        const response = await fetch('/api/payment/process', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                user_id: '{{ user_id }}',
-                payment_method: method,
-                total_amount: total
-            })
-        });
+        // التحقق من الرصيد للمحفظة
+        if (method === 'wallet' && balance < total) {
+            alert('❌ رصيدك غير كافي!');
+            return;
+        }
         
-        const result = await response.json();
+        document.getElementById('checkoutBtn').disabled = true;
+        document.getElementById('checkoutBtn').textContent = '⏳ جاري المعالجة...';
         
-        if (result.status === 'success') {
-            alert(result.message);
-            window.location.href = '/';
-        } else {
-            alert('❌ ' + result.message);
+        try {
+            const response = await fetch('/api/cart/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: '{{ user_id }}',
+                    payment_method: method,
+                    total_amount: total
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                alert('✅ تم الشراء بنجاح!');
+                window.location.href = '/cart';
+            } else {
+                alert('❌ ' + (result.message || 'حدث خطأ'));
+                document.getElementById('checkoutBtn').disabled = false;
+                document.getElementById('checkoutBtn').textContent = '✅ إتمام الشراء';
+            }
+        } catch (error) {
+            console.error('❌ خطأ:', error);
+            alert('❌ حدث خطأ في الاتصال');
+            document.getElementById('checkoutBtn').disabled = false;
+            document.getElementById('checkoutBtn').textContent = '✅ إتمام الشراء';
         }
     }
 
@@ -481,6 +544,6 @@
         radio.addEventListener('change', updatePaymentSummary);
     });
 
-    // 🚀 تحديث عند التحميل
-    window.addEventListener('load', updatePaymentSummary);
+    // 🚀 تحميل البيانات عند التحميل
+    window.addEventListener('load', loadCheckoutData);
 </script>
