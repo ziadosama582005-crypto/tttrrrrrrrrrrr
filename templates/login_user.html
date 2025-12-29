@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دخول المتجر</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .login-container {
+            background: #0f0f1a;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            max-width: 450px;
+            width: 100%;
+            padding: 40px;
+            color: #fff;
+        }
+        
+        .logo-area {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        h1 {
+            color: #6c5ce7;
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .subtitle {
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #bbb;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            background: #1a1a2e;
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s;
+            text-align: right;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #6c5ce7;
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+        }
+        
+        input::placeholder {
+            color: #666;
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(108, 92, 231, 0.4);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .back-btn {
+            background: #333;
+            margin-top: 10px;
+        }
+        
+        .back-btn:hover:not(:disabled) {
+            background: #444;
+        }
+        
+        .message {
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-top: 15px;
+            text-align: center;
+            display: none;
+        }
+        
+        .error {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            display: block;
+        }
+        
+        .success {
+            background: rgba(39, 174, 96, 0.1);
+            color: #27ae60;
+            border: 1px solid rgba(39, 174, 96, 0.3);
+            display: block;
+        }
+        
+        .info {
+            background: rgba(108, 92, 231, 0.1);
+            color: #6c5ce7;
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            display: block;
+        }
+        
+        .step {
+            display: none;
+        }
+        
+        .step.active {
+            display: block;
+        }
+        
+        .code-input {
+            letter-spacing: 8px;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .timer {
+            color: #e74c3c;
+            font-weight: bold;
+            text-align: center;
+            margin: 15px 0;
+            font-size: 18px;
+        }
+        
+        .security-note {
+            background: rgba(108, 92, 231, 0.1);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            color: #a29bfe;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .divider {
+            text-align: center;
+            color: #666;
+            margin: 20px 0;
+            font-size: 12px;
+        }
+        
+        .help-text {
+            color: #888;
+            font-size: 12px;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- الخطوة 1: إدخال Telegram ID -->
+        <div id="step1" class="step active">
+            <div class="logo-area">
+                <div class="logo">📱</div>
+                <h1>دخول المتجر</h1>
+                <p class="subtitle">أدخل رقم Telegram ID الخاص بك</p>
+            </div>
+            
+            <form id="userIdForm">
+                <div class="form-group">
+                    <label for="userId">🆔 رقم Telegram ID</label>
+                    <input type="text" id="userId" placeholder="مثال: 123456789" required inputmode="numeric">
+                </div>
+                <button type="submit" id="sendCodeBtn">📤 إرسال كود التحقق</button>
+            </form>
+            
+            <div id="error1" class="message error"></div>
+            
+            <div class="security-note">
+                🛡️ سيتم إرسال كود مؤقت عبر البوت للتحقق من هويتك
+            </div>
+            
+            <div class="help-text">
+                💡 لا تعرف رقم Telegram ID؟ استخدم البوت واكتب /id
+            </div>
+        </div>
+        
+        <!-- الخطوة 2: إدخال الكود -->
+        <div id="step2" class="step">
+            <div class="logo-area">
+                <div class="logo">✅</div>
+                <h1>كود التحقق</h1>
+                <p class="subtitle">أدخل الكود المرسل لك في Telegram</p>
+            </div>
+            
+            <div class="timer">⏰ <span id="countdown">600</span> ثانية</div>
+            
+            <form id="codeForm">
+                <div class="form-group">
+                    <label for="verifyCode">🔐 كود التحقق (6 أرقام)</label>
+                    <input type="text" id="verifyCode" class="code-input" placeholder="000000" maxlength="6" required inputmode="numeric">
+                </div>
+                <button type="submit" id="verifyBtn">✅ تأكيد الدخول</button>
+                <button type="button" class="back-btn" onclick="goBack()">↩️ رجوع</button>
+            </form>
+            
+            <div id="error2" class="message error"></div>
+            <div id="success2" class="message success"></div>
+            
+            <div class="security-note">
+                🛡️ لا تشارك الكود مع أحد - سيظل سري بيننا وبينك فقط
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let countdownInterval;
+        let secondsLeft = 600;
+        let currentUserId = '';
+        
+        // ===== الخطوة 1: إرسال Telegram ID =====
+        document.getElementById('userIdForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const userId = document.getElementById('userId').value.trim();
+            const btn = document.getElementById('sendCodeBtn');
+            const errorDiv = document.getElementById('error1');
+            
+            if (!userId || !userId.match(/^\d+$/)) {
+                errorDiv.textContent = '❌ الرجاء إدخال رقم صحيح فقط';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            currentUserId = userId;
+            btn.disabled = true;
+            btn.innerHTML = '⏳ جاري الإرسال...';
+            errorDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/send_code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // الانتقال للخطوة 2
+                    document.getElementById('step1').classList.remove('active');
+                    document.getElementById('step2').classList.add('active');
+                    startCountdown();
+                    document.getElementById('verifyCode').focus();
+                } else {
+                    errorDiv.textContent = `❌ ${data.message}`;
+                    errorDiv.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerHTML = '📤 إرسال كود التحقق';
+                }
+            } catch (error) {
+                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
+                errorDiv.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '📤 إرسال كود التحقق';
+            }
+        });
+        
+        // ===== الخطوة 2: التحقق من الكود =====
+        document.getElementById('codeForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const code = document.getElementById('verifyCode').value.trim();
+            const btn = document.getElementById('verifyBtn');
+            const errorDiv = document.getElementById('error2');
+            const successDiv = document.getElementById('success2');
+            
+            if (!code || code.length !== 6 || !code.match(/^\d{6}$/)) {
+                errorDiv.textContent = '❌ الرجاء إدخال 6 أرقام صحيحة';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.innerHTML = '⏳ جاري التحقق...';
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch('/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        user_id: currentUserId,
+                        code: code 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    successDiv.textContent = '✅ تم التحقق! جاري نقلك...';
+                    successDiv.style.display = 'block';
+                    clearInterval(countdownInterval);
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1500);
+                } else {
+                    errorDiv.textContent = `❌ ${data.message}`;
+                    errorDiv.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerHTML = '✅ تأكيد الدخول';
+                }
+            } catch (error) {
+                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
+                errorDiv.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '✅ تأكيد الدخول';
+            }
+        });
+        
+        // ===== العد التنازلي =====
+        function startCountdown() {
+            secondsLeft = 600; // 10 دقائق
+            updateCountdown();
+            
+            countdownInterval = setInterval(() => {
+                secondsLeft--;
+                updateCountdown();
+                
+                if (secondsLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    document.getElementById('error2').textContent = '⏰ انتهت صلاحية الكود! الرجاء المحاولة مجدداً';
+                    document.getElementById('error2').style.display = 'block';
+                    document.getElementById('verifyBtn').disabled = true;
+                }
+            }, 1000);
+        }
+        
+        function updateCountdown() {
+            const minutes = Math.floor(secondsLeft / 60);
+            const seconds = secondsLeft % 60;
+            document.getElementById('countdown').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        // ===== الرجوع للخطوة 1 =====
+        function goBack() {
+            clearInterval(countdownInterval);
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById('step1').classList.add('active');
+            document.getElementById('userId').value = '';
+            document.getElementById('verifyCode').value = '';
+            document.getElementById('error1').style.display = 'none';
+            document.getElementById('error2').style.display = 'none';
+            document.getElementById('success2').style.display = 'none';
+            document.getElementById('sendCodeBtn').disabled = false;
+            document.getElementById('sendCodeBtn').innerHTML = '📤 إرسال كود التحقق';
+            document.getElementById('verifyBtn').disabled = false;
+            document.getElementById('verifyBtn').innerHTML = '✅ تأكيد الدخول';
+            document.getElementById('userId').focus();
+        }
+        
+        // ===== السماح بأرقام فقط =====
+        document.getElementById('userId').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+        
+        document.getElementById('verifyCode').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+        
+        // التركيز التلقائي على حقل الـ ID
+        window.addEventListener('load', () => {
+            document.getElementById('userId').focus();
+        });
+    </script>
+</body>
+</html>

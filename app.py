@@ -1968,6 +1968,84 @@ def get_user_orders():
     
     return {'orders': user_orders}
 
+# ✅ صفحة الدخول - طلب User ID والكود
+@app.route('/login', endpoint='login_page')
+def login():
+    """صفحة الدخول - إدخال User ID والكود"""
+    # إذا كان المستخدم مسجل دخول بالفعل، إعادة توجيه للصفحة الرئيسية
+    if session.get('user_id'):
+        return redirect(url_for('index'))
+    
+    return render_template('login_user.html')
+
+# ✅ API endpoint لإرسال كود التحقق للمستخدم
+@app.route('/api/send_code', methods=['POST'])
+@limiter.limit("3 per minute")  # 🔒 منع الإساءة
+def api_send_code():
+    """إرسال كود التحقق للمستخدم عبر Telegram Bot"""
+    global verification_codes
+    
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id', '').strip()
+        
+        if not user_id:
+            return jsonify({'success': False, 'message': 'الرجاء إدخال رقم الآيدي'}), 400
+        
+        # التحقق من أن user_id أرقام فقط
+        if not user_id.isdigit():
+            return jsonify({'success': False, 'message': 'آيدي غير صحيح - يجب أن يكون أرقام فقط'}), 400
+        
+        user_id = str(int(user_id))  # تنظيف الـ ID
+        
+        # التحقق من أن المستخدم موجود في Telegram
+        try:
+            user = bot.get_chat(int(user_id))
+            user_name = user.first_name or "مستخدم"
+        except Exception as e:
+            return jsonify({'success': False, 'message': f'لم نتمكن من العثور على هذا الآيدي في Telegram'}), 404
+        
+        # توليد كود عشوائي 6 أرقام
+        code = str(random.randint(100000, 999999))
+        
+        # حفظ الكود في الذاكرة مع الـ timestamp
+        verification_codes[user_id] = {
+            'code': code,
+            'name': user_name,
+            'created_at': time.time()
+        }
+        
+        # إرسال الكود للمستخدم عبر Telegram
+        try:
+            message_text = f"""
+🔐 كود التحقق من حسابك في المتجر:
+<code>{code}</code>
+
+⏰ صالح لمدة 10 دقائق
+
+⚠️ لا تشارك هذا الكود مع أحد!
+"""
+            bot.send_message(int(user_id), message_text, parse_mode='HTML')
+            
+            return jsonify({
+                'success': True, 
+                'message': f'✅ تم إرسال كود التحقق إلى Telegram',
+                'user_name': user_name
+            })
+        
+        except Exception as e:
+            print(f"❌ خطأ في إرسال الرسالة: {e}")
+            # يمكن للمستخدم محاولة إدخال الكود حتى لو لم يتم الإرسال
+            return jsonify({
+                'success': True,
+                'message': f'✅ تم توليد الكود (قد لا يكون وصل الرسالة)',
+                'user_name': user_name
+            })
+    
+    except Exception as e:
+        print(f"❌ خطأ: {e}")
+        return jsonify({'success': False, 'message': 'حدث خطأ في السيرفر'}), 500
+
 # مسار التحقق من الكود وتسجيل الدخول
 @app.route('/verify', methods=['POST'])
 @limiter.limit("5 per minute")  # 🔒 Rate Limiting: 5 محاولات/دقيقة
@@ -2105,6 +2183,10 @@ def favicon():
 @app.route('/')
 def index():
     """الصفحة الرئيسية - عرض الفئات الافتراضية 3×3"""
+    # ✅ التحقق من تسجيل الدخول - إذا لم يكن المستخدم مسجل دخول، إعادة توجيه لصفحة الدخول
+    if not session.get('user_id'):
+        return redirect(url_for('login_page'))
+    
     user_id = session.get('user_id')
     user_name = session.get('user_name', 'ضيف')
     profile_photo = session.get('profile_photo', '')
