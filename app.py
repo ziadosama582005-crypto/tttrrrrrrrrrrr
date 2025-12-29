@@ -2104,12 +2104,12 @@ def favicon():
 
 @app.route('/')
 def index():
-    # التحقق من جلسة المستخدم - استخدام الجلسة فقط للأمان
+    """الصفحة الرئيسية - عرض الفئات فقط"""
     user_id = session.get('user_id')
     user_name = session.get('user_name', 'ضيف')
     profile_photo = session.get('profile_photo', '')
     
-    # 1. جلب الرصيد وصورة البروفايل (محدث من Firebase)
+    # 1. جلب الرصيد
     balance = 0.0
     if user_id:
         try:
@@ -2122,66 +2122,141 @@ def index():
         except:
             balance = get_balance(user_id)
     
-    # 2. جلب المنتجات (مباشرة من Firebase لضمان ظهورها)
+    # 2. جلب الفئات فقط (بدون منتجات)
+    categories = []
+    try:
+        cat_docs = db.collection('categories').stream()
+        for doc in cat_docs:
+            cat = doc.to_dict()
+            cat['id'] = doc.id
+            
+            # جلب عدد المنتجات في الفئة
+            products_count = 0
+            try:
+                products_count = query_where(
+                    db.collection('products'), 
+                    'category', '==', doc.id
+                ).stream()
+                products_count = len(list(products_count))
+            except:
+                pass
+            
+            cat['products_count'] = products_count
+            categories.append(cat)
+        
+        print(f"✅ تم جلب {len(categories)} فئة من Firebase")
+    except Exception as e:
+        print(f"❌ خطأ في جلب الفئات: {e}")
+        categories = []
+    
+    # 3. جلب عدد منتجات السلة
+    cart_count = 0
+    if user_id:
+        cart = get_user_cart(str(user_id)) or {}
+        cart_count = len(cart.get('items', []))
+    
+    # عرض الصفحة الرئيسية بالفئات فقط
+    return render_template('categories.html',
+                         categories=categories,
+                         balance=balance,
+                         current_user_id=user_id or 0,
+                         current_user=user_id,
+                         user_name=user_name,
+                         profile_photo=profile_photo,
+                         cart_count=cart_count)
+
+
+@app.route('/t/<category_id>')
+def category_products(category_id):
+    """صفحة منتجات الفئة"""
+    user_id = session.get('user_id')
+    user_name = session.get('user_name', 'ضيف')
+    profile_photo = session.get('profile_photo', '')
+    
+    # 1. جلب الرصيد
+    balance = 0.0
+    if user_id:
+        try:
+            user_doc = db.collection('users').document(str(user_id)).get()
+            if user_doc.exists:
+                user_data = user_doc.to_dict()
+                balance = user_data.get('balance', 0.0)
+                if not profile_photo:
+                    profile_photo = user_data.get('profile_photo', '')
+        except:
+            balance = get_balance(user_id)
+    
+    # 2. جلب بيانات الفئة
+    category = None
+    try:
+        cat_doc = db.collection('categories').document(category_id).get()
+        if cat_doc.exists:
+            category = cat_doc.to_dict()
+            category['id'] = cat_doc.id
+        else:
+            return redirect('/')
+    except:
+        return redirect('/')
+    
+    # 3. جلب المنتجات من الفئة (غير مباعة فقط)
     items = []
     try:
-        # جلب المنتجات التي لم تُبع (sold == False)
-        docs = query_where(db.collection('products'), 'sold', '==', False).stream()
-        
+        docs = query_where(db.collection('products'), 'category', '==', category_id).stream()
         for doc in docs:
             p = doc.to_dict()
-            p['id'] = doc.id  # مهم جداً لعملية الشراء
-            items.append(p)
+            if not p.get('sold', False):  # فقط المنتجات غير المباعة
+                p['id'] = doc.id
+                items.append(p)
         
-        print(f"✅ تم جلب {len(items)} منتج من Firebase للمتجر")
-            
+        print(f"✅ تم جلب {len(items)} منتج من الفئة {category_id}")
     except Exception as e:
-        print(f"❌ خطأ في جلب المنتجات للمتجر: {e}")
+        print(f"❌ خطأ في جلب منتجات الفئة: {e}")
         items = []
-
-    # 3. جلب المنتجات المباعة (لعرضها في قسم منفصل)
+    
+    # 4. جلب المنتجات المباعة من الفئة
     sold_items = []
     try:
-        sold_docs = query_where(db.collection('products'), 'sold', '==', True).stream()
+        sold_docs = query_where(db.collection('products'), 'category', '==', category_id).stream()
         for doc in sold_docs:
             p = doc.to_dict()
-            p['id'] = doc.id
-            sold_items.append(p)
-        print(f"✅ تم جلب {len(sold_items)} منتج مباع من Firebase")
+            if p.get('sold', False):  # فقط المنتجات المباعة
+                p['id'] = doc.id
+                sold_items.append(p)
     except Exception as e:
         print(f"❌ خطأ في جلب المنتجات المباعة: {e}")
         sold_items = []
-
-    # 4. جلب مشتريات المستخدم الحالي
+    
+    # 5. جلب مشتريات المستخدم من الفئة
     my_purchases = []
     if user_id:
         try:
             purchases_docs = query_where(db.collection('orders'), 'buyer_id', '==', str(user_id)).stream()
             for doc in purchases_docs:
                 p = doc.to_dict()
-                p['order_id'] = doc.id
-                my_purchases.append(p)
-            print(f"✅ تم جلب {len(my_purchases)} مشتريات للمستخدم {user_id}")
+                if p.get('category') == category_id:
+                    p['order_id'] = doc.id
+                    my_purchases.append(p)
         except Exception as e:
             print(f"❌ خطأ في جلب مشتريات المستخدم: {e}")
-
-    # جلب عدد منتجات السلة
+    
+    # 6. جلب عدد منتجات السلة
     cart_count = 0
     if user_id:
         cart = get_user_cart(str(user_id)) or {}
         cart_count = len(cart.get('items', []))
-
-    # عرض الصفحة
-    return render_template('index.html', 
-                                  items=items,
-                                  sold_items=sold_items,
-                                  my_purchases=my_purchases,
-                                  balance=balance, 
-                                  current_user_id=user_id or 0, 
-                                  current_user=user_id,
-                                  user_name=user_name,
-                                  profile_photo=profile_photo,
-                                  cart_count=cart_count)
+    
+    # عرض صفحة المنتجات
+    return render_template('category.html',
+                         category=category,
+                         items=items,
+                         sold_items=sold_items,
+                         my_purchases=my_purchases,
+                         balance=balance,
+                         current_user_id=user_id or 0,
+                         current_user=user_id,
+                         user_name=user_name,
+                         profile_photo=profile_photo,
+                         cart_count=cart_count)
 
 # ============================================
 # 🛒 نظام سلة التسوق

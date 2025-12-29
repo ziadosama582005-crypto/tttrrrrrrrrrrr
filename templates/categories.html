@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المتجر الرقمي - الفئات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+        
+        /* الرأس */
+        .header {
+            background: rgba(22, 33, 62, 0.95);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #6c5ce7;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-left {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #6c5ce7;
+        }
+        
+        .header-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .balance-display {
+            background: rgba(108, 92, 231, 0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            border: 1px solid #6c5ce7;
+        }
+        
+        .cart-icon {
+            position: relative;
+            cursor: pointer;
+            font-size: 24px;
+            transition: all 0.3s;
+        }
+        
+        .cart-icon:hover {
+            transform: scale(1.1);
+            color: #6c5ce7;
+        }
+        
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff6b6b;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .user-menu {
+            position: relative;
+        }
+        
+        .user-btn {
+            background: #6c5ce7;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        .user-btn:hover {
+            background: #5f3dc4;
+        }
+        
+        /* المحتوى الرئيسي */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        
+        .header-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header-title h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            color: #6c5ce7;
+        }
+        
+        .header-title p {
+            font-size: 16px;
+            color: #888;
+        }
+        
+        /* شبكة الفئات */
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .category-card {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 2px solid rgba(108, 92, 231, 0.3);
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .category-card:hover {
+            border-color: #6c5ce7;
+            transform: translateY(-8px);
+            box-shadow: 0 16px 40px rgba(108, 92, 231, 0.3);
+        }
+        
+        .category-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #6c5ce7 0%, #5f3dc4 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            overflow: hidden;
+        }
+        
+        .category-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .category-content {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .category-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        
+        .category-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+        
+        .products-count {
+            font-size: 14px;
+            color: #888;
+        }
+        
+        .products-count .count {
+            color: #6c5ce7;
+            font-weight: bold;
+        }
+        
+        .arrow {
+            color: #6c5ce7;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+        
+        .category-card:hover .arrow {
+            transform: translateX(8px);
+        }
+        
+        /* الحالة الفارغة */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .empty-state h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #888;
+        }
+        
+        .empty-state p {
+            color: #555;
+            margin-bottom: 30px;
+        }
+        
+        .empty-state-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-family: 'Tajawal', sans-serif;
+            transition: all 0.3s;
+        }
+        
+        .empty-state-btn:hover {
+            background: #5f3dc4;
+            transform: scale(1.05);
+        }
+        
+        /* التذييل */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #555;
+            border-top: 1px solid rgba(108, 92, 231, 0.2);
+            margin-top: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .header-title h1 {
+                font-size: 24px;
+            }
+            
+            .categories-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- الرأس -->
+    <div class="header">
+        <div class="header-left">
+            <div class="logo">🏪 متجر</div>
+        </div>
+        <div class="header-right">
+            {% if current_user %}
+            <div class="balance-display">💰 {{ balance|round(2) }} ر.س</div>
+            {% endif %}
+            <div class="cart-icon" onclick="location.href='/cart'">
+                🛒
+                {% if cart_count > 0 %}
+                <div class="cart-count">{{ cart_count }}</div>
+                {% endif %}
+            </div>
+            <div class="user-menu">
+                {% if current_user %}
+                <button class="user-btn" onclick="location.href='/wallet'">👤 حسابي</button>
+                {% else %}
+                <button class="user-btn" onclick="location.href='/'">🔓 دخول</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- المحتوى الرئيسي -->
+    <div class="container">
+        <div class="header-title">
+            <h1>🛍️ تصفح الفئات</h1>
+            <p>اختر الفئة لرؤية المنتجات المتاحة</p>
+        </div>
+        
+        {% if categories %}
+        <div class="categories-grid">
+            {% for category in categories %}
+            <div class="category-card" onclick="location.href='/t/{{ category.id }}'">
+                <div class="category-image">
+                    {% if category.image_url %}
+                    <img src="{{ category.image_url }}" alt="{{ category.name }}">
+                    {% else %}
+                    📦
+                    {% endif %}
+                </div>
+                <div class="category-content">
+                    <div class="category-name">{{ category.name }}</div>
+                    <div class="category-info">
+                        <div class="products-count">
+                            <span class="count">{{ category.products_count }}</span> منتج
+                        </div>
+                        <div class="arrow">←</div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📂</div>
+            <h2>لا توجد فئات</h2>
+            <p>سيتم إضافة الفئات قريباً</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- التذييل -->
+    <div class="footer">
+        <p>© 2025 متجر رقمي. جميع الحقوق محفوظة</p>
+    </div>
+</body>
+</html>
