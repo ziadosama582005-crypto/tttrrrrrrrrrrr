@@ -383,13 +383,15 @@
     </div>
     
     <script>
+        const currentUserId = {{ current_user_id or 0 }};
+        
         async function addToCart(productId, productName) {
             try {
                 const response = await fetch('/api/cart/add', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        user_id: {{ current_user_id }},
+                        user_id: currentUserId,
                         product_id: productId
                     })
                 });
