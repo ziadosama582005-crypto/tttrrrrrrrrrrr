@@ -515,7 +515,8 @@
     
     <script>
         const userId = '{{ user_id }}';
-        const userBalance = {{ balance }};
+        const userBalanceValue = '{{ balance }}';
+        const userBalance = userBalanceValue ? parseFloat(userBalanceValue) : 0;
         let cartData = null;
         let countdownInterval = null;
         

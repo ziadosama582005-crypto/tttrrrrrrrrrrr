@@ -466,7 +466,9 @@
     </div>
     
     <script>
-        const ADMIN_ID = {{ admin_id }};
+        // تعيين المتغيرات من Flask/Jinja2
+        const ADMIN_ID_VALUE = '{{ admin_id }}';
+        const ADMIN_ID = ADMIN_ID_VALUE ? parseInt(ADMIN_ID_VALUE) : 0;
         let productToDelete = null;
         
         // تحميل المنتجات والأقسام عند فتح الصفحة

@@ -383,7 +383,9 @@
     </div>
     
     <script>
-        const currentUserId = {{ current_user_id or 0 }};
+        // تعيين المتغيرات من Flask/Jinja2
+        const currentUserIdValue = '{{ current_user_id }}';
+        const currentUserId = currentUserIdValue ? parseInt(currentUserIdValue) : 0;
         
         async function addToCart(productId, productName) {
             try {

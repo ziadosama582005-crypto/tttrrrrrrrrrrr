@@ -1959,8 +1959,10 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
         let user = tg.initDataUnsafe.user;
-        let userBalance = {{ balance }};
-        let currentUserId = {{ current_user_id }};
+        const userBalanceValue = '{{ balance }}';
+        let userBalance = userBalanceValue ? parseFloat(userBalanceValue) : 0;
+        const currentUserIdValue = '{{ current_user_id }}';
+        let currentUserId = currentUserIdValue ? parseInt(currentUserIdValue) : 0;
 
         // التحقق من أننا داخل Telegram Web App
         const isTelegramWebApp = tg.initData !== '';
