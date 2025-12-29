@@ -2104,7 +2104,7 @@ def favicon():
 
 @app.route('/')
 def index():
-    """الصفحة الرئيسية - عرض الفئات فقط"""
+    """الصفحة الرئيسية - عرض الفئات الافتراضية 3×3"""
     user_id = session.get('user_id')
     user_name = session.get('user_name', 'ضيف')
     profile_photo = session.get('profile_photo', '')
@@ -2122,32 +2122,27 @@ def index():
         except:
             balance = get_balance(user_id)
     
-    # 2. جلب الفئات فقط (بدون منتجات)
+    # 2. جلب الفئات من Firebase أو استخدام الافتراضية 3×3
     categories = []
     try:
         cat_docs = db.collection('categories').stream()
-        for doc in cat_docs:
-            cat = doc.to_dict()
-            cat['id'] = doc.id
-            
-            # جلب عدد المنتجات في الفئة
-            products_count = 0
-            try:
-                products_count = query_where(
-                    db.collection('products'), 
-                    'category', '==', doc.id
-                ).stream()
-                products_count = len(list(products_count))
-            except:
-                pass
-            
-            cat['products_count'] = products_count
-            categories.append(cat)
+        db_categories = list(cat_docs)
         
-        print(f"✅ تم جلب {len(categories)} فئة من Firebase")
-    except Exception as e:
-        print(f"❌ خطأ في جلب الفئات: {e}")
-        categories = []
+        if db_categories:
+            # الفئات من قاعدة البيانات
+            for doc in db_categories:
+                cat = doc.to_dict()
+                cat['id'] = doc.id
+                categories.append(cat)
+            print(f"✅ تم جلب {len(categories)} فئة من Firebase")
+        else:
+            # الفئات الافتراضية 3×3
+            categories = DEFAULT_CATEGORIES
+            print(f"✅ استخدام الفئات الافتراضية: {len(categories)} فئة")
+    except:
+        # الفئات الافتراضية 3×3
+        categories = DEFAULT_CATEGORIES
+        print(f"✅ استخدام الفئات الافتراضية")
     
     # 3. جلب عدد منتجات السلة
     cart_count = 0
@@ -2155,7 +2150,7 @@ def index():
         cart = get_user_cart(str(user_id)) or {}
         cart_count = len(cart.get('items', []))
     
-    # عرض الصفحة الرئيسية بالفئات فقط
+    # عرض الصفحة الرئيسية بالفئات 3×3
     return render_template('categories.html',
                          categories=categories,
                          balance=balance,

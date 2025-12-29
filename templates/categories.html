@@ -128,11 +128,11 @@
             color: #888;
         }
         
-        /* شبكة الفئات */
+        /* شبكة الفئات - 3×3 */
         .categories-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
             margin-bottom: 40px;
         }
         
@@ -271,13 +271,26 @@
                 font-size: 24px;
             }
             
+            /* شبكة 2×2 في الجوال */
             .categories-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
             }
             
             .header-right {
                 width: 100%;
                 justify-content: space-between;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            /* شبكة 2×2 في الهواتف الصغيرة */
+            .categories-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            
+            .category-card {
+                min-height: 180px;
             }
         }
     </style>
