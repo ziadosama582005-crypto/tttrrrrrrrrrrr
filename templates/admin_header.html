@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>إعدادات الشريط أعلى الهيدر</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6c5ce7;
+      --bg: #0f0f1a;
+      --card: rgba(22, 33, 62, 0.95);
+      --text: #fff;
+      --muted: rgba(255,255,255,0.7);
+      --success: #00b894;
+      --danger: #e74c3c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Tajawal', sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+      color: var(--text);
+      padding: 18px;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      background: var(--card);
+      border: 1px solid rgba(108, 92, 231, 0.25);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+    .header h1 { margin: 0; font-size: 18px; }
+    .btn {
+      border: 0;
+      cursor: pointer;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-family: 'Tajawal', sans-serif;
+      font-weight: 700;
+      color: #fff;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary { background: var(--primary); }
+    .btn-secondary { background: rgba(255,255,255,0.12); }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(108, 92, 231, 0.25);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .row { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .field label { display:block; margin-bottom: 6px; color: var(--muted); font-size: 13px; }
+    .field input[type="text"], .field input[type="url"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(0,0,0,0.25);
+      color: #fff;
+      outline: none;
+    }
+    .switch {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.18);
+    }
+    .hint { color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+    .alert {
+      display:none;
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .alert.show { display:block; }
+    .alert.success { border-color: rgba(0,184,148,0.6); color: #b7ffe7; }
+    .alert.error { border-color: rgba(231,76,60,0.6); color: #ffd1cc; }
+
+    .actions { display:flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🧩 إعدادات الشريط أعلى الهيدر</h1>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <a class="btn btn-secondary" href="/admin/products">🔙 رجوع</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="switch">
+          <input id="enabled" type="checkbox" {% if header_settings.enabled %}checked{% endif %} />
+          <div>
+            <div style="font-weight:700;">تشغيل الشريط</div>
+            <div class="hint">إذا كان مطفي، لن يظهر شيء فوق الهيدر.</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>📝 النص</label>
+          <input id="text" type="text" maxlength="200" placeholder="مثال: خصم اليوم 20%" value="{{ header_settings.text }}" />
+          <div class="hint">ملاحظة: لن يظهر الشريط إذا النص فاضي.</div>
+        </div>
+
+        <div class="field">
+          <label>🔗 الرابط (اختياري)</label>
+          <input id="link_url" type="url" maxlength="500" placeholder="https://example.com" value="{{ header_settings.link_url }}" />
+          <div class="hint">إذا حطّيت رابط، النص يصير قابل للنقر.</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" onclick="saveSettings()">💾 حفظ</button>
+      </div>
+
+      <div id="alert" class="alert"></div>
+    </div>
+  </div>
+
+  <script>
+    function showAlert(type, msg) {
+      const el = document.getElementById('alert');
+      el.className = 'alert show ' + (type === 'success' ? 'success' : 'error');
+      el.textContent = msg;
+      setTimeout(() => { el.className = 'alert'; }, 3000);
+    }
+
+    async function saveSettings() {
+      const enabled = document.getElementById('enabled').checked;
+      const text = document.getElementById('text').value || '';
+      const link_url = document.getElementById('link_url').value || '';
+
+      try {
+        const res = await fetch('/api/admin/set_header_settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled, text, link_url })
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.status !== 'success') {
+          showAlert('error', data.message || 'فشل الحفظ');
+          return;
+        }
+
+        showAlert('success', 'تم الحفظ ✅ (قد تحتاج تحديث الصفحة لرؤية التغيير)');
+      } catch (e) {
+        showAlert('error', 'خطأ في الاتصال');
+      }
+    }
+  </script>
+</body>
+</html>

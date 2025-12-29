@@ -140,6 +140,95 @@ def query_where(ref, field, op, value):
     """استعلام بشرط"""
     return ref.where(field, op, value)
 
+
+# ===================== إعدادات الشريط أعلى الهيدر =====================
+
+def _get_header_settings_doc():
+    if not db:
+        return None
+    return db.collection('settings').document('header')
+
+
+def _default_header_settings():
+    return {
+        'enabled': False,
+        'text': '',
+        'link_url': ''
+    }
+
+
+@admin_bp.route('/admin/header')
+def admin_header_settings_page():
+    """صفحة تعديل الشريط أعلى الهيدر"""
+    if not session.get('is_admin'):
+        return redirect('/dashboard')
+
+    settings_data = _default_header_settings()
+    try:
+        doc_ref = _get_header_settings_doc()
+        if doc_ref:
+            snap = doc_ref.get()
+            if snap.exists:
+                settings_data = {**settings_data, **(snap.to_dict() or {})}
+    except Exception as e:
+        logger.error(f"Error loading header settings: {e}")
+
+    return render_template('admin_header.html', header_settings=settings_data)
+
+
+@admin_bp.route('/api/admin/get_header_settings')
+def api_get_header_settings():
+    """جلب إعدادات الشريط أعلى الهيدر"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+
+    settings_data = _default_header_settings()
+    try:
+        doc_ref = _get_header_settings_doc()
+        if doc_ref:
+            snap = doc_ref.get()
+            if snap.exists:
+                settings_data = {**settings_data, **(snap.to_dict() or {})}
+    except Exception as e:
+        logger.error(f"Error getting header settings: {e}")
+
+    return jsonify({'status': 'success', 'data': settings_data})
+
+
+@admin_bp.route('/api/admin/set_header_settings', methods=['POST'])
+def api_set_header_settings():
+    """تحديث إعدادات الشريط أعلى الهيدر"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+
+    payload = request.json or {}
+    enabled = bool(payload.get('enabled', False))
+    text = str(payload.get('text', '') or '').strip()
+    link_url = str(payload.get('link_url', '') or '').strip()
+
+    # قيود بسيطة لحماية التخزين (بدون تعقيد)
+    if len(text) > 200:
+        return jsonify({'status': 'error', 'message': 'النص طويل جداً (حد أقصى 200 حرف)'}), 400
+    if len(link_url) > 500:
+        return jsonify({'status': 'error', 'message': 'الرابط طويل جداً'}), 400
+
+    try:
+        doc_ref = _get_header_settings_doc()
+        if not doc_ref:
+            return jsonify({'status': 'error', 'message': 'Firebase غير متاح'}), 500
+
+        doc_ref.set({
+            'enabled': enabled,
+            'text': text,
+            'link_url': link_url,
+            'updated_at': firestore.SERVER_TIMESTAMP
+        }, merge=True)
+
+        return jsonify({'status': 'success', 'message': 'تم حفظ إعدادات الشريط'})
+    except Exception as e:
+        logger.error(f"Error setting header settings: {e}")
+        return jsonify({'status': 'error', 'message': 'خطأ في الحفظ'}), 500
+
 # ===================== صفحة الدخول والتحقق =====================
 
 @admin_bp.route('/api/admin/send_code', methods=['POST'])
