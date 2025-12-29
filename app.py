@@ -9,7 +9,7 @@ import html
 import logging
 import telebot
 from telebot import types
-from flask import Flask, request, render_template_string, render_template, redirect, session, jsonify
+from flask import Flask, request, render_template_string, render_template, redirect, session, jsonify, url_for
 import json
 import random
 import hashlib
@@ -2183,13 +2183,11 @@ def favicon():
 @app.route('/')
 def index():
     """الصفحة الرئيسية - عرض الفئات الافتراضية 3×3"""
-    # ✅ التحقق من تسجيل الدخول - إذا لم يكن المستخدم مسجل دخول، إعادة توجيه لصفحة الدخول
-    if not session.get('user_id'):
-        return redirect(url_for('login_page'))
-    
+    # ✅ جلب معلومات المستخدم (إن وجدت)
     user_id = session.get('user_id')
     user_name = session.get('user_name', 'ضيف')
     profile_photo = session.get('profile_photo', '')
+    is_logged_in = bool(user_id)
     
     # 1. جلب الرصيد
     balance = 0.0
@@ -2240,6 +2238,7 @@ def index():
                          current_user=user_id,
                          user_name=user_name,
                          profile_photo=profile_photo,
+                         is_logged_in=is_logged_in,
                          cart_count=cart_count)
 
 
