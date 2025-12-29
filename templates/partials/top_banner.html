@@ -1,0 +1,14 @@
+{# شريط بسيط أعلى الهيدر (يتحكم به المالك من لوحة الأدمن) #}
+{% if header_settings and header_settings.enabled and header_settings.text %}
+<div
+  style="background: rgba(108, 92, 231, 0.18); border-bottom: 1px solid rgba(108, 92, 231, 0.35); color: #fff; padding: 8px 14px; text-align: center; font-size: 13px; line-height: 1.4;"
+>
+  {% if header_settings.link_url %}
+    <a href="{{ header_settings.link_url }}" style="color: #fff; text-decoration: none;">
+      {{ header_settings.text }}
+    </a>
+  {% else %}
+    <span>{{ header_settings.text }}</span>
+  {% endif %}
+</div>
+{% endif %}

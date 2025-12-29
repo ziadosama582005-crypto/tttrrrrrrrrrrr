@@ -36,7 +36,8 @@ from firebase_utils import (
     get_user_cart, save_user_cart, clear_user_cart,
     get_all_products_for_store, get_sold_products, get_all_users, get_all_charge_keys,
     get_active_orders, get_products_by_category, count_products_in_category,
-    save_pending_payment, get_pending_payment, update_pending_payment, add_purchase_history
+    save_pending_payment, get_pending_payment, update_pending_payment, add_purchase_history,
+    get_header_settings
 )
 from payment import (
     calculate_hash, create_payment_payload,
@@ -96,6 +97,29 @@ limiter = Limiter(
     default_limits=RATE_LIMIT_DEFAULT,
     storage_uri="memory://",
 )
+
+# --- إعدادات الشريط أعلى الهيدر (حقن للقوالب) ---
+_header_settings_cache = None
+_header_settings_cache_at = 0.0
+_HEADER_SETTINGS_CACHE_TTL_SECONDS = 30
+
+
+@app.context_processor
+def inject_header_settings():
+    """حقن إعدادات الشريط أعلى الهيدر لكل القوالب."""
+    global _header_settings_cache, _header_settings_cache_at
+
+    try:
+        now = time.time()
+        if _header_settings_cache is not None and (now - _header_settings_cache_at) < _HEADER_SETTINGS_CACHE_TTL_SECONDS:
+            return {'header_settings': _header_settings_cache}
+
+        settings = get_header_settings() if callable(get_header_settings) else {'enabled': False, 'text': '', 'link_url': ''}
+        _header_settings_cache = settings
+        _header_settings_cache_at = now
+        return {'header_settings': settings}
+    except Exception:
+        return {'header_settings': {'enabled': False, 'text': '', 'link_url': ''}}
 
 # --- Security Headers ---
 @app.after_request

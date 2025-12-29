@@ -197,6 +197,48 @@ def get_categories():
         print(f"⚠️ خطأ في جلب الأقسام: {e}")
         return []
 
+# === إعدادات واجهة المستخدم (settings) ===
+def get_header_settings():
+    """جلب إعدادات الشريط أعلى الهيدر"""
+    defaults = {
+        'enabled': False,
+        'text': '',
+        'link_url': ''
+    }
+
+    try:
+        if not db:
+            return defaults
+
+        doc = db.collection('settings').document('header').get()
+        if not doc.exists:
+            return defaults
+
+        data = doc.to_dict() or {}
+        # دمج القيم الافتراضية لحماية القوالب من مفاتيح ناقصة
+        return {**defaults, **data}
+    except Exception as e:
+        print(f"⚠️ خطأ في جلب إعدادات الهيدر: {e}")
+        return defaults
+
+
+def set_header_settings(enabled=False, text='', link_url=''):
+    """تحديث إعدادات الشريط أعلى الهيدر"""
+    try:
+        if not db:
+            return False
+
+        db.collection('settings').document('header').set({
+            'enabled': bool(enabled),
+            'text': str(text or '').strip(),
+            'link_url': str(link_url or '').strip(),
+            'updated_at': firestore.SERVER_TIMESTAMP if firestore else None
+        }, merge=True)
+        return True
+    except Exception as e:
+        print(f"❌ خطأ في تحديث إعدادات الهيدر: {e}")
+        return False
+
 def add_category(name, image_url='', delivery_type='instant', order=999):
     """إضافة قسم جديد"""
     try:
