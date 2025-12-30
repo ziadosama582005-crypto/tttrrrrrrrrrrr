@@ -21,49 +21,7 @@
             background: var(--bg-color); 
             color: var(--text-color); 
             min-height: 100vh;
-        }
-        
-        /* الهيدر */
-        .page-header {
-            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
-            padding: 20px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 4px 20px rgba(108, 92, 231, 0.4);
-        }
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        .back-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-            text-decoration: none;
-        }
-        .back-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
-        }
-        .page-title {
-            font-size: 20px;
-            font-weight: bold;
-        }
-        .header-spacer {
-            width: 40px;
+            padding-top: 10px;
         }
         
         /* المحتوى */
@@ -317,13 +275,6 @@
 </head>
 <body>
     {% include 'partials/top_banner.html' %}
-    <div class="page-header">
-        <div class="header-content">
-            <a href="/" class="back-btn">←</a>
-            <h1 class="page-title">💳 محفظتي</h1>
-            <div class="header-spacer"></div>
-        </div>
-    </div>
     
     <div class="page-content">
         <!-- بطاقة الرصيد -->

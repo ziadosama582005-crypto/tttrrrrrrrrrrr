@@ -20,55 +20,7 @@
             background: var(--bg-color); 
             color: var(--text-color); 
             min-height: 100vh;
-        }
-        
-        /* الهيدر */
-        .page-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 25px 20px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-        }
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .back-btn {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            border: none;
-            color: white;
-            width: 45px;
-            height: 45px;
-            border-radius: 12px;
-            font-size: 22px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-            text-decoration: none;
-        }
-        .back-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
-        }
-        .page-title {
-            font-size: 24px;
-            font-weight: bold;
-        }
-        .purchases-count {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: bold;
+            padding-top: 10px;
         }
         
         /* المحتوى */
@@ -405,13 +357,6 @@
 </head>
 <body>
     {% include 'partials/top_banner.html' %}
-    <div class="page-header">
-        <div class="header-content">
-            <a href="/" class="back-btn">→</a>
-            <h1 class="page-title">🛍️ طلباتي</h1>
-            <span class="purchases-count">{{ purchases|length }}</span>
-        </div>
-    </div>
     
     <div class="page-content">
         {% if purchases %}

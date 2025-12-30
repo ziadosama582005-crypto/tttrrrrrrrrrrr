@@ -17,92 +17,7 @@
             background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
             color: #fff;
             min-height: 100vh;
-        }
-        
-        /* الرأس */
-        .header {
-            background: rgba(22, 33, 62, 0.95);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #6c5ce7;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        
-        .header-left {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-        
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #6c5ce7;
-        }
-        
-        .header-right {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-        
-        .balance-display {
-            background: rgba(108, 92, 231, 0.2);
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            border: 1px solid #6c5ce7;
-        }
-        
-        .cart-icon {
-            position: relative;
-            cursor: pointer;
-            font-size: 24px;
-            transition: all 0.3s;
-        }
-        
-        .cart-icon:hover {
-            transform: scale(1.1);
-            color: #6c5ce7;
-        }
-        
-        .cart-count {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #ff6b6b;
-            color: white;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        
-        .user-menu {
-            position: relative;
-        }
-        
-        .user-btn {
-            background: #6c5ce7;
-            border: none;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-family: 'Tajawal', sans-serif;
-        }
-        
-        .user-btn:hover {
-            background: #5f3dc4;
+            padding-top: 10px;
         }
         
         /* المحتوى الرئيسي */
@@ -342,30 +257,6 @@
 </head>
 <body>
     {% include 'partials/top_banner.html' %}
-    <!-- الرأس -->
-    <div class="header">
-        <div class="header-left">
-            <div class="logo">🏪 متجر</div>
-        </div>
-        <div class="header-right">
-            {% if current_user %}
-            <div class="balance-display">💰 {{ balance|round(2) }} ر.س</div>
-            {% endif %}
-            <div class="cart-icon" onclick="location.href='/cart'">
-                🛒
-                {% if cart_count > 0 %}
-                <div class="cart-count">{{ cart_count }}</div>
-                {% endif %}
-            </div>
-            <div class="user-menu">
-                {% if current_user %}
-                <button class="user-btn" onclick="location.href='/wallet'">👤 حسابي</button>
-                {% else %}
-                <button class="user-btn" onclick="openLoginModal()">🔓 دخول</button>
-                {% endif %}
-            </div>
-        </div>
-    </div>
     
     <!-- المحتوى الرئيسي -->
     <div class="container">
