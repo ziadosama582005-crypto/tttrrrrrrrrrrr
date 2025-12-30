@@ -153,10 +153,8 @@ def register_telegram_handlers(bot, extensions, firebase_utils, config, payment)
             # إنشاء أزرار Inline
             markup = types.InlineKeyboardMarkup(row_width=2)
             btn_shop = types.InlineKeyboardButton("🏪 افتح السوق", callback_data="open_shop")
-            btn_code = types.InlineKeyboardButton("🔐 كود الدخول", callback_data="get_code")
             btn_myid = types.InlineKeyboardButton("🆔 معرفي", callback_data="my_id")
-            markup.add(btn_shop)
-            markup.add(btn_code, btn_myid)
+            markup.add(btn_shop, btn_myid)
             
             # إرسال الرسالة
             print(f"📤 إرسال رسالة الترحيب...")
@@ -215,7 +213,7 @@ def register_telegram_handlers(bot, extensions, firebase_utils, config, payment)
         )
     
     # معالج أزرار Inline
-    @bot.callback_query_handler(func=lambda call: call.data in ["open_shop", "get_code", "my_id"])
+    @bot.callback_query_handler(func=lambda call: call.data in ["open_shop", "my_id"])
     def handle_inline_buttons(call):
         """معالج أزرار Inline"""
         try:
@@ -228,25 +226,6 @@ def register_telegram_handlers(bot, extensions, firebase_utils, config, payment)
                     f"🏪 *اضغط الزر أدناه لفتح السوق:*\n\n"
                     f"🔗 الرابط: {SITE_URL}",
                     reply_markup=markup,
-                    parse_mode="Markdown"
-                )
-            elif call.data == "get_code":
-                user_id = str(call.from_user.id)
-                user_name = call.from_user.first_name
-                if call.from_user.last_name:
-                    user_name += ' ' + call.from_user.last_name
-                code = str(random.randint(100000, 999999))
-                verification_codes[user_id] = {
-                    'code': code,
-                    'name': user_name,
-                    'created_at': time.time()
-                }
-                bot.send_message(
-                    call.message.chat.id,
-                    f"🔐 *كود الدخول الخاص بك:*\n\n"
-                    f"`{code}`\n\n"
-                    f"⏱ صالح لمدة 10 دقائق\n"
-                    f"📋 انسخ الكود وأدخله في الموقع",
                     parse_mode="Markdown"
                 )
             elif call.data == "my_id":
