@@ -3,10 +3,14 @@ Telegram Bot Handlers - جميع معالجات البوت
 تم نقلها من app.py
 """
 import json
+import time
+import random
+import requests
 from telebot import types
 from extensions import (
     bot, db, user_states, verification_codes,
-    ADMIN_ID, logger, BOT_ACTIVE
+    ADMIN_ID, logger, BOT_ACTIVE, SITE_URL,
+    EDFAPAY_MERCHANT_ID, EDFAPAY_PASSWORD
 )
 
 # استيراد firestore للـ SERVER_TIMESTAMP
