@@ -2,7 +2,6 @@
 Profile Routes - مسارات صفحة الحساب الشخصي
 """
 from flask import Blueprint, render_template, session, redirect, url_for, jsonify
-from firebase_utils import get_user_by_id, get_user_orders
 from extensions import db, logger
 import json
 from datetime import datetime
