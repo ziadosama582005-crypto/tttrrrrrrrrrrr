@@ -259,6 +259,32 @@
             box-shadow: 0 4px 12px rgba(108, 92, 231, 0.5);
         }
 
+        /* --- أزرار التبويبات فوق الفئات --- */
+        .tab-filter-btn {
+            padding: 10px 16px;
+            background: rgba(108, 92, 231, 0.15);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 20px;
+            color: #aaa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .tab-filter-btn:hover {
+            background: rgba(108, 92, 231, 0.25);
+            border-color: rgba(108, 92, 231, 0.5);
+            color: #c9a3ff;
+        }
+        .tab-filter-btn.active {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            border-color: #6c5ce7;
+            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.5);
+        }
+
         .dynamic-content {
             display: none;
             animation: fadeIn 0.3s ease;
@@ -1837,6 +1863,25 @@
         </div>
     </div>
 
+    <!-- تبويبات فوق الفئات -->
+    <div style="display: flex; gap: 8px; overflow-x: auto; padding: 12px 0; margin-bottom: 15px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch;">
+        <button class="tab-filter-btn active" onclick="filterCategoryByDelivery('all')">
+            ⭐ الكل
+        </button>
+        <button class="tab-filter-btn" onclick="filterCategoryByDelivery('instant')">
+            ⚡ فوري
+        </button>
+        <button class="tab-filter-btn" onclick="filterCategoryByDelivery('manual')">
+            👨‍💼 يدوي
+        </button>
+        <button class="tab-filter-btn" onclick="sortCategories('popular')">
+            🔥 الأكثر شهرة
+        </button>
+        <button class="tab-filter-btn" onclick="sortCategories('newest')">
+            ✨ الأحدث
+        </button>
+    </div>
+
     <div class="categories-header">
         <h3>💎 الأقسام</h3>
         <small onclick="filterCategory('all')">عرض الكل</small>
@@ -2432,6 +2477,104 @@
             if(filteredCats.length > 0) {
                 filterCategory(filteredCats[0].name);
             }
+        }
+        
+        // دالة تصفية الأقسام حسب نوع التسليم
+        function filterCategoryByDelivery(type) {
+            // تحديث الأزرار النشطة
+            document.querySelectorAll('.tab-filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // جعل الزر الحالي نشطاً
+            event.target.classList.add('active');
+            
+            // تصفية وعرض الأقسام
+            const container = document.getElementById('categoriesContainer');
+            
+            if(type === 'all') {
+                // عرض جميع الأقسام
+                renderAllCategories();
+            } else {
+                // تصفية حسب نوع التسليم
+                const filtered = allCategories.filter(cat => {
+                    const catDelivery = cat.delivery_type || 'instant';
+                    return catDelivery === type;
+                });
+                
+                // إعادة رسم الأقسام المصفاة
+                renderCategoriesGrid(filtered);
+            }
+        }
+        
+        // دالة ترتيب الأقسام
+        function sortCategories(sortBy) {
+            // تحديث الأزرار النشطة
+            document.querySelectorAll('.tab-filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // جعل الزر الحالي نشطاً
+            event.target.classList.add('active');
+            
+            const container = document.getElementById('categoriesContainer');
+            const sorted = [...allCategories];
+            
+            if(sortBy === 'popular') {
+                // ترتيب حسب عدد المنتجات
+                sorted.sort((a, b) => {
+                    const aCount = allItems.filter(i => i.category === a.name).length;
+                    const bCount = allItems.filter(i => i.category === b.name).length;
+                    return bCount - aCount;
+                });
+            } else if(sortBy === 'newest') {
+                // ترتيب حسب آخر تحديث (إذا كان موجود)
+                sorted.sort((a, b) => {
+                    return (b.order || 0) - (a.order || 0);
+                });
+            }
+            
+            renderCategoriesGrid(sorted);
+        }
+        
+        // دالة رسم شبكة الأقسام
+        function renderCategoriesGrid(categories) {
+            const container = document.getElementById('categoriesContainer');
+            const colors = ['bg-netflix', 'bg-shahid', 'bg-disney', 'bg-osn', 'bg-video', 'bg-other'];
+            const defaultIcons = [
+                'https://cdn-icons-png.flaticon.com/512/732/732228.png',
+                'https://cdn-icons-png.flaticon.com/512/3845/3845874.png',
+                'https://cdn-icons-png.flaticon.com/512/5977/5977590.png',
+                'https://cdn-icons-png.flaticon.com/512/1946/1946488.png',
+                'https://cdn-icons-png.flaticon.com/512/3074/3074767.png',
+                'https://cdn-icons-png.flaticon.com/512/2087/2087815.png'
+            ];
+            
+            if(categories.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#888; padding: 20px;">لا توجد أقسام</p>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            categories.forEach((cat, index) => {
+                const catCard = document.createElement('div');
+                catCard.className = 'cat-card ' + (colors[index % colors.length] || 'bg-other');
+                
+                const icon = cat.icon || defaultIcons[index % defaultIcons.length];
+                catCard.innerHTML = `
+                    <div class="cat-icon"><img src="${icon}" alt="${cat.name}"></div>
+                    <div class="cat-title">${cat.name}</div>
+                    <div class="cat-count">${allItems.filter(i => i.category === cat.name).length} منتج</div>
+                `;
+                
+                catCard.onclick = () => filterCategory(cat.name);
+                container.appendChild(catCard);
+            });
+        }
+        
+        // دالة عرض جميع الأقسام
+        function renderAllCategories() {
+            renderCategoriesGrid(allCategories);
         }
         
         function filterCategory(category) {
