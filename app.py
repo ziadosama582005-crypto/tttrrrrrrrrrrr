@@ -2254,9 +2254,14 @@ def index():
         cart = get_user_cart(str(user_id)) or {}
         cart_count = len(cart.get('items', []))
     
+    # 4. تحضير JSON للفئات للـ JavaScript
+    import json
+    categories_json = json.dumps([{'id': cat.get('id', ''), 'name': cat.get('name', '')} for cat in categories])
+    
     # عرض الصفحة الرئيسية بالفئات 3×3
     return render_template('categories.html',
                          categories=categories,
+                         categories_json=categories_json,
                          balance=balance,
                          current_user_id=user_id or 0,
                          current_user=user_id,
@@ -2345,6 +2350,21 @@ def category_products(category_id):
         cart = get_user_cart(str(user_id)) or {}
         cart_count = len(cart.get('items', []))
     
+    # 7. جلب جميع الفئات للـ sidebar
+    all_categories = []
+    try:
+        cat_docs = db.collection('categories').stream()
+        for doc in cat_docs:
+            cat = doc.to_dict()
+            cat['id'] = doc.id
+            all_categories.append(cat)
+    except:
+        pass
+    
+    # 8. تحضير JSON للفئات للـ JavaScript
+    import json
+    categories_json = json.dumps([{'id': cat.get('id', ''), 'name': cat.get('name', '')} for cat in all_categories])
+    
     # عرض صفحة المنتجات
     return render_template('category.html',
                          category=category,
@@ -2356,7 +2376,9 @@ def category_products(category_id):
                          current_user=user_id,
                          user_name=user_name,
                          profile_photo=profile_photo,
-                         cart_count=cart_count)
+                         cart_count=cart_count,
+                         categories=all_categories,
+                         categories_json=categories_json)
 
 # ============================================
 # 🛒 نظام سلة التسوق

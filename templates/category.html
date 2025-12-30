@@ -413,11 +413,14 @@
         }
 
         // إعداد بيانات الفئات للـ sidebar
-        window.categoriesData = [
-            {% for category in categories %}
-            { id: '{{ category.id }}', name: '{{ category.name }}' }{{ "," if not loop.last }}
-            {% endfor %}
-        ];
+        (function() {
+            var jsonStr = '{{ categories_json|safe }}';
+            try {
+                window.categoriesData = JSON.parse(jsonStr);
+            } catch(e) {
+                window.categoriesData = [];
+            }
+        })();
     </script>
 </body>
 </html>
