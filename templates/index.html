@@ -1711,6 +1711,17 @@
         </div>
         {% endif %}
     </div>
+    
+    <!-- تبويبات نوع التسليم -->
+    <div class="delivery-tabs">
+        <button class="delivery-tab active" id="tabInstant" onclick="switchDeliveryTab('instant')">
+            ⚡ تسليم فوري
+        </button>
+        <button class="delivery-tab" id="tabManual" onclick="switchDeliveryTab('manual')">
+            👨‍💼 تسليم يدوي
+        </button>
+    </div>
+    
     <!-- نافذة تسجيل الدخول المنبثقة -->
     <div class="login-modal" id="loginModal">
         <div class="login-modal-content">
@@ -1730,16 +1741,6 @@
                 ليس لديك كود؟ <a href="#" onclick="showCodeHelp(); return false;">احصل على كود من البوت</a>
             </p>
         </div>
-    </div>
-
-    <!-- تبويبات نوع التسليم -->
-    <div class="delivery-tabs">
-        <button class="delivery-tab active" id="tabInstant" onclick="switchDeliveryTab('instant')">
-            ⚡ تسليم فوري
-        </button>
-        <button class="delivery-tab" id="tabManual" onclick="switchDeliveryTab('manual')">
-            👨‍💼 تسليم يدوي
-        </button>
     </div>
 
     <div class="categories-header">
