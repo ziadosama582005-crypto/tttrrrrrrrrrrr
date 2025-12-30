@@ -63,7 +63,10 @@ def category_products(category_id):
     # جلب الرصيد
     balance = 0.0
     if user_id:
-        balance = get_balance(user_id)
+        try:
+            balance = get_balance(user_id)
+        except:
+            balance = 0.0
     
     # جلب عدد السلة
     cart_count = 0
@@ -71,8 +74,46 @@ def category_products(category_id):
         cart = get_user_cart(str(user_id)) or {}
         cart_count = len(cart.get('items', []))
     
+    # جلب بيانات الفئة
+    category = None
+    categories = get_categories()
+    for cat in categories:
+        if cat.get('id') == category_id:
+            category = cat
+            break
+    
+    if not category:
+        # فئة غير موجودة
+        category = {'id': category_id, 'name': 'فئة غير موجودة'}
+    
+    # جلب منتجات الفئة
+    all_products = get_products_by_category(category.get('name', ''))
+    
+    # تصنيف المنتجات
+    items = []  # المتاحة
+    sold_items = []  # المباعة
+    my_purchases = []  # مشتريات المستخدم
+    
+    for product in all_products:
+        if product.get('sold'):
+            # تحقق إذا كان المستخدم هو المشتري
+            if user_id and str(product.get('buyer_id')) == str(user_id):
+                my_purchases.append(product)
+            else:
+                sold_items.append(product)
+        else:
+            items.append(product)
+    
+    # تحضير JSON للفئات
+    categories_json = json.dumps([{'id': c.get('id', ''), 'name': c.get('name', '')} for c in categories])
+    
     return render_template('category.html',
+                         category=category,
                          category_id=category_id,
+                         items=items,
+                         sold_items=sold_items,
+                         my_purchases=my_purchases,
+                         categories_json=categories_json,
                          balance=balance,
                          current_user_id=user_id or 0,
                          current_user=user_id,
