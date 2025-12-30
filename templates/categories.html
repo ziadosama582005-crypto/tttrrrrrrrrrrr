@@ -509,7 +509,7 @@
         }
     </style>
 </head>
-<body>
+<body data-logged-in="{{ 'true' if is_logged_in else 'false' }}">
     <!-- الهيدر الرئيسي -->
     <header class="main-header">
         <!-- يمين: البحث وحسابي -->
@@ -568,12 +568,12 @@
                 <span>📦</span>
                 <span>مشترياتي</span>
             </div>
-            <div class="menu-item" onclick="window.open('https://t.me/{{ bot_username | default("your_bot") }}', '_blank'); closeSideMenu();" style="cursor: pointer;">
+            <div class="menu-item" onclick="openTelegramBot(); closeSideMenu();" style="cursor: pointer;">
                 <span>💬</span>
                 <span>الدعم الفني</span>
             </div>
             <div class="menu-divider"></div>
-            <div class="menu-item" onclick="window.open('https://t.me/{{ bot_username | default("your_bot") }}', '_blank'); closeSideMenu();" style="cursor: pointer;">
+            <div class="menu-item" onclick="openTelegramBot(); closeSideMenu();" style="cursor: pointer;">
                 <span>📱</span>
                 <span>تيليجرام</span>
             </div>
@@ -1243,7 +1243,7 @@
         });
         
         // ====== دالة الذهاب للصفحة أو تسجيل الدخول ======
-        var isLoggedIn = {{ 'true' if is_logged_in else 'false' }};
+        var isLoggedIn = document.body.getAttribute('data-logged-in') === 'true';
         var pendingRedirect = null;
         
         function goToPageOrLogin(url, pageName) {
@@ -1258,6 +1258,13 @@
                 alert('⚠️ يجب تسجيل الدخول أولاً للوصول لـ ' + pageName);
                 openLoginModal();
             }
+        }
+        
+        // فتح بوت تيليجرام
+        var botUsername = '{{ bot_username | default("") }}';
+        function openTelegramBot() {
+            var username = botUsername || 'your_bot';
+            window.open('https://t.me/' + username, '_blank');
         }
         
         // تعديل دالة نجاح تسجيل الدخول للتوجيه بعد النجاح
