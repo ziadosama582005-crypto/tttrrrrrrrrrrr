@@ -517,8 +517,8 @@
             <button class="header-btn" onclick="openSearch()" title="بحث">
                 🔍
             </button>
-            <button class="header-btn account-btn" onclick="openLoginModal()" title="حسابي">
-                👤 حسابي
+            <button class="header-btn account-btn" id="headerAccountBtn" onclick="handleAccountClick()" title="حسابي">
+                <span id="headerAccountIcon">👤</span> <span id="headerAccountText">حسابي</span>
             </button>
         </div>
         
@@ -551,9 +551,9 @@
                 <span>🏠</span>
                 <span>الرئيسية</span>
             </a>
-            <div class="menu-item" onclick="openLoginModal(); closeSideMenu();" style="cursor: pointer;">
-                <span>👤</span>
-                <span>حسابي</span>
+            <div class="menu-item" id="accountMenuItem" onclick="handleAccountClick();" style="cursor: pointer;">
+                <span id="accountIcon">👤</span>
+                <span id="accountText">حسابي</span>
             </div>
             <div class="menu-item" onclick="goToPageOrLogin('/cart', 'السلة');" style="cursor: pointer;">
                 <span>🛒</span>
@@ -923,6 +923,21 @@
             resetForm();
         }
         
+        // دالة تسجيل الخروج
+        async function logout() {
+            if (confirm('هل تريد تسجيل الخروج؟')) {
+                try {
+                    await fetch('/logout', {method: 'POST'});
+                    localStorage.removeItem('user_logged_in');
+                    isLoggedIn = false;
+                    location.reload();
+                } catch(error) {
+                    localStorage.removeItem('user_logged_in');
+                    location.reload();
+                }
+            }
+        }
+        
         // إعادة تعيين النموذج
         function resetForm() {
             document.getElementById('userId').value = '';
@@ -1243,7 +1258,9 @@
         });
         
         // ====== دالة الذهاب للصفحة أو تسجيل الدخول ======
-        var isLoggedIn = document.body.getAttribute('data-logged-in') === 'true';
+        // تحقق من حالة التسجيل من both data attribute و localStorage
+        var isLoggedIn = document.body.getAttribute('data-logged-in') === 'true' || 
+                         localStorage.getItem('user_logged_in') === 'true';
         var pendingRedirect = null;
         
         function goToPageOrLogin(url, pageName) {
@@ -1271,6 +1288,10 @@
         window.onLoginSuccess = function() {
             if (originalLoginSuccess) originalLoginSuccess();
             
+            // احفظ حالة التسجيل في localStorage
+            localStorage.setItem('user_logged_in', 'true');
+            isLoggedIn = true;
+            
             if (pendingRedirect) {
                 window.location.href = pendingRedirect;
                 pendingRedirect = null;
@@ -1278,6 +1299,65 @@
                 window.location.reload();
             }
         };
+        
+        // دالة معالجة نقر زر حسابي
+        function handleAccountClick() {
+            if (isLoggedIn) {
+                // إذا كان المستخدم مسجل دخول، اعرض خيارات
+                showLogoutMenu();
+            } else {
+                // وإلا فتح نافذة تسجيل الدخول
+                openLoginModal();
+            }
+            closeSideMenu();
+        }
+        
+        // عرض قائمة تسجيل الخروج
+        function showLogoutMenu() {
+            var accountItem = document.getElementById('accountMenuItem');
+            var menu = document.createElement('div');
+            menu.style.cssText = 'position: absolute; background: rgba(40, 40, 60, 0.95); border: 1px solid rgba(108, 92, 231, 0.3); border-radius: 10px; padding: 10px; z-index: 1000; min-width: 150px;';
+            menu.innerHTML = `
+                <div style="padding: 8px 12px; cursor: pointer; border-radius: 5px; font-size: 14px; color: #ff6b6b;" 
+                     onmouseover="this.style.background='rgba(255, 107, 107, 0.2)'"
+                     onmouseout="this.style.background='transparent'"
+                     onclick="logout()">
+                    🚪 تسجيل الخروج
+                </div>
+            `;
+            document.body.appendChild(menu);
+            
+            // أغلق القائمة عند النقر خارجها
+            setTimeout(() => {
+                document.addEventListener('click', function closeMenu(e) {
+                    if (e.target !== accountItem && !menu.contains(e.target)) {
+                        menu.remove();
+                        document.removeEventListener('click', closeMenu);
+                    }
+                });
+            }, 0);
+        }
+        
+        // تحديث عنصر حسابي عند تحميل الصفحة
+        function updateAccountMenuOnLoad() {
+            // تحديث القائمة الجانبية
+            var accountIcon = document.getElementById('accountIcon');
+            var accountText = document.getElementById('accountText');
+            
+            // تحديث الهيدر
+            var headerAccountIcon = document.getElementById('headerAccountIcon');
+            var headerAccountText = document.getElementById('headerAccountText');
+            
+            if (isLoggedIn) {
+                if (accountIcon) accountIcon.textContent = '✅';
+                if (accountText) accountText.textContent = 'حسابي (مسجل)';
+                if (headerAccountIcon) headerAccountIcon.textContent = '✅';
+                if (headerAccountText) headerAccountText.textContent = 'حسابي';
+            }
+        }
+        
+        // استدعاء الدالة عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', updateAccountMenuOnLoad);
     </script>
 </body>
 </html>
