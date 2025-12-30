@@ -275,6 +275,8 @@
             outline: none;
             min-width: fit-content;
             flex-shrink: 0;
+            display: inline-block;
+            height: fit-content;
         }
         .tab-filter-btn:hover {
             background: rgba(108, 92, 231, 0.25);
@@ -1867,7 +1869,7 @@
     </div>
 
     <!-- تبويبات فوق الفئات -->
-    <div style="display: flex; gap: 8px; overflow-x: auto; padding: 12px 0; margin-bottom: 15px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch;">
+    <div style="display: flex; gap: 8px; overflow-x: auto; padding: 12px 0; margin-bottom: 15px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; align-items: center;">
         <button class="tab-filter-btn active" onclick="filterCategoryByDelivery('all')">
             ⭐ الكل
         </button>
@@ -2485,6 +2487,8 @@
         // دالة تصفية الأقسام حسب نوع التسليم
         function filterCategoryByDelivery(type) {
             try {
+                console.log('🔀 تصفية الأقسام حسب:', type);
+                
                 // تحديث الأزرار النشطة
                 document.querySelectorAll('.tab-filter-btn').forEach(btn => {
                     btn.classList.remove('active');
@@ -2493,6 +2497,7 @@
                 // جعل الزر الحالي نشطاً (استخدام event بشكل آمن)
                 if(event && event.target) {
                     event.target.classList.add('active');
+                    console.log('✅ تم تحديث الزر النشط');
                 }
                 
                 // تصفية وعرض الأقسام
@@ -2500,6 +2505,7 @@
                 
                 if(type === 'all') {
                     // عرض جميع الأقسام
+                    console.log('📋 عرض جميع الأقسام:', allCategories.length);
                     renderAllCategories();
                 } else {
                     // تصفية حسب نوع التسليم
@@ -2508,6 +2514,7 @@
                         return catDelivery === type;
                     });
                     
+                    console.log('🎯 الأقسام المصفاة (' + type + '):', filtered.length);
                     // إعادة رسم الأقسام المصفاة
                     renderCategoriesGrid(filtered);
                 }
@@ -2519,6 +2526,8 @@
         // دالة ترتيب الأقسام
         function sortCategories(sortBy) {
             try {
+                console.log('🔄 ترتيب الأقسام حسب:', sortBy);
+                
                 // تحديث الأزرار النشطة
                 document.querySelectorAll('.tab-filter-btn').forEach(btn => {
                     btn.classList.remove('active');
@@ -2527,6 +2536,7 @@
                 // جعل الزر الحالي نشطاً (استخدام event بشكل آمن)
                 if(event && event.target) {
                     event.target.classList.add('active');
+                    console.log('✅ تم تحديث الزر النشط');
                 }
                 
                 const container = document.getElementById('categoriesContainer');
@@ -2539,11 +2549,13 @@
                         const bCount = allItems.filter(i => i.category === b.name).length;
                         return bCount - aCount;
                     });
+                    console.log('🔥 تم الترتيب حسب الشهرة');
                 } else if(sortBy === 'newest') {
                     // ترتيب حسب آخر تحديث (إذا كان موجود)
                     sorted.sort((a, b) => {
                         return (b.order || 0) - (a.order || 0);
                     });
+                    console.log('✨ تم الترتيب حسب الأحدث');
                 }
                 
                 renderCategoriesGrid(sorted);
@@ -2554,37 +2566,44 @@
         
         // دالة رسم شبكة الأقسام
         function renderCategoriesGrid(categories) {
-            const container = document.getElementById('categoriesContainer');
-            const colors = ['bg-netflix', 'bg-shahid', 'bg-disney', 'bg-osn', 'bg-video', 'bg-other'];
-            const defaultIcons = [
-                'https://cdn-icons-png.flaticon.com/512/732/732228.png',
-                'https://cdn-icons-png.flaticon.com/512/3845/3845874.png',
-                'https://cdn-icons-png.flaticon.com/512/5977/5977590.png',
-                'https://cdn-icons-png.flaticon.com/512/1946/1946488.png',
-                'https://cdn-icons-png.flaticon.com/512/3074/3074767.png',
-                'https://cdn-icons-png.flaticon.com/512/2087/2087815.png'
-            ];
-            
-            if(categories.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#888; padding: 20px;">لا توجد أقسام</p>';
-                return;
+            try {
+                const container = document.getElementById('categoriesContainer');
+                const colors = ['bg-netflix', 'bg-shahid', 'bg-disney', 'bg-osn', 'bg-video', 'bg-other'];
+                const defaultIcons = [
+                    'https://cdn-icons-png.flaticon.com/512/732/732228.png',
+                    'https://cdn-icons-png.flaticon.com/512/3845/3845874.png',
+                    'https://cdn-icons-png.flaticon.com/512/5977/5977590.png',
+                    'https://cdn-icons-png.flaticon.com/512/1946/1946488.png',
+                    'https://cdn-icons-png.flaticon.com/512/3074/3074767.png',
+                    'https://cdn-icons-png.flaticon.com/512/2087/2087815.png'
+                ];
+                
+                console.log('🎨 رسم الأقسام:', categories.length);
+                
+                if(categories.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:#888; padding: 20px;">لا توجد أقسام</p>';
+                    return;
+                }
+                
+                container.innerHTML = '';
+                categories.forEach((cat, index) => {
+                    const catCard = document.createElement('div');
+                    catCard.className = 'cat-card ' + (colors[index % colors.length] || 'bg-other');
+                    
+                    const icon = cat.icon || defaultIcons[index % defaultIcons.length];
+                    catCard.innerHTML = `
+                        <div class="cat-icon"><img src="${icon}" alt="${cat.name}"></div>
+                        <div class="cat-title">${cat.name}</div>
+                        <div class="cat-count">${allItems.filter(i => i.category === cat.name).length} منتج</div>
+                    `;
+                    
+                    catCard.onclick = () => filterCategory(cat.name);
+                    container.appendChild(catCard);
+                });
+                console.log('✅ تم رسم جميع الأقسام');
+            } catch(error) {
+                console.error('❌ خطأ في رسم الأقسام:', error);
             }
-            
-            container.innerHTML = '';
-            categories.forEach((cat, index) => {
-                const catCard = document.createElement('div');
-                catCard.className = 'cat-card ' + (colors[index % colors.length] || 'bg-other');
-                
-                const icon = cat.icon || defaultIcons[index % defaultIcons.length];
-                catCard.innerHTML = `
-                    <div class="cat-icon"><img src="${icon}" alt="${cat.name}"></div>
-                    <div class="cat-title">${cat.name}</div>
-                    <div class="cat-count">${allItems.filter(i => i.category === cat.name).length} منتج</div>
-                `;
-                
-                catCard.onclick = () => filterCategory(cat.name);
-                container.appendChild(catCard);
-            });
         }
         
         // دالة عرض جميع الأقسام
