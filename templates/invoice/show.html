@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فاتورة - {{ merchant_name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Tajawal', sans-serif; 
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .invoice-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .merchant-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 30px;
+        }
+        .merchant-name {
+            color: #fff;
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .invoice-id {
+            color: #a29bfe;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .amount-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .timer-section {
+            background: rgba(253,203,110,0.1);
+            border: 1px solid rgba(253,203,110,0.3);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .timer-label {
+            color: #fdcb6e;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        .timer-value {
+            color: #fdcb6e;
+            font-size: 24px;
+            font-weight: 700;
+            font-family: monospace;
+        }
+        .timer-expired {
+            color: #ff7675 !important;
+        }
+        .amount-label {
+            color: #b2bec3;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .amount-value {
+            color: #00cec9;
+            font-size: 36px;
+            font-weight: 700;
+        }
+        .amount-currency {
+            color: #81ecec;
+            font-size: 18px;
+            margin-right: 5px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            color: #dfe6e9;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .form-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 18px;
+            font-family: 'Tajawal', sans-serif;
+            text-align: center;
+            direction: ltr;
+            transition: border-color 0.3s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-input::placeholder {
+            color: #636e72;
+        }
+        .phone-wrapper {
+            display: flex;
+            gap: 10px;
+            direction: ltr;
+        }
+        .country-select {
+            width: 120px;
+            padding: 15px 10px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 14px;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        .country-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .country-select option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+        .phone-input-wrapper {
+            flex: 1;
+        }
+        .phone-input-wrapper .form-input {
+            width: 100%;
+        }
+        .pay-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            color: #fff;
+            font-size: 18px;
+            font-weight: 700;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .pay-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,206,201,0.3);
+        }
+        .pay-btn:disabled {
+            background: #636e72;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .secure-note {
+            text-align: center;
+            color: #636e72;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+        .secure-note span {
+            color: #00b894;
+        }
+        .error-msg {
+            color: #ff7675;
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+        .loading {
+            display: none;
+        }
+        .loading.show {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-card">
+        <div class="header">
+            <div class="merchant-icon">🏪</div>
+            <div class="merchant-name">{{ merchant_name }}</div>
+            <div class="invoice-id">رقم الفاتورة: {{ invoice_id }}</div>
+        </div>
+        
+        <div class="amount-section">
+            <div class="amount-label">المبلغ المطلوب</div>
+            <div class="amount-value">
+                {{ amount }}
+                <span class="amount-currency">ريال</span>
+            </div>
+        </div>
+        
+        <div class="timer-section">
+            <div class="timer-label">⏰ الوقت المتبقي للدفع</div>
+            <div class="timer-value" id="countdown">00:00:00</div>
+        </div>
+        
+        <form id="paymentForm" action="/invoice/{{ invoice_id }}/pay" method="POST">
+            <div class="form-group">
+                <label class="form-label">📱 رقم الجوال</label>
+                <div class="phone-wrapper">
+                    <select name="country_code" id="countrySelect" class="country-select">
+                        <option value="966" data-length="9">🇸🇦 +966</option>
+                        <option value="971" data-length="9">🇦🇪 +971</option>
+                        <option value="965" data-length="8">🇰🇼 +965</option>
+                        <option value="973" data-length="8">🇧🇭 +973</option>
+                        <option value="974" data-length="8">🇶🇦 +974</option>
+                        <option value="968" data-length="8">🇴🇲 +968</option>
+                        <option value="962" data-length="9">🇯🇴 +962</option>
+                        <option value="20" data-length="10">🇪🇬 +20</option>
+                        <option value="212" data-length="9">🇲🇦 +212</option>
+                        <option value="216" data-length="8">🇹🇳 +216</option>
+                        <option value="213" data-length="9">🇩🇿 +213</option>
+                        <option value="218" data-length="9">🇱🇾 +218</option>
+                        <option value="249" data-length="9">🇸🇩 +249</option>
+                        <option value="964" data-length="10">🇮🇶 +964</option>
+                        <option value="963" data-length="9">🇸🇾 +963</option>
+                        <option value="961" data-length="8">🇱🇧 +961</option>
+                        <option value="970" data-length="9">🇵🇸 +970</option>
+                        <option value="967" data-length="9">🇾🇪 +967</option>
+                        <option value="90" data-length="10">🇹🇷 +90</option>
+                        <option value="44" data-length="10">🇬🇧 +44</option>
+                        <option value="1" data-length="10">🇺🇸 +1</option>
+                        <option value="33" data-length="9">🇫🇷 +33</option>
+                        <option value="49" data-length="11">🇩🇪 +49</option>
+                    </select>
+                    <div class="phone-input-wrapper">
+                        <input type="tel" name="phone" class="form-input" 
+                               placeholder="5xxxxxxxx" 
+                               maxlength="10"
+                               required
+                               id="phoneInput">
+                    </div>
+                </div>
+                <input type="hidden" name="full_phone" id="fullPhone">
+                <div class="error-msg" id="phoneError">الرجاء إدخال رقم جوال صحيح</div>
+            </div>
+            
+            <button type="submit" class="pay-btn" id="payBtn">
+                <span class="loading" id="loading">⏳ </span>
+                💳 ادفع الآن
+            </button>
+        </form>
+        
+        <div class="secure-note">
+            🔒 <span>دفع آمن</span> عبر بوابة EdfaPay
+        </div>
+    </div>
+    
+    <script>
+        const form = document.getElementById('paymentForm');
+        const phoneInput = document.getElementById('phoneInput');
+        const countrySelect = document.getElementById('countrySelect');
+        const fullPhoneInput = document.getElementById('fullPhone');
+        const phoneError = document.getElementById('phoneError');
+        const payBtn = document.getElementById('payBtn');
+        const loading = document.getElementById('loading');
+        
+        phoneInput.addEventListener('input', function() {
+            phoneError.style.display = 'none';
+            // إزالة الصفر من البداية تلقائياً
+            if (this.value.startsWith('0')) {
+                this.value = this.value.substring(1);
+            }
+        });
+        
+        form.addEventListener('submit', function(e) {
+            let phone = phoneInput.value.trim();
+            const countryCode = countrySelect.value;
+            
+            // إزالة الصفر من البداية
+            if (phone.startsWith('0')) {
+                phone = phone.substring(1);
+            }
+            
+            // التحقق من أن الرقم أرقام فقط
+            if (!/^[0-9]+$/.test(phone)) {
+                e.preventDefault();
+                phoneError.textContent = 'الرجاء إدخال أرقام فقط';
+                phoneError.style.display = 'block';
+                return;
+            }
+            
+            // التحقق من طول الرقم
+            if (phone.length < 7 || phone.length > 11) {
+                e.preventDefault();
+                phoneError.textContent = 'الرجاء إدخال رقم جوال صحيح';
+                phoneError.style.display = 'block';
+                return;
+            }
+            
+            // دمج رمز الدولة مع الرقم
+            fullPhoneInput.value = countryCode + phone;
+            
+            payBtn.disabled = true;
+            loading.classList.add('show');
+        });
+        
+        // العداد التنازلي
+        let remainingSeconds = {{ remaining_seconds }};
+        const countdownEl = document.getElementById('countdown');
+        
+        function updateCountdown() {
+            if (remainingSeconds <= 0) {
+                countdownEl.textContent = 'انتهت الصلاحية';
+                countdownEl.classList.add('timer-expired');
+                payBtn.disabled = true;
+                payBtn.textContent = '⏰ انتهت صلاحية الفاتورة';
+                return;
+            }
+            
+            const hours = Math.floor(remainingSeconds / 3600);
+            const minutes = Math.floor((remainingSeconds % 3600) / 60);
+            const seconds = remainingSeconds % 60;
+            
+            countdownEl.textContent = 
+                String(hours).padStart(2, '0') + ':' +
+                String(minutes).padStart(2, '0') + ':' +
+                String(seconds).padStart(2, '0');
+            
+            // تغيير اللون للأحمر إذا أقل من 5 دقائق
+            if (remainingSeconds < 300) {
+                countdownEl.classList.add('timer-expired');
+            }
+            
+            remainingSeconds--;
+        }
+        
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+    </script>
+</body>
+</html>

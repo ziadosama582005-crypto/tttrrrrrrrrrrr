@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تم الدفع بنجاح</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Tajawal', sans-serif; 
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .icon { font-size: 80px; margin-bottom: 20px; animation: bounce 1s ease infinite; }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        h1 { color: #55efc4; margin-bottom: 15px; font-size: 24px; }
+        p { color: #dfe6e9; margin-bottom: 25px; line-height: 1.6; }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #00b894, #55efc4);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: transform 0.3s;
+        }
+        .btn:hover { transform: scale(1.05); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">✅</div>
+        <h1>تم الدفع بنجاح!</h1>
+        <p>تم شحن رصيدك بنجاح.<br>يمكنك الآن العودة للبوت والتسوق.</p>
+        <a href="https://t.me/{{ bot_username }}" class="btn">العودة للبوت</a>
+    </div>
+</body>
+</html>
