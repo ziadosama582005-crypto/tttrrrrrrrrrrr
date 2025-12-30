@@ -61,7 +61,14 @@ def init_firebase():
     return db
 
 # --- الإعدادات الأساسية ---
-ADMIN_ID = os.getenv('ADMIN_ID', '8185aboraa')
+# تحويل ADMIN_ID إلى integer للمقارنة مع from_user.id
+_admin_id_str = os.getenv('ADMIN_ID', '0')
+try:
+    ADMIN_ID = int(_admin_id_str)
+except ValueError:
+    ADMIN_ID = 0
+    print(f"⚠️ ADMIN_ID غير صالح: {_admin_id_str}")
+
 TOKEN = os.getenv('BOT_TOKEN', 'default_token_change_me')
 SITE_URL = os.getenv('SITE_URL', 'https://tr-ozni.onrender.com')
 SECRET_KEY = os.getenv('SECRET_KEY', '')
