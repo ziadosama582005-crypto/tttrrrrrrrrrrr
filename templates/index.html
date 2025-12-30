@@ -1824,12 +1824,31 @@
     </div>
     
     <!-- تبويبات نوع التسليم -->
-    <div class="delivery-tabs">
-        <button class="delivery-tab active" id="tabInstant" onclick="switchDeliveryTab('instant')">
+    <div class="delivery-tabs" style="background: linear-gradient(135deg, #6c5ce7, #a29bfe) !important; padding: 15px !important; border-radius: 15px !important; margin: 20px 0 !important; display: flex !important; gap: 10px !important;">
+        <button class="delivery-tab active" id="tabInstant" onclick="switchDeliveryTab('instant')" style="flex: 1; padding: 12px; border: none; border-radius: 10px; background: white; color: #6c5ce7; font-weight: bold; font-size: 14px; cursor: pointer;">
             ⚡ تسليم فوري
         </button>
-        <button class="delivery-tab" id="tabManual" onclick="switchDeliveryTab('manual')">
+        <button class="delivery-tab" id="tabManual" onclick="switchDeliveryTab('manual')" style="flex: 1; padding: 12px; border: none; border-radius: 10px; background: rgba(255,255,255,0.2); color: white; font-weight: bold; font-size: 14px; cursor: pointer;">
             👨‍💼 تسليم يدوي
+        </button>
+    </div>
+
+    <!-- تبويبات فوق الفئات -->
+    <div style="display: flex !important; gap: 8px !important; overflow-x: auto !important; padding: 15px 0 !important; margin-bottom: 15px !important; background: rgba(108, 92, 231, 0.1) !important; border-radius: 12px !important;">
+        <button class="tab-filter-btn active" onclick="filterCategoryByDelivery('all')" style="padding: 10px 16px; background: linear-gradient(135deg, #6c5ce7, #a29bfe); border: none; border-radius: 20px; color: white; font-weight: bold; white-space: nowrap; cursor: pointer;">
+            ⭐ الكل
+        </button>
+        <button class="tab-filter-btn" onclick="filterCategoryByDelivery('instant')" style="padding: 10px 16px; background: rgba(108, 92, 231, 0.2); border: 1px solid rgba(108, 92, 231, 0.4); border-radius: 20px; color: #aaa; white-space: nowrap; cursor: pointer;">
+            ⚡ فوري
+        </button>
+        <button class="tab-filter-btn" onclick="filterCategoryByDelivery('manual')" style="padding: 10px 16px; background: rgba(108, 92, 231, 0.2); border: 1px solid rgba(108, 92, 231, 0.4); border-radius: 20px; color: #aaa; white-space: nowrap; cursor: pointer;">
+            👨‍💼 يدوي
+        </button>
+        <button class="tab-filter-btn" onclick="sortCategories('popular')" style="padding: 10px 16px; background: rgba(108, 92, 231, 0.2); border: 1px solid rgba(108, 92, 231, 0.4); border-radius: 20px; color: #aaa; white-space: nowrap; cursor: pointer;">
+            🔥 الأكثر شهرة
+        </button>
+        <button class="tab-filter-btn" onclick="sortCategories('newest')" style="padding: 10px 16px; background: rgba(108, 92, 231, 0.2); border: 1px solid rgba(108, 92, 231, 0.4); border-radius: 20px; color: #aaa; white-space: nowrap; cursor: pointer;">
+            ✨ الأحدث
         </button>
     </div>
 
@@ -1845,25 +1864,6 @@
         <div id="dynamicContentContainer">
             <!-- محتوى التبويبات سيتم تحميله هنا -->
         </div>
-    </div>
-
-    <!-- تبويبات فوق الفئات -->
-    <div style="display: flex; gap: 8px; overflow-x: auto; padding: 12px 0; margin-bottom: 15px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; align-items: center;">
-        <button class="tab-filter-btn active" onclick="filterCategoryByDelivery('all')">
-            ⭐ الكل
-        </button>
-        <button class="tab-filter-btn" onclick="filterCategoryByDelivery('instant')">
-            ⚡ فوري
-        </button>
-        <button class="tab-filter-btn" onclick="filterCategoryByDelivery('manual')">
-            👨‍💼 يدوي
-        </button>
-        <button class="tab-filter-btn" onclick="sortCategories('popular')">
-            🔥 الأكثر شهرة
-        </button>
-        <button class="tab-filter-btn" onclick="sortCategories('newest')">
-            ✨ الأحدث
-        </button>
     </div>
 
     <div class="categories-header">
