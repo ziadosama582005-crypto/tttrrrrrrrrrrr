@@ -30,25 +30,31 @@ def profile():
         # جلب آخر 3 طلبات من collection('orders')
         orders = []
         try:
-            # البحث عن الطلبات من خلال buyer_id
-            orders_query = db.collection('orders').where(
-                'buyer_id', '==', user_id
-            ).order_by('created_at', direction='DESCENDING').limit(3)
+            # جلب جميع الطلبات مرتبة حسب التاريخ (بدون where للتجنب من الحاجة للـ index)
+            # ثم تصفيتها في الكود
+            orders_query = db.collection('orders').order_by(
+                'created_at', direction='DESCENDING'
+            ).limit(100)  # جلب 100 لأننا سنصفيها
             
             orders_docs = orders_query.stream()
             
             for order_doc in orders_docs:
                 order_data = order_doc.to_dict()
-                orders.append({
-                    'id': order_doc.id,
-                    'product_name': order_data.get('item_name', 'منتج'),
-                    'price': order_data.get('price', 0),
-                    'status': order_data.get('status', 'pending'),  # pending, completed, failed, refunded
-                    'created_at': order_data.get('created_at'),
-                    'quantity': 1,
-                    'total': order_data.get('price', 0),
-                    'payment_method': order_data.get('payment_method', 'wallet')
-                })
+                # تصفية حسب buyer_id
+                if order_data.get('buyer_id') == user_id:
+                    orders.append({
+                        'id': order_doc.id,
+                        'product_name': order_data.get('item_name', 'منتج'),
+                        'price': order_data.get('price', 0),
+                        'status': order_data.get('status', 'pending'),
+                        'created_at': order_data.get('created_at'),
+                        'quantity': 1,
+                        'total': order_data.get('price', 0),
+                        'payment_method': order_data.get('payment_method', 'wallet')
+                    })
+                    # توقف بعد جلب 3 طلبات
+                    if len(orders) >= 3:
+                        break
         except Exception as e:
             logger.error(f"خطأ في جلب الطلبات: {e}")
             orders = []
