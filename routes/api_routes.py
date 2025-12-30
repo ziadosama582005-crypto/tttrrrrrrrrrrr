@@ -83,16 +83,3 @@ def get_categories_api():
     except Exception as e:
         print(f"❌ خطأ في جلب الفئات: {e}")
         return jsonify({'status': 'error', 'categories': []})
-
-@api_bp.route('/cart/count', methods=['GET'])
-def get_cart_count():
-    """جلب عدد العناصر في السلة"""
-    user_id = session.get('user_id')
-    
-    if not user_id:
-        return jsonify({'count': 0})
-    
-    cart = get_user_cart(str(user_id)) or {}
-    count = len(cart.get('items', []))
-    
-    return jsonify({'count': count})
