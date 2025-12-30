@@ -2793,11 +2793,20 @@
         // تحميل قائمة التبويبات المتاحة
         async function loadDynamicTabs() {
             try {
+                console.log('🔄 جاري تحميل التبويبات الديناميكية...');
                 const response = await fetch('/api/tabs/list');
+                
+                if (!response.ok) {
+                    console.error('❌ خطأ في الاتصال:', response.status);
+                    return;
+                }
+                
                 const data = await response.json();
+                console.log('📊 البيانات المستلمة:', data);
                 
                 if (data.status === 'success' && data.tabs && data.tabs.length > 0) {
                     allDynamicTabs = data.tabs;
+                    console.log('✅ تم تحميل التبويبات:', allDynamicTabs);
                     
                     // إظهار قسم التبويبات
                     document.getElementById('dynamicTabsSection').style.display = 'block';
@@ -2807,21 +2816,27 @@
                     
                     // تحميل أول tab
                     if (allDynamicTabs.length > 0) {
-                        switchDynamicTab(allDynamicTabs[0]);
+                        await switchDynamicTab(allDynamicTabs[0]);
                     }
                 } else {
-                    console.log('لا توجد تبويبات ديناميكية');
+                    console.log('⚠️ لا توجد تبويبات ديناميكية أو Firebase غير متصل');
+                    document.getElementById('dynamicTabsSection').style.display = 'none';
                 }
             } catch (error) {
                 console.error('❌ خطأ في تحميل التبويبات:', error);
+                document.getElementById('dynamicTabsSection').style.display = 'none';
             }
         }
         
         // رسم عناصر التبويبات
         function renderDynamicTabs() {
             const container = document.getElementById('dynamicTabsContainer');
-            if (!container) return;
+            if (!container) {
+                console.error('❌ لم يتم العثور على dynamicTabsContainer');
+                return;
+            }
             
+            console.log('🎨 رسم التبويبات...');
             container.innerHTML = '';
             
             allDynamicTabs.forEach(tabName => {
@@ -2836,6 +2851,8 @@
         // التبديل بين التبويبات
         async function switchDynamicTab(tabName) {
             try {
+                console.log('🔀 التبديل إلى tab:', tabName);
+                
                 // تحديث التبويبات النشطة
                 document.querySelectorAll('.dynamic-tab').forEach(tab => {
                     tab.classList.remove('active');
@@ -2854,11 +2871,25 @@
                 
                 // إظهار رسالة التحميل
                 const contentContainer = document.getElementById('dynamicContentContainer');
+                if (!contentContainer) {
+                    console.error('❌ لم يتم العثور على dynamicContentContainer');
+                    return;
+                }
                 contentContainer.innerHTML = '<div class="tab-loading">⏳ جاري التحميل...</div>';
                 
                 // جلب البيانات
-                const response = await fetch('/api/tabs/data/' + encodeURIComponent(tabName) + '?limit=50');
+                const url = '/api/tabs/data/' + encodeURIComponent(tabName) + '?limit=50';
+                console.log('📡 جاري الطلب من:', url);
+                
+                const response = await fetch(url);
+                if (!response.ok) {
+                    console.error('❌ خطأ في الاتصال:', response.status);
+                    contentContainer.innerHTML = '<div class="tab-error">❌ خطأ في الاتصال</div>';
+                    return;
+                }
+                
                 const data = await response.json();
+                console.log('📊 البيانات المستلمة من tab:', data);
                 
                 if (data.status === 'success') {
                     renderTabData(tabName, data.data);
@@ -2868,13 +2899,21 @@
             } catch (error) {
                 console.error('❌ خطأ في تبديل التبويب:', error);
                 const contentContainer = document.getElementById('dynamicContentContainer');
-                contentContainer.innerHTML = '<div class="tab-error">❌ حدث خطأ في الاتصال</div>';
+                if (contentContainer) {
+                    contentContainer.innerHTML = '<div class="tab-error">❌ حدث خطأ في الاتصال</div>';
+                }
             }
         }
         
         // عرض بيانات التبويب
         function renderTabData(tabName, items) {
             const contentContainer = document.getElementById('dynamicContentContainer');
+            if (!contentContainer) {
+                console.error('❌ لم يتم العثور على contentContainer');
+                return;
+            }
+            
+            console.log('🎨 رسم بيانات tab:', tabName, 'عدد العناصر:', items ? items.length : 0);
             
             if (!items || items.length === 0) {
                 contentContainer.innerHTML = '<div class="tab-empty">📭 لا توجد بيانات في هذا القسم</div>';
