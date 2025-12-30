@@ -49,6 +49,8 @@ from utils import sanitize, regenerate_session, generate_code, validate_phone
 # استيراد نظام المسارات المفصولة (Blueprints)
 from routes import cart_bp, init_cart, wallet_bp, init_wallet, admin_bp, init_admin
 from routes.api_routes import api_bp
+from routes.web_routes import web_bp
+from routes.auth_routes import auth_bp
 
 # استيراد Firestore للعمليات المتقدمة
 try:
@@ -189,7 +191,13 @@ app.register_blueprint(admin_bp)
 # تسجيل API Blueprint
 app.register_blueprint(api_bp)
 
-print("✅ تم تسجيل جميع Blueprints (السلة، المحفظة، لوحة التحكم، API)")
+# تسجيل Web Blueprint
+app.register_blueprint(web_bp)
+
+# تسجيل Auth Blueprint
+app.register_blueprint(auth_bp)
+
+print("✅ تم تسجيل جميع Blueprints (السلة، المحفظة، لوحة التحكم، API، Web, Auth)")
 
 # دالة تحميل جميع البيانات من Firebase عند بدء التطبيق
 def load_all_data_from_firebase():
@@ -1920,13 +1928,7 @@ def complete_manual_order(call):
         print(f"❌ خطأ في إكمال الطلب: {e}")
         bot.answer_callback_query(call.id, f"❌ حدث خطأ: {str(e)}", show_alert=True)
 
-# --- مسارات الموقع (Flask) ---
-
-# مسار تسجيل الخروج
-@app.route('/logout', methods=['POST'])
-def logout():
-    session.clear()
-    return {'success': True}
+# --- مسارات الموقع (Flask) تم نقلها إلى routes/ ---
 
 # مسار جلب طلبات المستخدم
 @app.route('/get_orders')
@@ -2275,114 +2277,7 @@ def index():
                          cart_count=cart_count)
 
 
-@app.route('/t/<category_id>')
-def category_products(category_id):
-    """صفحة منتجات الفئة"""
-    user_id = session.get('user_id')
-    user_name = session.get('user_name', 'ضيف')
-    profile_photo = session.get('profile_photo', '')
-    
-    # 1. جلب الرصيد
-    balance = 0.0
-    if user_id:
-        try:
-            user_doc = db.collection('users').document(str(user_id)).get()
-            if user_doc.exists:
-                user_data = user_doc.to_dict()
-                balance = user_data.get('balance', 0.0)
-                if not profile_photo:
-                    profile_photo = user_data.get('profile_photo', '')
-        except:
-            balance = get_balance(user_id)
-    
-    # 2. جلب بيانات الفئة
-    category = None
-    try:
-        cat_doc = db.collection('categories').document(category_id).get()
-        if cat_doc.exists:
-            category = cat_doc.to_dict()
-            category['id'] = cat_doc.id
-        else:
-            return redirect('/')
-    except:
-        return redirect('/')
-    
-    # 3. جلب المنتجات من الفئة (غير مباعة فقط)
-    items = []
-    try:
-        docs = query_where(db.collection('products'), 'category', '==', category_id).stream()
-        for doc in docs:
-            p = doc.to_dict()
-            if not p.get('sold', False):  # فقط المنتجات غير المباعة
-                p['id'] = doc.id
-                items.append(p)
-        
-        print(f"✅ تم جلب {len(items)} منتج من الفئة {category_id}")
-    except Exception as e:
-        print(f"❌ خطأ في جلب منتجات الفئة: {e}")
-        items = []
-    
-    # 4. جلب المنتجات المباعة من الفئة
-    sold_items = []
-    try:
-        sold_docs = query_where(db.collection('products'), 'category', '==', category_id).stream()
-        for doc in sold_docs:
-            p = doc.to_dict()
-            if p.get('sold', False):  # فقط المنتجات المباعة
-                p['id'] = doc.id
-                sold_items.append(p)
-    except Exception as e:
-        print(f"❌ خطأ في جلب المنتجات المباعة: {e}")
-        sold_items = []
-    
-    # 5. جلب مشتريات المستخدم من الفئة
-    my_purchases = []
-    if user_id:
-        try:
-            purchases_docs = query_where(db.collection('orders'), 'buyer_id', '==', str(user_id)).stream()
-            for doc in purchases_docs:
-                p = doc.to_dict()
-                if p.get('category') == category_id:
-                    p['order_id'] = doc.id
-                    my_purchases.append(p)
-        except Exception as e:
-            print(f"❌ خطأ في جلب مشتريات المستخدم: {e}")
-    
-    # 6. جلب عدد منتجات السلة
-    cart_count = 0
-    if user_id:
-        cart = get_user_cart(str(user_id)) or {}
-        cart_count = len(cart.get('items', []))
-    
-    # 7. جلب جميع الفئات للـ sidebar
-    all_categories = []
-    try:
-        cat_docs = db.collection('categories').stream()
-        for doc in cat_docs:
-            cat = doc.to_dict()
-            cat['id'] = doc.id
-            all_categories.append(cat)
-    except:
-        pass
-    
-    # 8. تحضير JSON للفئات للـ JavaScript
-    import json
-    categories_json = json.dumps([{'id': cat.get('id', ''), 'name': cat.get('name', '')} for cat in all_categories])
-    
-    # عرض صفحة المنتجات
-    return render_template('category.html',
-                         category=category,
-                         items=items,
-                         sold_items=sold_items,
-                         my_purchases=my_purchases,
-                         balance=balance,
-                         current_user_id=user_id or 0,
-                         current_user=user_id,
-                         user_name=user_name,
-                         profile_photo=profile_photo,
-                         cart_count=cart_count,
-                         categories=all_categories,
-                         categories_json=categories_json)
+# ====== Web Routes - تم نقلها إلى routes/web_routes.py ======
 
 # ============================================
 # 🛒 نظام سلة التسوق
