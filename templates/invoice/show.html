@@ -217,7 +217,7 @@
         
         <div class="timer-section">
             <div class="timer-label">⏰ الوقت المتبقي للدفع</div>
-            <div class="timer-value" id="countdown">00:00:00</div>
+            <div class="timer-value" id="countdown" data-remaining="{{ remaining_seconds }}">00:00:00</div>
         </div>
         
         <form id="paymentForm" action="/invoice/{{ invoice_id }}/pay" method="POST">
@@ -322,8 +322,8 @@
         });
         
         // العداد التنازلي
-        let remainingSeconds = {{ remaining_seconds }};
         const countdownEl = document.getElementById('countdown');
+        let remainingSeconds = parseInt(countdownEl.dataset.remaining) || 0;
         
         function updateCountdown() {
             if (remainingSeconds <= 0) {
