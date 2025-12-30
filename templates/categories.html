@@ -551,23 +551,23 @@
                 <span>🏠</span>
                 <span>الرئيسية</span>
             </a>
-            <div class="menu-item" onclick="openLoginModal(); closeSideMenu(); return false;" style="cursor: pointer;">
+            <div class="menu-item" onclick="openLoginModal(); closeSideMenu();" style="cursor: pointer;">
                 <span>👤</span>
                 <span>حسابي</span>
             </div>
-            <a href="/cart" class="menu-item">
+            <div class="menu-item" onclick="goToPageOrLogin('/cart', 'السلة');" style="cursor: pointer;">
                 <span>🛒</span>
                 <span>السلة</span>
-            </a>
-            <a href="/wallet" class="menu-item">
+            </div>
+            <div class="menu-item" onclick="goToPageOrLogin('/wallet', 'المحفظة');" style="cursor: pointer;">
                 <span>💰</span>
                 <span>المحفظة</span>
-            </a>
+            </div>
             <div class="menu-divider"></div>
-            <a href="/my_purchases" class="menu-item">
+            <div class="menu-item" onclick="goToPageOrLogin('/my_purchases', 'مشترياتي');" style="cursor: pointer;">
                 <span>📦</span>
                 <span>مشترياتي</span>
-            </a>
+            </div>
             <div class="menu-item" onclick="window.open('https://t.me/{{ bot_username | default("your_bot") }}', '_blank'); closeSideMenu();" style="cursor: pointer;">
                 <span>💬</span>
                 <span>الدعم الفني</span>
@@ -1241,6 +1241,37 @@
                 closeSideMenu();
             }
         });
+        
+        // ====== دالة الذهاب للصفحة أو تسجيل الدخول ======
+        var isLoggedIn = {{ 'true' if is_logged_in else 'false' }};
+        var pendingRedirect = null;
+        
+        function goToPageOrLogin(url, pageName) {
+            closeSideMenu();
+            
+            if (isLoggedIn) {
+                // المستخدم مسجل دخوله - انتقل للصفحة
+                window.location.href = url;
+            } else {
+                // المستخدم غير مسجل - احفظ الرابط وافتح نافذة الدخول
+                pendingRedirect = url;
+                alert('⚠️ يجب تسجيل الدخول أولاً للوصول لـ ' + pageName);
+                openLoginModal();
+            }
+        }
+        
+        // تعديل دالة نجاح تسجيل الدخول للتوجيه بعد النجاح
+        var originalLoginSuccess = window.onLoginSuccess;
+        window.onLoginSuccess = function() {
+            if (originalLoginSuccess) originalLoginSuccess();
+            
+            if (pendingRedirect) {
+                window.location.href = pendingRedirect;
+                pendingRedirect = null;
+            } else {
+                window.location.reload();
+            }
+        };
     </script>
 </body>
 </html>
