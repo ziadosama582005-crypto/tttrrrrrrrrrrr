@@ -27,22 +27,6 @@
             padding: 30px 20px;
         }
         
-        .header-title {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        
-        .header-title h1 {
-            font-size: 36px;
-            margin-bottom: 10px;
-            color: #6c5ce7;
-        }
-        
-        .header-title p {
-            font-size: 16px;
-            color: #888;
-        }
-        
         /* شبكة الفئات - 3×3 */
         .categories-grid {
             display: grid;
@@ -177,15 +161,6 @@
         }
         
         @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .header-title h1 {
-                font-size: 24px;
-            }
-            
             /* شبكة 3×3 في الجوال */
             .categories-grid {
                 grid-template-columns: repeat(3, 1fr);
@@ -244,14 +219,6 @@
             .category-card {
                 border-radius: 12px;
             }
-            
-            .header-title h1 {
-                font-size: 20px;
-            }
-            
-            .header-title p {
-                font-size: 12px;
-            }
         }
     </style>
 </head>
@@ -260,11 +227,6 @@
     
     <!-- المحتوى الرئيسي -->
     <div class="container">
-        <div class="header-title">
-            <h1>🛍️ تصفح الفئات</h1>
-            <p>اختر الفئة لرؤية المنتجات المتاحة</p>
-        </div>
-        
         {% if categories %}
         <div class="categories-grid">
             {% for category in categories %}
