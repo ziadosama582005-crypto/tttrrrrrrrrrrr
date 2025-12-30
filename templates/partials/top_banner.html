@@ -43,18 +43,18 @@
   
   .sidebar {
     position: fixed;
-    left: -300px;
+    right: -300px;
     top: 0;
     width: 280px;
     height: 100vh;
     background: linear-gradient(180deg, rgba(26, 26, 46, 0.98) 0%, rgba(15, 15, 26, 0.98) 100%);
-    border-right: 2px solid #6c5ce7;
+    border-left: 2px solid #6c5ce7;
     z-index: 998;
     overflow-y: auto;
-    transition: left 0.3s ease;
+    transition: right 0.3s ease;
     padding-top: 15px;
   }
-  .sidebar.open { left: 0; }
+  .sidebar.open { right: 0; }
   
   .sidebar-header {
     padding: 15px;
