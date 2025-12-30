@@ -2259,7 +2259,7 @@ def index():
     categories_json = json.dumps([{'id': cat.get('id', ''), 'name': cat.get('name', '')} for cat in categories])
     
     # عرض الصفحة الرئيسية بالفئات 3×3
-    return render_template('index.html',
+    return render_template('categories.html',
                          categories=categories,
                          categories_json=categories_json,
                          balance=balance,
