@@ -55,6 +55,7 @@ from routes.auth_routes import auth_bp
 
 # استيراد معالجات البوت
 from telegram import bot_handlers
+from telegram.bot_handlers import create_customer_invoice
 
 # استيراد Firestore للعمليات المتقدمة
 try:
