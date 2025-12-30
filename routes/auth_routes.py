@@ -2,10 +2,7 @@
 Auth Routes - تسجيل الدخول والتحقق والتسجيل
 """
 from flask import Blueprint, request, jsonify, session, redirect, url_for
-from firebase_utils import (
-    get_user, add_user, get_balance, add_balance,
-    db
-)
+from extensions import db
 from utils import regenerate_session, generate_code, validate_phone
 import time
 
