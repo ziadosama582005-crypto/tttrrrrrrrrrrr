@@ -1,14 +1,171 @@
-{# شريط بسيط أعلى الهيدر (يتحكم به المالك من لوحة الأدمن) #}
-{% if header_settings and header_settings.enabled and header_settings.text %}
-<div
-  style="background: rgba(108, 92, 231, 0.18); border-bottom: 1px solid rgba(108, 92, 231, 0.35); color: #fff; padding: 8px 14px; text-align: center; font-size: 13px; line-height: 1.4;"
->
-  {% if header_settings.link_url %}
-    <a href="{{ header_settings.link_url }}" style="color: #fff; text-decoration: none;">
-      {{ header_settings.text }}
-    </a>
-  {% else %}
-    <span>{{ header_settings.text }}</span>
-  {% endif %}
+{# Navigation Bar علوي مع Hamburger Menu #}
+<style>
+  .top-nav {
+    background: linear-gradient(135deg, rgba(45, 52, 54, 0.98) 0%, rgba(26, 26, 46, 0.98) 100%);
+    border-bottom: 2px solid #6c5ce7;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .nav-left { display: flex; align-items: center; gap: 15px; }
+  .nav-center { display: flex; align-items: center; justify-content: center; }
+  .nav-right { display: flex; align-items: center; gap: 10px; }
+  
+  .hamburger-btn {
+    background: transparent;
+    border: none;
+    color: #6c5ce7;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px;
+  }
+  
+  .logo-text {
+    font-size: 16px;
+    font-weight: bold;
+    color: #6c5ce7;
+    text-decoration: none;
+  }
+  
+  .nav-icon {
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    transition: color 0.3s;
+    text-decoration: none;
+  }
+  .nav-icon:hover { color: #6c5ce7; }
+  
+  .sidebar {
+    position: fixed;
+    left: -300px;
+    top: 0;
+    width: 280px;
+    height: 100vh;
+    background: linear-gradient(180deg, rgba(26, 26, 46, 0.98) 0%, rgba(15, 15, 26, 0.98) 100%);
+    border-right: 2px solid #6c5ce7;
+    z-index: 998;
+    overflow-y: auto;
+    transition: left 0.3s ease;
+    padding-top: 15px;
+  }
+  .sidebar.open { left: 0; }
+  
+  .sidebar-header {
+    padding: 15px;
+    border-bottom: 1px solid rgba(108, 92, 231, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .sidebar-close {
+    background: transparent;
+    border: none;
+    color: #6c5ce7;
+    font-size: 24px;
+    cursor: pointer;
+  }
+  
+  .sidebar-categories {
+    padding: 15px 0;
+  }
+  .sidebar-category {
+    padding: 12px 20px;
+    color: #fff;
+    text-decoration: none;
+    display: block;
+    border-left: 3px solid transparent;
+    transition: all 0.3s;
+  }
+  .sidebar-category:hover {
+    border-left-color: #6c5ce7;
+    background: rgba(108, 92, 231, 0.1);
+    color: #6c5ce7;
+  }
+  
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    z-index: 997;
+    transition: all 0.3s;
+  }
+  .sidebar-overlay.open {
+    opacity: 1;
+    visibility: visible;
+  }
+</style>
+
+<div class="top-nav">
+  <div class="nav-left">
+    <button class="hamburger-btn" onclick="toggleSidebar()">☰</button>
+  </div>
+  <div class="nav-center">
+    <span class="logo-text">🛍️ متجر</span>
+  </div>
+  <div class="nav-right">
+    <a href="/" class="nav-icon" title="الرئيسية">🏠</a>
+    <a href="/cart" class="nav-icon" title="السلة">🛒</a>
+  </div>
 </div>
-{% endif %}
+
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <span style="color: #6c5ce7; font-weight: bold;">الفئات</span>
+    <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+  </div>
+  <div class="sidebar-categories" id="sidebarCategories">
+    <p style="padding: 20px; text-align: center; color: #666;">جاري التحميل...</p>
+  </div>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<script>
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+  }
+  
+  async function loadCategories() {
+    try {
+      const cats = window.categoriesData || [];
+      const container = document.getElementById('sidebarCategories');
+      container.innerHTML = '';
+      
+      if (cats.length === 0) {
+        container.innerHTML = '<p style="padding: 20px; text-align: center; color: #666;">لا توجد فئات</p>';
+        return;
+      }
+      
+      cats.forEach(cat => {
+        const link = document.createElement('a');
+        link.href = '/t/' + cat.id;
+        link.className = 'sidebar-category';
+        link.textContent = cat.name;
+        link.onclick = toggleSidebar;
+        container.appendChild(link);
+      });
+    } catch (e) {
+      console.error('Error loading categories:', e);
+    }
+  }
+  
+  document.getElementById('sidebar').addEventListener('transitionend', function() {
+    if (this.classList.contains('open')) {
+      loadCategories();
+    }
+  });
+</script>

@@ -852,6 +852,13 @@
                 closeLoginModal();
             }
         });
+
+        // إعداد بيانات الفئات للـ sidebar
+        window.categoriesData = [
+            {% for category in categories %}
+            { id: '{{ category.id }}', name: '{{ category.name }}' }{{ "," if not loop.last }}
+            {% endfor %}
+        ];
     </script>
 </body>
 </html>
