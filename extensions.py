@@ -10,6 +10,7 @@ import json
 import logging
 import firebase_admin
 from firebase_admin import credentials, firestore
+import telebot
 
 # إعداد التسجيل
 logging.basicConfig(level=logging.ERROR)
@@ -80,3 +81,40 @@ display_settings = {'categories_columns': 3}  # إعدادات العرض
 
 # --- تهيئة Firebase عند الاستيراد ---
 init_firebase()
+
+# --- إنشاء البوت ---
+bot = None
+BOT_ACTIVE = False
+BOT_USERNAME = ""
+
+def init_bot():
+    """تهيئة البوت"""
+    global bot, BOT_ACTIVE, BOT_USERNAME
+    
+    if TOKEN.startswith("default_token"):
+        print("⚠️ BOT_TOKEN غير محدد - استخدم متغير البيئة BOT_TOKEN")
+        bot = telebot.TeleBot("123456789:dummy_token")
+        BOT_ACTIVE = False
+        BOT_USERNAME = ""
+    else:
+        try:
+            bot = telebot.TeleBot(TOKEN)
+            telebot.apihelper.RETRY_ON_ERROR = True
+            BOT_ACTIVE = True
+            try:
+                bot_info = bot.get_me()
+                BOT_USERNAME = bot_info.username
+                print(f"✅ البوت: متصل بنجاح (@{BOT_USERNAME})")
+            except:
+                BOT_USERNAME = ""
+                print(f"✅ البوت: متصل بنجاح")
+        except Exception as e:
+            BOT_ACTIVE = False
+            BOT_USERNAME = ""
+            bot = telebot.TeleBot("dummy_token")
+            print(f"⚠️ البوت غير متاح: {e}")
+    
+    return bot
+
+# تهيئة البوت عند الاستيراد
+init_bot()
