@@ -227,6 +227,15 @@
     <div class="container">
         
         <!-- تبويبات نوع التسليم -->
+        <div style="background: linear-gradient(135deg, #6c5ce7, #a29bfe); padding: 15px; border-radius: 15px; margin-bottom: 25px; display: flex; gap: 10px;">
+            <button onclick="filterDelivery('instant')" style="flex: 1; padding: 12px; border: none; border-radius: 10px; background: white; color: #6c5ce7; font-weight: bold; cursor: pointer;">
+                ⚡ فوري
+            </button>
+            <button onclick="filterDelivery('manual')" style="flex: 1; padding: 12px; border: none; border-radius: 10px; background: rgba(255,255,255,0.2); color: white; font-weight: bold; cursor: pointer;">
+                👨‍💼 يدوي
+            </button>
+        </div>
+
         {% if categories %}
         <div class="categories-grid">
             {% for category in categories %}
