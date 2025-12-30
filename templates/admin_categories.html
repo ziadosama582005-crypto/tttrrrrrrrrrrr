@@ -504,9 +504,9 @@
             grid.innerHTML = categories.map(cat => `
                 <div class="category-card" data-id="${cat.id}">
                     <div class="category-header">
-                        <img src="${cat.image_url || 'https://via.placeholder.com/60?text=' + encodeURIComponent(cat.name)}" 
+                        <img src="${cat.image_url || 'https://placehold.co/60x60/6c5ce7/ffffff?text=' + encodeURIComponent(cat.name)}" 
                              class="category-image" 
-                             onerror="this.src='https://via.placeholder.com/60?text=📁'">
+                             onerror="this.src='https://placehold.co/60x60/6c5ce7/ffffff?text=📁'">
                         <div class="category-info">
                             <div class="category-name">${cat.name}</div>
                             <div class="category-count">📦 ${cat.product_count || 0} منتج</div>
@@ -558,7 +558,7 @@
             const url = document.getElementById('categoryImage').value;
             const preview = document.getElementById('imagePreview');
             if(url) {
-                preview.innerHTML = `<img src="${url}" onerror="this.src='https://via.placeholder.com/100?text=❌'">`;
+                preview.innerHTML = `<img src="${url}" onerror="this.src='https://placehold.co/100x100/6c5ce7/ffffff?text=❌'">`;
             } else {
                 preview.innerHTML = '';
             }

@@ -553,7 +553,7 @@ def process_product_image(message):
         return bot.reply_to(message, "❌ تم إلغاء إضافة المنتج", reply_markup=types.ReplyKeyboardRemove())
     
     if message.text.strip() == "تخطي":
-        temp_product_data[user_id]['image_url'] = "https://via.placeholder.com/300x200?text=No+Image"
+        temp_product_data[user_id]['image_url'] = "https://placehold.co/300x200/6c5ce7/ffffff?text=No+Image"
         bot.reply_to(message, "⏭️ تم تخطي الصورة", reply_markup=types.ReplyKeyboardRemove())
     else:
         temp_product_data[user_id]['image_url'] = message.text.strip()
@@ -6472,7 +6472,7 @@ def api_add_category():
         new_category = {
             'id': cat_id,
             'name': name,
-            'image_url': image_url or 'https://via.placeholder.com/100?text=' + name,
+            'image_url': image_url or 'https://placehold.co/100x100/6c5ce7/ffffff?text=' + name,
             'order': new_order,
             'delivery_type': delivery_type,
             'created_at': time.time()
