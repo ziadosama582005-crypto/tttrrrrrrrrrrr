@@ -1824,7 +1824,10 @@
     </div>
 
     <!-- تبويبات ديناميكية من Firebase -->
-    <div id="dynamicTabsSection" style="display: none;">
+    <div id="dynamicTabsSection">
+        <div style="text-align: center; padding: 20px; color: #888;">
+            <h3>⏳ جاري تحميل التبويبات...</h3>
+        </div>
         <div class="dynamic-tabs-container" id="dynamicTabsContainer">
             <!-- سيتم تحميل التبويبات ديناميكياً -->
         </div>
@@ -2809,7 +2812,19 @@
                     console.log('✅ تم تحميل التبويبات:', allDynamicTabs);
                     
                     // إظهار قسم التبويبات
-                    document.getElementById('dynamicTabsSection').style.display = 'block';
+                    const section = document.getElementById('dynamicTabsSection');
+                    section.innerHTML = '';
+                    
+                    // إنشاء الـ container والـ content
+                    const tabsContainer = document.createElement('div');
+                    tabsContainer.className = 'dynamic-tabs-container';
+                    tabsContainer.id = 'dynamicTabsContainer';
+                    
+                    const contentContainer = document.createElement('div');
+                    contentContainer.id = 'dynamicContentContainer';
+                    
+                    section.appendChild(tabsContainer);
+                    section.appendChild(contentContainer);
                     
                     // رسم التبويبات
                     renderDynamicTabs();
@@ -2820,11 +2835,11 @@
                     }
                 } else {
                     console.log('⚠️ لا توجد تبويبات ديناميكية أو Firebase غير متصل');
-                    document.getElementById('dynamicTabsSection').style.display = 'none';
+                    document.getElementById('dynamicTabsSection').innerHTML = '<div style="text-align: center; padding: 20px; color: #888;">⚠️ لا توجد تبويبات متاحة حالياً</div>';
                 }
             } catch (error) {
                 console.error('❌ خطأ في تحميل التبويبات:', error);
-                document.getElementById('dynamicTabsSection').style.display = 'none';
+                document.getElementById('dynamicTabsSection').innerHTML = '<div style="text-align: center; padding: 20px; color: #e74c3c;">❌ خطأ في تحميل التبويبات</div>';
             }
         }
         
