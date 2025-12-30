@@ -6,6 +6,7 @@ from firebase_utils import (
     get_balance, get_user_cart, get_categories, 
     get_products_by_category, get_product_by_id
 )
+from extensions import BOT_USERNAME
 import json
 
 web_bp = Blueprint('web', __name__)
@@ -50,7 +51,8 @@ def index():
                          user_name=user_name,
                          profile_photo=profile_photo,
                          is_logged_in=is_logged_in,
-                         cart_count=cart_count)
+                         cart_count=cart_count,
+                         bot_username=BOT_USERNAME)
 
 @web_bp.route('/t/<category_id>')
 def category_products(category_id):

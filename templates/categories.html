@@ -551,10 +551,10 @@
                 <span>🏠</span>
                 <span>الرئيسية</span>
             </a>
-            <a href="#" class="menu-item" onclick="openLoginModal(); closeSideMenu();">
+            <div class="menu-item" onclick="openLoginModal(); closeSideMenu(); return false;" style="cursor: pointer;">
                 <span>👤</span>
                 <span>حسابي</span>
-            </a>
+            </div>
             <a href="/cart" class="menu-item">
                 <span>🛒</span>
                 <span>السلة</span>
@@ -564,19 +564,19 @@
                 <span>المحفظة</span>
             </a>
             <div class="menu-divider"></div>
-            <a href="/orders" class="menu-item">
+            <a href="/my_purchases" class="menu-item">
                 <span>📦</span>
-                <span>طلباتي</span>
+                <span>مشترياتي</span>
             </a>
-            <a href="/support" class="menu-item">
+            <div class="menu-item" onclick="window.open('https://t.me/{{ bot_username | default("your_bot") }}', '_blank'); closeSideMenu();" style="cursor: pointer;">
                 <span>💬</span>
                 <span>الدعم الفني</span>
-            </a>
+            </div>
             <div class="menu-divider"></div>
-            <a href="https://t.me/your_bot" class="menu-item" target="_blank">
+            <div class="menu-item" onclick="window.open('https://t.me/{{ bot_username | default("your_bot") }}', '_blank'); closeSideMenu();" style="cursor: pointer;">
                 <span>📱</span>
                 <span>تيليجرام</span>
-            </a>
+            </div>
         </div>
     </div>
     
