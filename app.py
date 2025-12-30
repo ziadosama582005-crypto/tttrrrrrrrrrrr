@@ -48,6 +48,7 @@ from utils import sanitize, regenerate_session, generate_code, validate_phone
 
 # استيراد نظام المسارات المفصولة (Blueprints)
 from routes import cart_bp, init_cart, wallet_bp, init_wallet, admin_bp, init_admin
+from routes.api_routes import api_bp
 
 # استيراد Firestore للعمليات المتقدمة
 try:
@@ -185,7 +186,10 @@ app.register_blueprint(wallet_bp)
 init_admin(db, bot, ADMIN_ID, limiter, BOT_ACTIVE)
 app.register_blueprint(admin_bp)
 
-print("✅ تم تسجيل جميع Blueprints (السلة، المحفظة، لوحة التحكم)")
+# تسجيل API Blueprint
+app.register_blueprint(api_bp)
+
+print("✅ تم تسجيل جميع Blueprints (السلة، المحفظة، لوحة التحكم، API)")
 
 # دالة تحميل جميع البيانات من Firebase عند بدء التطبيق
 def load_all_data_from_firebase():
@@ -3053,48 +3057,6 @@ def get_balance_api():
     
     balance = get_balance(user_id)
     return {'balance': balance}
-
-@app.route('/api/tabs/list')
-def get_tabs_list():
-    """جلب قائمة Collections المتاحة كـ tabs - v2"""
-    try:
-        collections = get_collection_list()
-        # تصفية Collections غير المطلوبة
-        exclude = ['users', 'charge_keys', 'pending_payments', 'transactions', 'invoices']
-        filtered = [c for c in collections if c not in exclude]
-        
-        return jsonify({
-            'status': 'success',
-            'tabs': filtered
-        })
-    except Exception as e:
-        print(f"❌ خطأ في جلب قائمة التبويبات: {e}")
-        return jsonify({'status': 'error', 'tabs': []})
-
-@app.route('/api/tabs/data/<collection_name>')
-def get_tab_data(collection_name):
-    """جلب البيانات من tab معين (collection)"""
-    try:
-        # تصفية الأسماء غير الآمنة
-        exclude = ['users', 'charge_keys', 'pending_payments', 'transactions', 'invoices', 'admin']
-        if collection_name in exclude:
-            return jsonify({'status': 'error', 'message': 'جلسة غير مصرح بها', 'data': []})
-        
-        limit = request.args.get('limit', 50, type=int)
-        if limit > 100:
-            limit = 100  # حد أقصى
-        
-        data = get_collection_data(collection_name, limit=limit)
-        
-        return jsonify({
-            'status': 'success',
-            'collection': collection_name,
-            'count': len(data),
-            'data': data
-        })
-    except Exception as e:
-        print(f"❌ خطأ في جلب بيانات التبويب: {e}")
-        return jsonify({'status': 'error', 'message': str(e), 'data': []})
 
 @app.route('/charge_balance', methods=['POST'])
 @limiter.limit("5 per minute")  # 🔒 Rate Limiting: منع تخمين مفاتيح الشحن
