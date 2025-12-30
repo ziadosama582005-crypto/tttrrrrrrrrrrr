@@ -213,6 +213,86 @@
             margin-left: 8px;
         }
 
+        /* --- تبويبات ديناميكية من Firebase --- */
+        .dynamic-tabs-container {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 12px 0;
+            margin-bottom: 20px;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        .dynamic-tabs-container::-webkit-scrollbar {
+            height: 4px;
+        }
+        .dynamic-tabs-container::-webkit-scrollbar-track {
+            background: rgba(108, 92, 231, 0.1);
+            border-radius: 10px;
+        }
+        .dynamic-tabs-container::-webkit-scrollbar-thumb {
+            background: rgba(108, 92, 231, 0.4);
+            border-radius: 10px;
+        }
+        .dynamic-tab {
+            padding: 10px 16px;
+            background: rgba(108, 92, 231, 0.15);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 20px;
+            color: #aaa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .dynamic-tab:hover {
+            background: rgba(108, 92, 231, 0.25);
+            border-color: rgba(108, 92, 231, 0.5);
+            color: #c9a3ff;
+        }
+        .dynamic-tab.active {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            border-color: #6c5ce7;
+            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.5);
+        }
+
+        .dynamic-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .dynamic-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-loading {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+        }
+
+        .tab-error {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            color: #e74c3c;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .tab-empty {
+            text-align: center;
+            padding: 30px 15px;
+            color: #888;
+        }
+
         /* --- باقي التصاميم السابقة --- */
         .card { background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; }
@@ -1743,6 +1823,17 @@
         </div>
     </div>
 
+    <!-- تبويبات ديناميكية من Firebase -->
+    <div id="dynamicTabsSection" style="display: none;">
+        <div class="dynamic-tabs-container" id="dynamicTabsContainer">
+            <!-- سيتم تحميل التبويبات ديناميكياً -->
+        </div>
+        
+        <div id="dynamicContentContainer">
+            <!-- محتوى التبويبات سيتم تحميله هنا -->
+        </div>
+    </div>
+
     <div class="categories-header">
         <h3>💎 الأقسام</h3>
         <small onclick="filterCategory('all')">عرض الكل</small>
@@ -2695,9 +2786,145 @@
             }
         }
         
+        // ====== دوال التبويبات الديناميكية من Firebase ======
+        let allDynamicTabs = [];
+        let currentActiveTab = null;
+        
+        // تحميل قائمة التبويبات المتاحة
+        async function loadDynamicTabs() {
+            try {
+                const response = await fetch('/api/tabs/list');
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.tabs && data.tabs.length > 0) {
+                    allDynamicTabs = data.tabs;
+                    
+                    // إظهار قسم التبويبات
+                    document.getElementById('dynamicTabsSection').style.display = 'block';
+                    
+                    // رسم التبويبات
+                    renderDynamicTabs();
+                    
+                    // تحميل أول tab
+                    if (allDynamicTabs.length > 0) {
+                        switchDynamicTab(allDynamicTabs[0]);
+                    }
+                } else {
+                    console.log('لا توجد تبويبات ديناميكية');
+                }
+            } catch (error) {
+                console.error('❌ خطأ في تحميل التبويبات:', error);
+            }
+        }
+        
+        // رسم عناصر التبويبات
+        function renderDynamicTabs() {
+            const container = document.getElementById('dynamicTabsContainer');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            allDynamicTabs.forEach(tabName => {
+                const tabEl = document.createElement('div');
+                tabEl.className = 'dynamic-tab';
+                tabEl.textContent = '📁 ' + tabName;
+                tabEl.onclick = () => switchDynamicTab(tabName);
+                container.appendChild(tabEl);
+            });
+        }
+        
+        // التبديل بين التبويبات
+        async function switchDynamicTab(tabName) {
+            try {
+                // تحديث التبويبات النشطة
+                document.querySelectorAll('.dynamic-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                // تحديث الـ tab الحالي
+                const tabs = document.querySelectorAll('.dynamic-tab');
+                for (let tab of tabs) {
+                    if (tab.textContent.includes(tabName)) {
+                        tab.classList.add('active');
+                        break;
+                    }
+                }
+                
+                currentActiveTab = tabName;
+                
+                // إظهار رسالة التحميل
+                const contentContainer = document.getElementById('dynamicContentContainer');
+                contentContainer.innerHTML = '<div class="tab-loading">⏳ جاري التحميل...</div>';
+                
+                // جلب البيانات
+                const response = await fetch('/api/tabs/data/' + encodeURIComponent(tabName) + '?limit=50');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    renderTabData(tabName, data.data);
+                } else {
+                    contentContainer.innerHTML = '<div class="tab-error">❌ ' + (data.message || 'خطأ في تحميل البيانات') + '</div>';
+                }
+            } catch (error) {
+                console.error('❌ خطأ في تبديل التبويب:', error);
+                const contentContainer = document.getElementById('dynamicContentContainer');
+                contentContainer.innerHTML = '<div class="tab-error">❌ حدث خطأ في الاتصال</div>';
+            }
+        }
+        
+        // عرض بيانات التبويب
+        function renderTabData(tabName, items) {
+            const contentContainer = document.getElementById('dynamicContentContainer');
+            
+            if (!items || items.length === 0) {
+                contentContainer.innerHTML = '<div class="tab-empty">📭 لا توجد بيانات في هذا القسم</div>';
+                return;
+            }
+            
+            let html = '<div style="padding: 10px 0;">';
+            
+            items.forEach((item, index) => {
+                // استخراج المعلومات الأساسية
+                const itemName = item.name || item.title || item.id || 'عنصر بدون اسم';
+                const itemDesc = item.description || item.desc || '';
+                const itemPrice = item.price || '';
+                const itemImage = item.image || item.icon || '📦';
+                
+                // إنشاء بطاقة
+                html += `
+                    <div style="background: rgba(108, 92, 231, 0.1); border: 1px solid rgba(108, 92, 231, 0.2); padding: 12px; margin-bottom: 10px; border-radius: 10px; display: flex; gap: 10px;">
+                        <div style="font-size: 24px; flex-shrink: 0;">
+                            ${typeof itemImage === 'string' && itemImage.startsWith('http') ? `<img src="${itemImage}" style="width:40px; height:40px; border-radius:8px;">` : itemImage}
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; color: #fff;">${escapeHtml(itemName)}</div>
+                            ${itemDesc ? `<div style="font-size: 12px; color: #aaa; margin-top: 4px;">${escapeHtml(itemDesc)}</div>` : ''}
+                            ${itemPrice ? `<div style="font-size: 12px; color: #a29bfe; margin-top: 4px;">💰 ${escapeHtml(String(itemPrice))}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            contentContainer.innerHTML = html;
+        }
+        
+        // دالة مساعدة لـ escape HTML
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return String(text).replace(/[&<>"']/g, m => map[m]);
+        }
+        
         // تحميل أول قسم (نتفلكس) عند فتح الصفحة
         window.addEventListener('DOMContentLoaded', function() {
             loadCategoriesUI();  // تحميل الأقسام ديناميكياً
+            loadDynamicTabs();   // تحميل التبويبات الديناميكية
             initFloatingNav();
         });
         

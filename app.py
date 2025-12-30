@@ -37,7 +37,7 @@ from firebase_utils import (
     get_all_products_for_store, get_sold_products, get_all_users, get_all_charge_keys,
     get_active_orders, get_products_by_category, count_products_in_category,
     save_pending_payment, get_pending_payment, update_pending_payment, add_purchase_history,
-    get_header_settings
+    get_header_settings, get_collection_data, get_collection_list
 )
 from payment import (
     calculate_hash, create_payment_payload,
@@ -3053,6 +3053,48 @@ def get_balance_api():
     
     balance = get_balance(user_id)
     return {'balance': balance}
+
+@app.route('/api/tabs/list')
+def get_tabs_list():
+    """جلب قائمة Collections المتاحة كـ tabs"""
+    try:
+        collections = get_collection_list()
+        # تصفية Collections غير المطلوبة
+        exclude = ['users', 'charge_keys', 'pending_payments', 'transactions', 'invoices']
+        filtered = [c for c in collections if c not in exclude]
+        
+        return jsonify({
+            'status': 'success',
+            'tabs': filtered
+        })
+    except Exception as e:
+        print(f"❌ خطأ في جلب قائمة التبويبات: {e}")
+        return jsonify({'status': 'error', 'tabs': []})
+
+@app.route('/api/tabs/data/<collection_name>')
+def get_tab_data(collection_name):
+    """جلب البيانات من tab معين (collection)"""
+    try:
+        # تصفية الأسماء غير الآمنة
+        exclude = ['users', 'charge_keys', 'pending_payments', 'transactions', 'invoices', 'admin']
+        if collection_name in exclude:
+            return jsonify({'status': 'error', 'message': 'جلسة غير مصرح بها', 'data': []})
+        
+        limit = request.args.get('limit', 50, type=int)
+        if limit > 100:
+            limit = 100  # حد أقصى
+        
+        data = get_collection_data(collection_name, limit=limit)
+        
+        return jsonify({
+            'status': 'success',
+            'collection': collection_name,
+            'count': len(data),
+            'data': data
+        })
+    except Exception as e:
+        print(f"❌ خطأ في جلب بيانات التبويب: {e}")
+        return jsonify({'status': 'error', 'message': str(e), 'data': []})
 
 @app.route('/charge_balance', methods=['POST'])
 @limiter.limit("5 per minute")  # 🔒 Rate Limiting: منع تخمين مفاتيح الشحن

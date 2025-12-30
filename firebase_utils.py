@@ -622,3 +622,37 @@ def count_products_in_category(category_name):
     products = get_products_by_category(category_name)
     return len(products)
 
+# === دالة جلب البيانات من أي collection ===
+def get_collection_data(collection_name, limit=50):
+    """جلب البيانات من أي collection في Firebase"""
+    try:
+        if not db:
+            return []
+        
+        collection_ref = db.collection(collection_name)
+        docs = collection_ref.limit(limit).stream()
+        
+        data = []
+        for doc in docs:
+            item = doc.to_dict()
+            item['id'] = doc.id
+            data.append(item)
+        
+        return data
+    except Exception as e:
+        print(f"⚠️ خطأ في جلب البيانات من {collection_name}: {e}")
+        return []
+
+def get_collection_list():
+    """جلب قائمة Collections الموجودة في Firebase"""
+    try:
+        if not db:
+            return []
+        
+        # جلب جميع Collections
+        collections = db.collections()
+        return [col.id for col in collections]
+    except Exception as e:
+        print(f"⚠️ خطأ في جلب قائمة Collections: {e}")
+        return []
+
