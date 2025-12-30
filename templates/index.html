@@ -272,6 +272,9 @@
             font-size: 13px;
             font-weight: 500;
             font-family: 'Tajawal', sans-serif;
+            outline: none;
+            min-width: fit-content;
+            flex-shrink: 0;
         }
         .tab-filter-btn:hover {
             background: rgba(108, 92, 231, 0.25);
@@ -2481,60 +2484,72 @@
         
         // دالة تصفية الأقسام حسب نوع التسليم
         function filterCategoryByDelivery(type) {
-            // تحديث الأزرار النشطة
-            document.querySelectorAll('.tab-filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // جعل الزر الحالي نشطاً
-            event.target.classList.add('active');
-            
-            // تصفية وعرض الأقسام
-            const container = document.getElementById('categoriesContainer');
-            
-            if(type === 'all') {
-                // عرض جميع الأقسام
-                renderAllCategories();
-            } else {
-                // تصفية حسب نوع التسليم
-                const filtered = allCategories.filter(cat => {
-                    const catDelivery = cat.delivery_type || 'instant';
-                    return catDelivery === type;
+            try {
+                // تحديث الأزرار النشطة
+                document.querySelectorAll('.tab-filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
                 });
                 
-                // إعادة رسم الأقسام المصفاة
-                renderCategoriesGrid(filtered);
+                // جعل الزر الحالي نشطاً (استخدام event بشكل آمن)
+                if(event && event.target) {
+                    event.target.classList.add('active');
+                }
+                
+                // تصفية وعرض الأقسام
+                const container = document.getElementById('categoriesContainer');
+                
+                if(type === 'all') {
+                    // عرض جميع الأقسام
+                    renderAllCategories();
+                } else {
+                    // تصفية حسب نوع التسليم
+                    const filtered = allCategories.filter(cat => {
+                        const catDelivery = cat.delivery_type || 'instant';
+                        return catDelivery === type;
+                    });
+                    
+                    // إعادة رسم الأقسام المصفاة
+                    renderCategoriesGrid(filtered);
+                }
+            } catch(error) {
+                console.error('❌ خطأ في تصفية الأقسام:', error);
             }
         }
         
         // دالة ترتيب الأقسام
         function sortCategories(sortBy) {
-            // تحديث الأزرار النشطة
-            document.querySelectorAll('.tab-filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // جعل الزر الحالي نشطاً
-            event.target.classList.add('active');
-            
-            const container = document.getElementById('categoriesContainer');
-            const sorted = [...allCategories];
-            
-            if(sortBy === 'popular') {
-                // ترتيب حسب عدد المنتجات
-                sorted.sort((a, b) => {
-                    const aCount = allItems.filter(i => i.category === a.name).length;
-                    const bCount = allItems.filter(i => i.category === b.name).length;
-                    return bCount - aCount;
+            try {
+                // تحديث الأزرار النشطة
+                document.querySelectorAll('.tab-filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
                 });
-            } else if(sortBy === 'newest') {
-                // ترتيب حسب آخر تحديث (إذا كان موجود)
-                sorted.sort((a, b) => {
-                    return (b.order || 0) - (a.order || 0);
-                });
+                
+                // جعل الزر الحالي نشطاً (استخدام event بشكل آمن)
+                if(event && event.target) {
+                    event.target.classList.add('active');
+                }
+                
+                const container = document.getElementById('categoriesContainer');
+                const sorted = [...allCategories];
+                
+                if(sortBy === 'popular') {
+                    // ترتيب حسب عدد المنتجات
+                    sorted.sort((a, b) => {
+                        const aCount = allItems.filter(i => i.category === a.name).length;
+                        const bCount = allItems.filter(i => i.category === b.name).length;
+                        return bCount - aCount;
+                    });
+                } else if(sortBy === 'newest') {
+                    // ترتيب حسب آخر تحديث (إذا كان موجود)
+                    sorted.sort((a, b) => {
+                        return (b.order || 0) - (a.order || 0);
+                    });
+                }
+                
+                renderCategoriesGrid(sorted);
+            } catch(error) {
+                console.error('❌ خطأ في ترتيب الأقسام:', error);
             }
-            
-            renderCategoriesGrid(sorted);
         }
         
         // دالة رسم شبكة الأقسام
