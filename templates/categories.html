@@ -1303,8 +1303,8 @@
         // دالة معالجة نقر زر حسابي
         function handleAccountClick() {
             if (isLoggedIn) {
-                // إذا كان المستخدم مسجل دخول، اعرض خيارات
-                showLogoutMenu();
+                // إذا كان المستخدم مسجل دخول، اذهب لصفحة الحساب
+                window.location.href = '/profile';
             } else {
                 // وإلا فتح نافذة تسجيل الدخول
                 openLoginModal();

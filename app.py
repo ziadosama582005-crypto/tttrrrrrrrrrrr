@@ -53,6 +53,7 @@ from routes.api_routes import api_bp
 from routes.web_routes import web_bp
 from routes.auth_routes import auth_bp
 from routes.payment_routes import payment_bp, set_merchant_invoices
+from routes.profile import profile_bp
 
 # استيراد معالجات البوت
 from telegram import bot_handlers
@@ -179,11 +180,14 @@ app.register_blueprint(web_bp)
 # تسجيل Auth Blueprint
 app.register_blueprint(auth_bp)
 
+# تسجيل Profile Blueprint
+app.register_blueprint(profile_bp)
+
 # تسجيل Payment Blueprint
 set_merchant_invoices(merchant_invoices)
 app.register_blueprint(payment_bp)
 
-print("✅ تم تسجيل جميع Blueprints (السلة، المحفظة، لوحة التحكم، API، Web, Auth, Payment)")
+print("✅ تم تسجيل جميع Blueprints (السلة، المحفظة، لوحة التحكم، API، Web, Auth, Profile, Payment)")
 
 # دالة تحميل جميع البيانات من Firebase عند بدء التطبيق
 def load_all_data_from_firebase():
