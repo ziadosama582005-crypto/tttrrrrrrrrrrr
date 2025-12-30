@@ -3056,7 +3056,7 @@ def get_balance_api():
 
 @app.route('/api/tabs/list')
 def get_tabs_list():
-    """جلب قائمة Collections المتاحة كـ tabs"""
+    """جلب قائمة Collections المتاحة كـ tabs - v2"""
     try:
         collections = get_collection_list()
         # تصفية Collections غير المطلوبة
