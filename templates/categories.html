@@ -228,18 +228,18 @@
         
         <!-- تبويبات نوع التسليم -->
         <div style="background: linear-gradient(135deg, #6c5ce7, #a29bfe); padding: 15px; border-radius: 15px; margin-bottom: 25px; display: flex; gap: 10px;">
-            <button onclick="filterDelivery('instant')" style="flex: 1; padding: 12px; border: none; border-radius: 10px; background: white; color: #6c5ce7; font-weight: bold; cursor: pointer;">
+            <button id="btn-instant" onclick="filterDelivery('instant')" style="flex: 1; padding: 12px; border: none; border-radius: 10px; background: white; color: #6c5ce7; font-weight: bold; cursor: pointer;">
                 ⚡ فوري
             </button>
-            <button onclick="filterDelivery('manual')" style="flex: 1; padding: 12px; border: none; border-radius: 10px; background: rgba(255,255,255,0.2); color: white; font-weight: bold; cursor: pointer;">
+            <button id="btn-manual" onclick="filterDelivery('manual')" style="flex: 1; padding: 12px; border: none; border-radius: 10px; background: rgba(255,255,255,0.2); color: white; font-weight: bold; cursor: pointer;">
                 👨‍💼 يدوي
             </button>
         </div>
 
         {% if categories %}
-        <div class="categories-grid">
+        <div class="categories-grid" id="categoriesGrid">
             {% for category in categories %}
-            <div class="category-card" onclick="location.href='/t/{{ category.id }}'">
+            <div class="category-card" data-delivery-type="{{ category.delivery_type|default('instant') }}" onclick="location.href='/t/{{ category.id }}'">
                 <div class="category-image">
                     {% if category.image_url %}
                     <img src="{{ category.image_url }}" alt="{{ category.name }}">
@@ -725,21 +725,64 @@
             }
         })();
 
-        // دوال التصفية والترتيب البسيطة
+        // دوال التصفية والترتيب
+        let currentFilter = 'instant'; // الافتراضي فوري
+        
         function filterDelivery(type) {
-            console.log('تصفية حسب النوع:', type);
-            // يمكن إضافة logic هنا لاحقاً
+            currentFilter = type;
+            const cards = document.querySelectorAll('.category-card');
+            const btnInstant = document.getElementById('btn-instant');
+            const btnManual = document.getElementById('btn-manual');
+            
+            // تحديث مظهر الأزرار
+            if (type === 'instant') {
+                btnInstant.style.background = 'white';
+                btnInstant.style.color = '#6c5ce7';
+                btnManual.style.background = 'rgba(255,255,255,0.2)';
+                btnManual.style.color = 'white';
+            } else {
+                btnManual.style.background = 'white';
+                btnManual.style.color = '#6c5ce7';
+                btnInstant.style.background = 'rgba(255,255,255,0.2)';
+                btnInstant.style.color = 'white';
+            }
+            
+            // فلترة البطاقات
+            let visibleCount = 0;
+            cards.forEach(card => {
+                const deliveryType = card.dataset.deliveryType || 'instant';
+                if (deliveryType === type) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // إظهار رسالة إذا لا توجد فئات
+            const grid = document.getElementById('categoriesGrid');
+            let emptyMsg = document.getElementById('emptyFilterMsg');
+            
+            if (visibleCount === 0) {
+                if (!emptyMsg) {
+                    emptyMsg = document.createElement('div');
+                    emptyMsg.id = 'emptyFilterMsg';
+                    emptyMsg.style.cssText = 'text-align: center; padding: 40px; color: #888; grid-column: 1 / -1;';
+                    emptyMsg.innerHTML = '<div style="font-size: 50px; margin-bottom: 15px;">📂</div><p>لا توجد فئات من هذا النوع</p>';
+                    grid.appendChild(emptyMsg);
+                }
+                emptyMsg.style.display = 'block';
+            } else if (emptyMsg) {
+                emptyMsg.style.display = 'none';
+            }
+            
+            console.log('تصفية حسب:', type, '- عدد الفئات:', visibleCount);
         }
-
-        function filterCategories(filter) {
-            console.log('تصفية الفئات:', filter);
-            // يمكن إضافة logic هنا لاحقاً
-        }
-
-        function sortCategories(sortType) {
-            console.log('ترتيب الفئات:', sortType);
-            // يمكن إضافة logic هنا لاحقاً
-        }
+        
+        // تشغيل الفلتر الافتراضي عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            filterDelivery('instant');
+        });
     </script>
 </body>
 </html>
