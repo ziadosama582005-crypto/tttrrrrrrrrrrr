@@ -283,33 +283,28 @@ def verify_user_ownership(user_id, resource_type, resource_id, db):
         return False
 
 
-# === 9. حماية قوية من Brute Force على أكواد التحقق ===
+# === 9. حماية ذكية من محاولات الكود الخاطئة (بدون حظر) ===
 import time
 
-# تخزين مؤقت لمحاولات إدخال الكود (في الإنتاج استخدم Redis)
+# تخزين مؤقت لمحاولات إدخال الكود
 failed_attempts = {}  # {user_id: {'count': 3, 'timestamp': 1234567890}}
-blocked_users = {}    # {user_id: {'until': 1234567890}}
+# ملاحظة: لا يوجد حظر (blocked_users) - الكود ينتهي بدل الحظر
 
 
-def check_if_user_blocked(user_id):
-    """التحقق من حظر المستخدم"""
+def is_code_expired_due_to_wrong_attempts(user_id):
+    """التحقق من انتهاء صلاحية الكود بسبب محاولات خاطئة"""
     user_id = str(user_id)
     
-    if user_id in blocked_users:
-        blocked_until = blocked_users[user_id]['until']
-        current_time = time.time()
-        
-        if current_time < blocked_until:
-            remaining = int(blocked_until - current_time)
-            return True, f"تم حظرك مؤقتاً لمدة {remaining} ثانية"
-        else:
-            # انتهت فترة الحظر
-            del blocked_users[user_id]
-            if user_id in failed_attempts:
-                del failed_attempts[user_id]
-            return False, None
+    if user_id not in failed_attempts:
+        return False
     
-    return False, None
+    attempts = failed_attempts[user_id]['count']
+    
+    # بعد 3 محاولات خاطئة: الكود ينتهي ويجب طلب جديد
+    if attempts >= 3:
+        return True
+    
+    return False
 
 
 def record_failed_code_attempt(user_id):
@@ -328,25 +323,19 @@ def record_failed_code_attempt(user_id):
     
     attempts = failed_attempts[user_id]['count']
     
-    # الحظر التدريجي:
-    # - بعد 3 محاولات خاطئة: إرسال كود جديد + انتظار 5 دقائق
-    # - بعد 5 محاولات: حظر 30 دقيقة
-    # - بعد 10 محاولات: حظر ساعة
+    # ✅ التعديل الجديد:
+    # - بعد 3 محاولات خاطئة: الكود ينتهي (يصبح غير صالح)
+    # - المستخدم يطلب كود جديد تلقائياً
+    # - لا حظر على الإطلاق
     
-    if attempts == 3:
-        return 'send_new_code', 300  # 5 دقائق انتظار
-    elif attempts == 5:
-        blocked_users[user_id] = {'until': current_time + 1800}  # 30 دقيقة
-        return 'block_user', 1800
-    elif attempts >= 10:
-        blocked_users[user_id] = {'until': current_time + 3600}  # ساعة
-        return 'block_user', 3600
+    if attempts >= 3:
+        return 'code_expired', None  # الكود انتهى، اطلب جديد
     
     return None, None
 
 
 def reset_failed_attempts(user_id):
-    """إعادة تعيين محاولات المستخدم بعد نجاح التحقق"""
+    """إعادة تعيين محاولات المستخدم بعد نجاح التحقق أو طلب كود جديد"""
     user_id = str(user_id)
     if user_id in failed_attempts:
         del failed_attempts[user_id]
@@ -357,10 +346,6 @@ def get_remaining_attempts(user_id):
     """الحصول على المحاولات المتبقية"""
     user_id = str(user_id)
     
-    is_blocked, block_msg = check_if_user_blocked(user_id)
-    if is_blocked:
-        return 0, block_msg
-    
     if user_id not in failed_attempts:
         return 3, None
     
@@ -368,6 +353,6 @@ def get_remaining_attempts(user_id):
     remaining = 3 - attempts
     
     if remaining <= 0:
-        return 0, 'تجاوزت الحد الأقصى من المحاولات'
+        return 0, 'الكود انتهى - الرجاء طلب كود جديد'
     
     return remaining, None

@@ -457,7 +457,7 @@ def api_send_code():
         code = str(random.randint(100000, 999999))
         
         # حفظ الكود في الذاكرة مع الـ timestamp
-        # ✅ الكود صالح لـ 2 دقيقة فقط (بدل 10 دقائق سابقاً)
+        # ✅ الكود صالح لـ 2 دقيقة
         verification_codes[user_id] = {
             'code': code,
             'name': user_name,
@@ -470,9 +470,9 @@ def api_send_code():
 🔐 كود التحقق من حسابك في المتجر:
 <code>{code}</code>
 
-⏰ صالح لمدة 2 دقيقة فقط (بدل 10!)
-3️⃣ محاولات خاطئة = كود جديد تلقائي
-🔒 الحظر التدريجي يحميك من الهجمات
+⏰ صالح لمدة 2 دقيقة فقط
+3️⃣ محاولات خاطئة = الكود ينتهي
+📲 اطلب كود جديد بعد 1 دقيقة
 
 ⚠️ لا تشارك هذا الكود مع أحد!
 """
@@ -480,7 +480,7 @@ def api_send_code():
             
             return jsonify({
                 'success': True, 
-                'message': f'✅ تم إرسال كود التحقق إلى Telegram (صالح 2 دقيقة)',
+                'message': f'✅ تم إرسال كود التحقق إلى Telegram',
                 'user_name': user_name
             })
         
@@ -499,10 +499,10 @@ def api_send_code():
 
 # مسار التحقق من الكود وتسجيل الدخول
 @app.route('/verify', methods=['POST'])
-@limiter.limit("10 per minute")  # 🔒 Rate Limiting: 10 محاولات/دقيقة (محاية عامة)
+@limiter.limit("10 per minute")  # 🔒 Rate Limiting عام
 def verify_login():
     from security_utils import (
-        check_if_user_blocked, record_failed_code_attempt,
+        is_code_expired_due_to_wrong_attempts, record_failed_code_attempt,
         reset_failed_attempts, get_remaining_attempts, log_security_event
     )
     
@@ -515,11 +515,15 @@ def verify_login():
     
     user_id = str(user_id)
     
-    # ✅ فحص الحظر أولاً
-    is_blocked, block_msg = check_if_user_blocked(user_id)
-    if is_blocked:
-        log_security_event('BLOCKED_USER_ATTEMPT', user_id, block_msg)
-        return {'success': False, 'message': f'🔒 {block_msg}'}, 429
+    # ✅ فحص انتهاء صلاحية الكود بسبب محاولات خاطئة
+    if is_code_expired_due_to_wrong_attempts(user_id):
+        reset_failed_attempts(user_id)
+        log_security_event('CODE_EXPIRED_TOO_MANY_ATTEMPTS', user_id, 'تم محاولة 3 مرات')
+        return {
+            'success': False, 
+            'message': '❌ الكود انتهى بسبب محاولات خاطئة\n\n📲 الرجاء اطلب كود جديد (بعد 1 دقيقة)',
+            'action': 'request_new_code'
+        }, 401
     
     # التحقق من صحة الكود
     code_data = verify_code(user_id, code)
@@ -529,23 +533,17 @@ def verify_login():
         action, wait_time = record_failed_code_attempt(user_id)
         remaining = get_remaining_attempts(user_id)[0]
         
-        error_msg = f'الكود غير صحيح. محاولات متبقية: {remaining}'
+        error_msg = f'❌ الكود غير صحيح\n\n🔄 محاولات متبقية: {remaining}/3'
         
-        if action == 'send_new_code':
-            log_security_event('CODE_WRONG_ATTEMPT', user_id, f'محاولة {remaining}')
+        if action == 'code_expired':
+            log_security_event('CODE_WRONG_ATTEMPT', user_id, f'محاولة 3/3')
             return {
                 'success': False, 
-                'message': f'❌ {error_msg}\n⏰ يرجى الانتظار 5 دقائق وطلب كود جديد',
-                'action': 'wait_and_request_new'
-            }, 429
-        elif action == 'block_user':
-            log_security_event('CODE_BRUTE_FORCE_BLOCKED', user_id, f'تم حظر المستخدم')
-            return {
-                'success': False,
-                'message': '🔒 تم حظرك مؤقتاً لأسباب أمنية. حاول لاحقاً',
-                'action': 'blocked'
-            }, 429
+                'message': f'{error_msg}\n\n⏰ انتهت محاولاتك\n📲 اطلب كود جديد (بعد 1 دقيقة)',
+                'action': 'request_new_code'
+            }, 401
         
+        log_security_event('CODE_WRONG_ATTEMPT', user_id, f'محاولة {3-remaining}/3')
         return {'success': False, 'message': error_msg}, 401
     
     # ✅ كود صحيح - إعادة تعيين المحاولات
