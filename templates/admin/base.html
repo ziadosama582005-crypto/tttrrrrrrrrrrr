@@ -730,6 +730,74 @@
         function formatCurrency(amount) {
             return '$' + parseFloat(amount).toFixed(2);
         }
+        
+        // Show alert
+        function showAlert(type, message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+            
+            const icons = {
+                'success': 'fa-check-circle',
+                'danger': 'fa-exclamation-circle',
+                'warning': 'fa-exclamation-triangle',
+                'info': 'fa-info-circle'
+            };
+            
+            alertDiv.innerHTML = `<i class="fas ${icons[type] || 'fa-info-circle'}"></i> ${message}`;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => alertDiv.remove(), 4000);
+        }
+        
+        // Open modal
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.add('active');
+        }
+        
+        // Close modal
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.remove('active');
+        }
+        
+        // Add modal active class styles
+        const style = document.createElement('style');
+        style.textContent = `
+            .modal.active {
+                display: block;
+            }
+            .modal {
+                display: none;
+            }
+            .checkbox-label {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+                font-size: 14px;
+                padding: 8px 0;
+            }
+            .checkbox-label input[type="checkbox"] {
+                width: 18px;
+                height: 18px;
+                cursor: pointer;
+                accent-color: var(--primary);
+            }
+            .d-flex {
+                display: flex;
+            }
+            .gap-2 { gap: 10px; }
+            .gap-3 { gap: 15px; }
+            .text-muted {
+                color: var(--text-muted);
+            }
+            .text-primary {
+                color: var(--primary);
+            }
+        `;
+        document.head.appendChild(style);
     </script>
     {% block extra_scripts %}{% endblock %}
 </body>
