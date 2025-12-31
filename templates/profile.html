@@ -808,6 +808,13 @@
             document.getElementById('emailModal').classList.remove('show');
             document.getElementById('emailError').style.display = 'none';
             document.getElementById('emailSuccess').style.display = 'none';
+            // إعادة تعيين الحالة
+            document.getElementById('emailStep1').style.display = 'block';
+            document.getElementById('emailStep2').style.display = 'none';
+            document.getElementById('emailStep1Btn').style.display = 'block';
+            document.getElementById('emailStep2Btn').style.display = 'none';
+            document.getElementById('emailInput').value = '';
+            document.getElementById('emailCodeInput').value = '';
         }
         
         async function sendEmailCode() {
@@ -836,10 +843,13 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    successDiv.textContent = '✅ تم إرسال كود التحقق إلى بريدك';
+                    successDiv.textContent = '✅ تم إرسال كود التحقق إلى Telegram';
                     successDiv.style.display = 'block';
                     document.getElementById('emailStep1').style.display = 'none';
                     document.getElementById('emailStep2').style.display = 'block';
+                    // إخفاء زر الإرسال وإظهار زر التحقق
+                    document.getElementById('emailStep1Btn').style.display = 'none';
+                    document.getElementById('emailStep2Btn').style.display = 'block';
                 } else {
                     errorDiv.textContent = `❌ ${data.message}`;
                     errorDiv.style.display = 'block';
