@@ -11,6 +11,10 @@ import requests
 from extensions import db, FIREBASE_AVAILABLE
 from firebase_utils import get_balance, add_balance, get_charge_key, use_charge_key, query_where
 from google.cloud import firestore
+from security_utils import (
+    require_session_user, get_session_user_id, checkout_with_transaction,
+    log_security_event, sanitize_error_message
+)
 
 # إنشاء Blueprint
 wallet_bp = Blueprint('wallet', __name__)
@@ -117,13 +121,14 @@ def wallet_page():
 
 
 @wallet_bp.route('/wallet/pay', methods=['POST'])
+@require_session_user()
 def wallet_pay():
-    """معالجة طلب الشحن من صفحة المحفظة"""
+    """معالجة طلب الشحن من صفحة المحفظة - محمي من Authentication Bypass"""
     global pending_payments
     
-    user_id = session.get('user_id')
+    user_id = get_session_user_id()  # من Session فقط
     if not user_id:
-        return jsonify({'success': False, 'message': 'يجب تسجيل الدخول أولاً'})
+        return jsonify({'success': False, 'message': 'يجب تسجيل الدخول أولاً'}), 401
     
     try:
         data = request.json
@@ -148,6 +153,8 @@ def wallet_pay():
         md5_hash = hashlib.md5(to_hash.encode()).hexdigest()
         final_hash = hashlib.sha1(md5_hash.encode()).hexdigest()
         
+        # تسجيل الحدث
+        log_security_event('WALLET_CHARGE_REQUEST', user_id, f'المبلغ: {amount_int}, الطلب: {order_id}')
         payload = {
             'action': 'SALE',
             'edfa_merchant_id': EDFAPAY_MERCHANT_ID,

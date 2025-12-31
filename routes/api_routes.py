@@ -7,6 +7,10 @@ from firebase_utils import (
     get_balance, get_user_cart, get_products_by_category,
     get_categories
 )
+from security_utils import (
+    require_session_user, validate_collection_name,
+    sanitize_error_message, require_session_user
+)
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
@@ -41,29 +45,32 @@ def get_tabs_list():
         return jsonify({'status': 'error', 'tabs': []})
 
 @api_bp.route('/tabs/data/<collection_name>', methods=['GET'])
+@require_session_user()
 def get_tab_data(collection_name):
-    """جلب البيانات من tab معين (collection)"""
+    """جلب البيانات من tab معين (collection) - محمي من Injection"""
     try:
-        # تصفية الأسماء غير الآمنة
-        exclude = ['users', 'charge_keys', 'pending_payments', 'transactions', 'invoices', 'admin']
-        if collection_name in exclude:
-            return jsonify({'status': 'error', 'message': 'جلسة غير مصرح بها', 'data': []})
+        # ✅ استخدام Whitelist بدلاً من Blacklist
+        try:
+            validated_collection = validate_collection_name(collection_name)
+        except ValueError as e:
+            return jsonify({'status': 'error', 'message': str(e), 'data': []}), 403
         
         limit = request.args.get('limit', 50, type=int)
         if limit > 100:
             limit = 100  # حد أقصى
         
-        data = get_collection_data(collection_name, limit=limit)
+        data = get_collection_data(validated_collection, limit=limit)
         
         return jsonify({
             'status': 'success',
-            'collection': collection_name,
+            'collection': validated_collection,
             'count': len(data),
             'data': data
         })
     except Exception as e:
+        error_msg = sanitize_error_message(str(e))
         print(f"❌ خطأ في جلب بيانات التبويب: {e}")
-        return jsonify({'status': 'error', 'message': str(e), 'data': []})
+        return jsonify({'status': 'error', 'message': error_msg, 'data': []}), 500
 
 @api_bp.route('/categories', methods=['GET'])
 def get_categories_api():

@@ -116,9 +116,36 @@ def add_security_headers(response):
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     return response
-    session.clear()
-    session.update(old_data)
-    session.modified = True
+
+
+# --- معالجات الأخطاء الآمنة (إخفاء المعلومات الحساسة) ---
+@app.errorhandler(404)
+def page_not_found(error):
+    """صفحة غير موجودة"""
+    return jsonify({'status': 'error', 'message': 'الصفحة غير موجودة'}), 404
+
+
+@app.errorhandler(403)
+def access_forbidden(error):
+    """عدم الوصول (لا توجد صلاحيات)"""
+    return jsonify({'status': 'error', 'message': 'لا تملك صلاحية الوصول'}), 403
+
+
+@app.errorhandler(500)
+def internal_error(error):
+    """خطأ داخلي في السيرفر - إخفاء التفاصيل"""
+    logger.error(f"❌ خطأ داخلي: {error}", exc_info=True)
+    # لا نعرض تفاصيل الخطأ
+    return jsonify({'status': 'error', 'message': 'حدث خطأ في السيرفر. الرجاء المحاولة لاحقاً'}), 500
+
+
+@app.errorhandler(Exception)
+def handle_exception(error):
+    """معالج شامل للأخطاء غير المتوقعة"""
+    logger.error(f"❌ خطأ غير متوقع: {error}", exc_info=True)
+    
+    # لا نعرض معلومات حساسة في الأخطاء
+    return jsonify({'status': 'error', 'message': 'حدث خطأ. الرجاء المحاولة لاحقاً'}), 500
 
 # --- قواعد البيانات ---
 # جميع البيانات تُجلب مباشرة من Firebase (لا توجد نسخ محلية)
