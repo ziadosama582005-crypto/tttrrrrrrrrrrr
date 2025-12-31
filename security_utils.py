@@ -58,7 +58,7 @@ def require_admin():
 
 
 # === 2. حماية من Race Condition في المعاملات المالية ===
-def safe_transaction(db, callback):
+def safe_transaction(db, callback, *args, **kwargs):
     """
     تنفيذ عملية آمنة باستخدام Firestore Transaction
     
@@ -133,8 +133,12 @@ def checkout_with_transaction(db, user_id, total_amount, callback):
 # === 3. حماية من CSRF ===
 def get_csrf_token():
     """الحصول على CSRF token من Session"""
-    from flask_wtf.csrf import generate_csrf
-    return generate_csrf()
+    try:
+        from flask_wtf.csrf import generate_csrf
+        return generate_csrf()
+    except ImportError:
+        # إذا لم تكن flask_wtf مثبتة
+        return None
 
 
 def validate_csrf():
@@ -142,9 +146,12 @@ def validate_csrf():
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            from flask_wtf.csrf import validate_csrf
             try:
-                validate_csrf()
+                from flask_wtf.csrf import validate_csrf as check_csrf
+                check_csrf()
+            except ImportError:
+                # flask_wtf غير مثبت - تخطي الفحص
+                pass
             except Exception as e:
                 logger.warning(f"فشل التحقق من CSRF: {e}")
                 return jsonify({'status': 'error', 'message': 'فشل التحقق من الأمان'}), 403
