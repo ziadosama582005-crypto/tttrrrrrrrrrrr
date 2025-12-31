@@ -558,6 +558,27 @@ def verify_login():
     # ✅ كود صحيح - إعادة تعيين المحاولات
     reset_failed_attempts(user_id)
     
+    # 🔐 التحقق من تفعيل المصادقة الثنائية (2FA)
+    try:
+        user_doc = db.collection('users').document(user_id).get()
+        if user_doc.exists:
+            user_data = user_doc.to_dict()
+            if user_data.get('totp_enabled', False):
+                # المستخدم مفعّل 2FA - لا نسجل دخوله بعد، نطلب منه كود 2FA
+                # نحفظ معلوماته مؤقتاً في الجلسة
+                session['pending_2fa_user_id'] = user_id
+                session['pending_2fa_user_name'] = code_data['name']
+                session['pending_2fa_time'] = time.time()
+                # حذف الكود بعد الاستخدام
+                del verification_codes[user_id]
+                return {
+                    'success': True,
+                    'requires_2fa': True,
+                    'message': '🔐 أدخل كود المصادقة الثنائية'
+                }
+    except Exception as e:
+        print(f"⚠️ خطأ في فحص 2FA: {e}")
+    
     # تجديد الجلسة لمنع Session Fixation
     regenerate_session()
     
@@ -568,7 +589,8 @@ def verify_login():
     session['login_time'] = time.time()  # وقت تسجيل الدخول
 
     # حذف الكود بعد الاستخدام
-    del verification_codes[user_id]
+    if user_id in verification_codes:
+        del verification_codes[user_id]
 
     # جلب الرصيد
     balance = get_balance(user_id)
@@ -605,6 +627,81 @@ def verify_login():
         'balance': balance,
         'profile_photo_url': profile_photo_url
     }
+
+# 🔐 التحقق من المصادقة الثنائية (2FA) عند تسجيل الدخول
+@app.route('/verify_2fa_login', methods=['POST'])
+@limiter.limit("10 per minute")
+def verify_2fa_login():
+    """التحقق من كود المصادقة الثنائية أثناء تسجيل الدخول"""
+    import pyotp
+    
+    data = request.get_json()
+    totp_code = data.get('totp_code', '').strip()
+    
+    # التحقق من وجود بيانات 2FA المؤقتة
+    user_id = session.get('pending_2fa_user_id')
+    user_name = session.get('pending_2fa_user_name')
+    pending_time = session.get('pending_2fa_time', 0)
+    
+    if not user_id:
+        return {'success': False, 'message': '❌ الجلسة منتهية، أعد تسجيل الدخول'}, 401
+    
+    # التحقق من صلاحية الوقت (5 دقائق)
+    if time.time() - pending_time > 300:
+        session.pop('pending_2fa_user_id', None)
+        session.pop('pending_2fa_user_name', None)
+        session.pop('pending_2fa_time', None)
+        return {'success': False, 'message': '⏰ انتهت المهلة، أعد تسجيل الدخول'}, 401
+    
+    if not totp_code or len(totp_code) != 6:
+        return {'success': False, 'message': '❌ أدخل كود مكون من 6 أرقام'}, 400
+    
+    try:
+        # جلب secret من Firebase
+        user_doc = db.collection('users').document(user_id).get()
+        if not user_doc.exists:
+            return {'success': False, 'message': '❌ المستخدم غير موجود'}, 404
+        
+        user_data = user_doc.to_dict()
+        totp_secret = user_data.get('totp_secret')
+        
+        if not totp_secret:
+            return {'success': False, 'message': '❌ المصادقة الثنائية غير مفعّلة'}, 400
+        
+        # التحقق من الكود
+        totp = pyotp.TOTP(totp_secret)
+        if not totp.verify(totp_code, valid_window=1):
+            return {'success': False, 'message': '❌ الكود غير صحيح'}, 401
+        
+        # ✅ نجاح - تسجيل الدخول الكامل
+        session.pop('pending_2fa_user_id', None)
+        session.pop('pending_2fa_user_name', None)
+        session.pop('pending_2fa_time', None)
+        
+        regenerate_session()
+        session.permanent = True
+        session['user_id'] = user_id
+        session['user_name'] = user_name
+        session['login_time'] = time.time()
+        
+        # جلب الرصيد والصورة
+        balance = get_balance(user_id)
+        profile_photo_url = user_data.get('profile_photo')
+        
+        if profile_photo_url:
+            session['profile_photo'] = profile_photo_url
+        
+        return {
+            'success': True,
+            'message': '✅ تم تسجيل الدخول بنجاح',
+            'user_name': user_name,
+            'balance': balance,
+            'profile_photo_url': profile_photo_url
+        }
+        
+    except Exception as e:
+        print(f"❌ خطأ في التحقق من 2FA: {e}")
+        return {'success': False, 'message': '❌ حدث خطأ في السيرفر'}, 500
 
 # --- حماية إضافية: رؤوس أمنية ---
 @app.after_request

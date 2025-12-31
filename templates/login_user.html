@@ -281,6 +281,31 @@
                 🛡️ لا تشارك الكود مع أحد - سيظل سري بيننا وبينك فقط
             </div>
         </div>
+        
+        <!-- الخطوة 3: المصادقة الثنائية (2FA) -->
+        <div id="step3" class="step">
+            <div class="logo-area">
+                <div class="logo">🔐</div>
+                <h1>المصادقة الثنائية</h1>
+                <p class="subtitle">أدخل الكود من Google Authenticator</p>
+            </div>
+            
+            <form id="twoFAForm">
+                <div class="form-group">
+                    <label for="twoFACode">🔑 كود المصادقة (6 أرقام)</label>
+                    <input type="text" id="twoFACode" class="code-input" placeholder="000000" maxlength="6" required inputmode="numeric">
+                </div>
+                <button type="submit" id="verify2FABtn">✅ تأكيد الدخول</button>
+                <button type="button" class="back-btn" onclick="goBackToStep1()">↩️ رجوع للبداية</button>
+            </form>
+            
+            <div id="error3" class="message error"></div>
+            <div id="success3" class="message success"></div>
+            
+            <div class="security-note">
+                🛡️ الكود يتغير كل 30 ثانية - أدخله بسرعة!
+            </div>
+        </div>
     </div>
     
     <script>
@@ -367,12 +392,24 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    successDiv.textContent = '✅ تم التحقق! جاري نقلك...';
-                    successDiv.style.display = 'block';
-                    clearInterval(countdownInterval);
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 1500);
+                    // التحقق من طلب المصادقة الثنائية
+                    if (data.requires_2fa) {
+                        successDiv.textContent = '🔐 مطلوب كود المصادقة الثنائية';
+                        successDiv.style.display = 'block';
+                        clearInterval(countdownInterval);
+                        setTimeout(() => {
+                            document.getElementById('step2').classList.remove('active');
+                            document.getElementById('step3').classList.add('active');
+                            document.getElementById('twoFACode').focus();
+                        }, 1000);
+                    } else {
+                        successDiv.textContent = '✅ تم التحقق! جاري نقلك...';
+                        successDiv.style.display = 'block';
+                        clearInterval(countdownInterval);
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 1500);
+                    }
                 } else {
                     errorDiv.textContent = `❌ ${data.message}`;
                     errorDiv.style.display = 'block';
@@ -428,12 +465,79 @@
             document.getElementById('userId').focus();
         }
         
+        // ===== الرجوع للخطوة 1 من 2FA =====
+        function goBackToStep1() {
+            document.getElementById('step3').classList.remove('active');
+            document.getElementById('step1').classList.add('active');
+            document.getElementById('userId').value = '';
+            document.getElementById('verifyCode').value = '';
+            document.getElementById('twoFACode').value = '';
+            document.getElementById('error1').style.display = 'none';
+            document.getElementById('error3').style.display = 'none';
+            document.getElementById('success3').style.display = 'none';
+            document.getElementById('sendCodeBtn').disabled = false;
+            document.getElementById('sendCodeBtn').innerHTML = '📤 إرسال كود التحقق';
+            document.getElementById('userId').focus();
+        }
+        
+        // ===== الخطوة 3: التحقق من المصادقة الثنائية =====
+        document.getElementById('twoFAForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const totpCode = document.getElementById('twoFACode').value.trim();
+            const btn = document.getElementById('verify2FABtn');
+            const errorDiv = document.getElementById('error3');
+            const successDiv = document.getElementById('success3');
+            
+            if (!totpCode || totpCode.length !== 6 || !totpCode.match(/^\d{6}$/)) {
+                errorDiv.textContent = '❌ الرجاء إدخال 6 أرقام صحيحة';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.innerHTML = '⏳ جاري التحقق...';
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch('/verify_2fa_login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ totp_code: totpCode })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    successDiv.textContent = '✅ تم التحقق! جاري نقلك...';
+                    successDiv.style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1500);
+                } else {
+                    errorDiv.textContent = data.message || '❌ الكود غير صحيح';
+                    errorDiv.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerHTML = '✅ تأكيد الدخول';
+                }
+            } catch (error) {
+                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
+                errorDiv.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '✅ تأكيد الدخول';
+            }
+        });
+        
         // ===== السماح بأرقام فقط =====
         document.getElementById('userId').addEventListener('input', function(e) {
             this.value = this.value.replace(/[^0-9]/g, '');
         });
         
         document.getElementById('verifyCode').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+        
+        document.getElementById('twoFACode').addEventListener('input', function(e) {
             this.value = this.value.replace(/[^0-9]/g, '');
         });
         
