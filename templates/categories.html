@@ -682,7 +682,7 @@
                     <p>أدخل الكود المرسل لك في Telegram</p>
                 </div>
                 
-                <div class="timer">⏰ <span id="countdown">600</span> ثانية</div>
+                <div class="timer">⏰ <span id="countdown">2:00</span></div>
                 
                 <form id="codeForm">
                     <div class="form-group">
@@ -904,7 +904,7 @@
     
     <script>
         let countdownInterval;
-        let secondsLeft = 600;
+        let secondsLeft = 120;
         let currentUserId = '';
         
         // فتح Modal الدخول
@@ -1051,7 +1051,7 @@
         
         // العد التنازلي
         function startCountdown() {
-            secondsLeft = 600;
+            secondsLeft = 120;
             updateCountdown();
             
             countdownInterval = setInterval(() => {

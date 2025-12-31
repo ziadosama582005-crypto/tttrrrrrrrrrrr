@@ -9,7 +9,7 @@
         
         body {
             font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif;
-            background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -18,13 +18,14 @@
         }
         
         .login-container {
-            background: #0f0f1a;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 25px;
+            box-shadow: 0 20px 80px rgba(0,0,0,0.6), 0 0 40px rgba(102, 126, 234, 0.2);
             max-width: 450px;
             width: 100%;
-            padding: 40px;
+            padding: 45px;
             color: #fff;
+            border: 1px solid rgba(102, 126, 234, 0.2);
         }
         
         .logo-area {
@@ -38,10 +39,11 @@
         }
         
         h1 {
-            color: #6c5ce7;
-            font-size: 28px;
+            color: #667eea;
+            font-size: 32px;
             margin-bottom: 10px;
-            font-weight: bold;
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }
         
         .subtitle {
@@ -66,18 +68,19 @@
             width: 100%;
             padding: 14px;
             border: 2px solid #333;
-            border-radius: 10px;
-            background: #1a1a2e;
+            border-radius: 12px;
+            background: #0f172f;
             color: #fff;
             font-size: 16px;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             text-align: right;
         }
         
         input:focus {
             outline: none;
-            border-color: #6c5ce7;
-            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+            background: #131d3a;
         }
         
         input::placeholder {
@@ -87,20 +90,25 @@
         button {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             margin-top: 10px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
         
         button:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(108, 92, 231, 0.4);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active:not(:disabled) {
+            transform: translateY(0);
         }
         
         button:disabled {
@@ -110,41 +118,56 @@
         }
         
         .back-btn {
-            background: #333;
+            background: rgba(102, 126, 234, 0.2);
             margin-top: 10px;
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            color: #a8b8f5;
         }
         
         .back-btn:hover:not(:disabled) {
-            background: #444;
+            background: rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
         }
         
         .message {
             padding: 14px;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 14px;
             margin-top: 15px;
             text-align: center;
             display: none;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         .error {
-            background: rgba(231, 76, 60, 0.1);
-            color: #e74c3c;
-            border: 1px solid rgba(231, 76, 60, 0.3);
+            background: rgba(231, 76, 60, 0.12);
+            color: #ff6b6b;
+            border: 1px solid rgba(231, 76, 60, 0.4);
             display: block;
         }
         
         .success {
-            background: rgba(39, 174, 96, 0.1);
-            color: #27ae60;
-            border: 1px solid rgba(39, 174, 96, 0.3);
+            background: rgba(39, 174, 96, 0.12);
+            color: #51cf66;
+            border: 1px solid rgba(39, 174, 96, 0.4);
             display: block;
         }
         
         .info {
-            background: rgba(108, 92, 231, 0.1);
-            color: #6c5ce7;
-            border: 1px solid rgba(108, 92, 231, 0.3);
+            background: rgba(102, 126, 234, 0.12);
+            color: #667eea;
+            border: 1px solid rgba(102, 126, 234, 0.4);
             display: block;
         }
         
@@ -161,25 +184,31 @@
             font-size: 24px;
             font-weight: bold;
             text-align: center;
+            color: #667eea;
         }
         
         .timer {
-            color: #e74c3c;
-            font-weight: bold;
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
+            font-weight: 600;
             text-align: center;
-            margin: 15px 0;
-            font-size: 18px;
+            margin: 20px 0;
+            font-size: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
         }
         
         .security-note {
-            background: rgba(108, 92, 231, 0.1);
-            border: 1px solid rgba(108, 92, 231, 0.3);
-            color: #a29bfe;
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            color: #a8b8f5;
             padding: 14px;
-            border-radius: 8px;
-            font-size: 12px;
+            border-radius: 12px;
+            font-size: 13px;
             margin-top: 20px;
             text-align: center;
+            line-height: 1.6;
         }
         
         .divider {
@@ -234,7 +263,7 @@
                 <p class="subtitle">أدخل الكود المرسل لك في Telegram</p>
             </div>
             
-            <div class="timer">⏰ <span id="countdown">600</span> ثانية</div>
+            <div class="timer">⏰ <span id="countdown">2:00</span></div>
             
             <form id="codeForm">
                 <div class="form-group">
@@ -256,7 +285,7 @@
     
     <script>
         let countdownInterval;
-        let secondsLeft = 600;
+        let secondsLeft = 120; // 2 دقائق
         let currentUserId = '';
         
         // ===== الخطوة 1: إرسال Telegram ID =====
@@ -360,7 +389,7 @@
         
         // ===== العد التنازلي =====
         function startCountdown() {
-            secondsLeft = 600; // 10 دقائق
+            secondsLeft = 120; // 2 دقائق
             updateCountdown();
             
             countdownInterval = setInterval(() => {
