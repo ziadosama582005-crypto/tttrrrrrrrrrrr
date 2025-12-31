@@ -587,9 +587,8 @@
                 grid-template-columns: 1fr;
             }
         }
-        
-        {% block extra_styles %}{% endblock %}
     </style>
+    {% block extra_styles %}{% endblock %}
 </head>
 <body>
     <!-- Sidebar Overlay for Mobile -->
@@ -731,8 +730,7 @@
         function formatCurrency(amount) {
             return '$' + parseFloat(amount).toFixed(2);
         }
-        
-        {% block extra_scripts %}{% endblock %}
     </script>
+    {% block extra_scripts %}{% endblock %}
 </body>
 </html>
