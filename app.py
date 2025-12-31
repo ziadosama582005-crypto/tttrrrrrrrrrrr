@@ -464,6 +464,10 @@ def api_send_code():
             'created_at': time.time()
         }
         
+        # ✅ إعادة تعيين المحاولات الفاشلة عند طلب كود جديد
+        from security_utils import reset_failed_attempts
+        reset_failed_attempts(user_id)
+        
         # إرسال الكود للمستخدم عبر Telegram
         try:
             message_text = f"""
@@ -517,7 +521,9 @@ def verify_login():
     
     # ✅ فحص انتهاء صلاحية الكود بسبب محاولات خاطئة
     if is_code_expired_due_to_wrong_attempts(user_id):
-        reset_failed_attempts(user_id)
+        # حذف الكود من الذاكرة لمنع أي محاولات إضافية
+        if user_id in verification_codes:
+            del verification_codes[user_id]
         log_security_event('CODE_EXPIRED_TOO_MANY_ATTEMPTS', user_id, 'تم محاولة 3 مرات')
         return {
             'success': False, 
@@ -536,6 +542,9 @@ def verify_login():
         error_msg = f'❌ الكود غير صحيح\n\n🔄 محاولات متبقية: {remaining}/3'
         
         if action == 'code_expired':
+            # حذف الكود من الذاكرة عند المحاولة الثالثة الفاشلة
+            if user_id in verification_codes:
+                del verification_codes[user_id]
             log_security_event('CODE_WRONG_ATTEMPT', user_id, f'محاولة 3/3')
             return {
                 'success': False, 
