@@ -134,7 +134,7 @@ def checkout_with_transaction(db, user_id, total_amount, callback):
 def get_csrf_token():
     """الحصول على CSRF token من Session"""
     try:
-        from flask_wtf.csrf import generate_csrf
+        from flask_wtf.csrf import generate_csrf  # type: ignore
         return generate_csrf()
     except ImportError:
         # إذا لم تكن flask_wtf مثبتة
@@ -147,7 +147,7 @@ def validate_csrf():
         @wraps(f)
         def decorated_function(*args, **kwargs):
             try:
-                from flask_wtf.csrf import validate_csrf as check_csrf
+                from flask_wtf.csrf import validate_csrf as check_csrf  # type: ignore
                 check_csrf()
             except ImportError:
                 # flask_wtf غير مثبت - تخطي الفحص
