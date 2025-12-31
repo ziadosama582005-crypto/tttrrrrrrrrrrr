@@ -726,9 +726,9 @@
             return new Intl.NumberFormat('ar-SA').format(num);
         }
         
-        // Format currency
+        // Format currency (Riyal)
         function formatCurrency(amount) {
-            return '$' + parseFloat(amount).toFixed(2);
+            return parseFloat(amount || 0).toFixed(2) + ' ريال';
         }
         
         // Show alert

@@ -1150,27 +1150,55 @@ def api_dashboard_stats():
             'sold_products': 0,
             'total_users': 0,
             'total_revenue': 0,
+            'total_balance': 0,
             'total_categories': 0,
+            'total_orders': 0,
+            'pending_orders': 0,
+            'completed_orders': 0,
+            'total_invoices': 0,
+            'completed_invoices': 0,
+            'active_keys': 0,
+            'used_keys': 0,
             'recent_orders': [],
             'recent_users': [],
-            'categories_with_count': []
+            'categories_with_count': [],
+            'top_products': []
         }
         
         if db:
             # عد المنتجات
             products = list(db.collection('products').stream())
             stats['total_products'] = len(products)
+            product_sales = {}
+            
             for p in products:
                 pdata = p.to_dict()
                 available = pdata.get('available_count', pdata.get('quantity', 0))
+                sold = pdata.get('sold_count', 0)
                 if available > 0:
                     stats['available_products'] += 1
                 else:
                     stats['sold_products'] += 1
+                
+                # جمع بيانات أكثر المنتجات مبيعاً
+                if sold > 0:
+                    product_sales[p.id] = {
+                        'id': p.id,
+                        'name': pdata.get('name', pdata.get('item_name', '')),
+                        'sold': sold,
+                        'revenue': sold * pdata.get('price', 0)
+                    }
             
-            # عد العملاء
+            # أكثر المنتجات مبيعاً (أعلى 5)
+            top_products = sorted(product_sales.values(), key=lambda x: x['sold'], reverse=True)[:5]
+            stats['top_products'] = top_products
+            
+            # عد العملاء وإجمالي الأرصدة
             users = list(db.collection('users').stream())
             stats['total_users'] = len(users)
+            for u in users:
+                udata = u.to_dict()
+                stats['total_balance'] += udata.get('balance', 0)
             
             # آخر العملاء
             recent_users = sorted(users, key=lambda x: x.to_dict().get('created_at', 0), reverse=True)[:5]
@@ -1178,7 +1206,7 @@ def api_dashboard_stats():
                 udata = u.to_dict()
                 stats['recent_users'].append({
                     'id': u.id,
-                    'name': udata.get('name', udata.get('telegram_name', '')),
+                    'name': udata.get('name', udata.get('telegram_name', udata.get('first_name', ''))),
                     'username': udata.get('username', ''),
                     'balance': udata.get('balance', 0),
                     'created_at': udata.get('created_at', 0)
@@ -1192,33 +1220,65 @@ def api_dashboard_stats():
                 cdata = cat.to_dict()
                 count = 0
                 for p in products:
-                    if p.to_dict().get('category_id') == cat.id or p.to_dict().get('category') == cdata.get('name'):
+                    pdata = p.to_dict()
+                    if pdata.get('category_id') == cat.id or pdata.get('category') == cdata.get('name'):
                         count += 1
                 stats['categories_with_count'].append({
                     'id': cat.id,
                     'name': cdata.get('name', ''),
+                    'icon': cdata.get('icon', '📦'),
                     'count': count
                 })
             
-            # آخر الطلبات
+            # الطلبات
             try:
-                orders = db.collection('orders').order_by('created_at', direction=firestore.Query.DESCENDING).limit(5).stream()
-                for o in orders:
+                all_orders = list(db.collection('orders').stream())
+                stats['total_orders'] = len(all_orders)
+                
+                for o in all_orders:
+                    odata = o.to_dict()
+                    status = odata.get('status', 'pending')
+                    if status == 'completed':
+                        stats['completed_orders'] += 1
+                        stats['total_revenue'] += odata.get('total', 0)
+                    elif status == 'pending':
+                        stats['pending_orders'] += 1
+                
+                # آخر 5 طلبات
+                recent_orders = sorted(all_orders, key=lambda x: x.to_dict().get('created_at', 0), reverse=True)[:5]
+                for o in recent_orders:
                     odata = o.to_dict()
                     stats['recent_orders'].append({
                         'id': o.id,
+                        'user_id': odata.get('user_id', ''),
                         'user_name': odata.get('user_name', 'غير معروف'),
+                        'product_name': odata.get('product_name', odata.get('item_name', '')),
                         'total': odata.get('total', 0),
-                        'status': odata.get('status', 'pending')
+                        'status': odata.get('status', 'pending'),
+                        'created_at': odata.get('created_at', 0)
                     })
+            except Exception as e:
+                logger.error(f"Error getting orders: {e}")
+            
+            # الفواتير
+            try:
+                invoices = list(db.collection('pending_payments').stream())
+                stats['total_invoices'] = len(invoices)
+                for inv in invoices:
+                    if inv.to_dict().get('status') == 'completed':
+                        stats['completed_invoices'] += 1
             except:
                 pass
             
-            # إجمالي الإيرادات
+            # مفاتيح الشحن
             try:
-                completed_orders = db.collection('orders').where('status', '==', 'completed').stream()
-                for o in completed_orders:
-                    stats['total_revenue'] += o.to_dict().get('total', 0)
+                keys = list(db.collection('charge_keys').stream())
+                for k in keys:
+                    kdata = k.to_dict()
+                    if kdata.get('used'):
+                        stats['used_keys'] += 1
+                    else:
+                        stats['active_keys'] += 1
             except:
                 pass
         

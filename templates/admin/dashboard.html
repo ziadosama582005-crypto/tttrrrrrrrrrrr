@@ -4,7 +4,7 @@
 {% block page_title %}لوحة التحكم{% endblock %}
 
 {% block content %}
-<!-- Stats Cards -->
+<!-- Stats Cards Row 1 -->
 <div class="stats-grid">
     <div class="stat-card">
         <div class="stat-icon primary">
@@ -48,7 +48,7 @@
     
     <div class="stat-card">
         <div class="stat-icon danger">
-            <i class="fas fa-dollar-sign"></i>
+            <i class="fas fa-coins"></i>
         </div>
         <div class="stat-info">
             <h3 id="totalRevenue">--</h3>
@@ -58,11 +58,74 @@
     
     <div class="stat-card">
         <div class="stat-icon primary">
+            <i class="fas fa-wallet"></i>
+        </div>
+        <div class="stat-info">
+            <h3 id="totalBalance">--</h3>
+            <p>إجمالي الأرصدة</p>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards Row 2 -->
+<div class="stats-grid" style="margin-top: 15px;">
+    <div class="stat-card">
+        <div class="stat-icon primary">
             <i class="fas fa-folder"></i>
         </div>
         <div class="stat-info">
             <h3 id="totalCategories">--</h3>
             <p>الأقسام</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon warning">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-info">
+            <h3 id="pendingOrders">--</h3>
+            <p>طلبات معلقة</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon success">
+            <i class="fas fa-receipt"></i>
+        </div>
+        <div class="stat-info">
+            <h3 id="completedOrders">--</h3>
+            <p>طلبات مكتملة</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon success">
+            <i class="fas fa-key"></i>
+        </div>
+        <div class="stat-info">
+            <h3 id="activeKeys">--</h3>
+            <p>مفاتيح نشطة</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon secondary">
+            <i class="fas fa-key"></i>
+        </div>
+        <div class="stat-info">
+            <h3 id="usedKeys">--</h3>
+            <p>مفاتيح مستخدمة</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon primary">
+            <i class="fas fa-file-invoice-dollar"></i>
+        </div>
+        <div class="stat-info">
+            <h3 id="totalInvoices">--</h3>
+            <p>إجمالي الفواتير</p>
         </div>
     </div>
 </div>
@@ -161,6 +224,11 @@
 
 {% block extra_scripts %}
 <script>
+    // Format currency with Riyal
+    function formatMoney(amount) {
+        return parseFloat(amount || 0).toFixed(2) + ' ريال';
+    }
+    
     // Load dashboard data
     async function loadDashboardData() {
         try {
@@ -170,22 +238,30 @@
             if (data.success) {
                 const stats = data.stats;
                 
-                // Update stats
+                // Update stats - Row 1
                 document.getElementById('totalProducts').textContent = formatNumber(stats.total_products || 0);
                 document.getElementById('availableProducts').textContent = formatNumber(stats.available_products || 0);
                 document.getElementById('soldProducts').textContent = formatNumber(stats.sold_products || 0);
                 document.getElementById('totalUsers').textContent = formatNumber(stats.total_users || 0);
-                document.getElementById('totalRevenue').textContent = formatCurrency(stats.total_revenue || 0);
+                document.getElementById('totalRevenue').textContent = formatMoney(stats.total_revenue || 0);
+                document.getElementById('totalBalance').textContent = formatMoney(stats.total_balance || 0);
+                
+                // Update stats - Row 2
                 document.getElementById('totalCategories').textContent = formatNumber(stats.total_categories || 0);
+                document.getElementById('pendingOrders').textContent = formatNumber(stats.pending_orders || 0);
+                document.getElementById('completedOrders').textContent = formatNumber(stats.completed_orders || 0);
+                document.getElementById('activeKeys').textContent = formatNumber(stats.active_keys || 0);
+                document.getElementById('usedKeys').textContent = formatNumber(stats.used_keys || 0);
+                document.getElementById('totalInvoices').textContent = formatNumber(stats.total_invoices || 0);
                 
                 // Recent orders
                 const ordersHtml = stats.recent_orders && stats.recent_orders.length > 0
                     ? stats.recent_orders.map(order => `
                         <tr>
-                            <td>#${order.id}</td>
+                            <td><code>#${order.id.slice(0, 8)}...</code></td>
                             <td>${order.user_name || 'غير معروف'}</td>
-                            <td>${formatCurrency(order.total)}</td>
-                            <td><span class="badge badge-${order.status === 'completed' ? 'success' : 'warning'}">${order.status === 'completed' ? 'مكتمل' : 'قيد الانتظار'}</span></td>
+                            <td>${formatMoney(order.total)}</td>
+                            <td><span class="badge badge-${order.status === 'completed' ? 'success' : order.status === 'cancelled' ? 'danger' : 'warning'}">${order.status === 'completed' ? 'مكتمل' : order.status === 'cancelled' ? 'ملغي' : 'معلق'}</span></td>
                         </tr>
                     `).join('')
                     : '<tr><td colspan="4" class="text-muted" style="text-align: center;">لا توجد طلبات</td></tr>';
@@ -196,7 +272,7 @@
                     ? stats.recent_users.map(user => `
                         <tr>
                             <td>${user.name || user.username || 'مستخدم ' + user.id}</td>
-                            <td>${formatCurrency(user.balance || 0)}</td>
+                            <td><strong class="text-primary">${formatMoney(user.balance || 0)}</strong></td>
                             <td>${user.created_at ? new Date(user.created_at * 1000).toLocaleDateString('ar') : '-'}</td>
                         </tr>
                     `).join('')
@@ -206,9 +282,9 @@
                 // Categories chart
                 const categoriesHtml = stats.categories_with_count && stats.categories_with_count.length > 0
                     ? stats.categories_with_count.map(cat => `
-                        <div class="stat-card" style="min-width: 150px;">
+                        <div class="stat-card" style="min-width: 150px; cursor: pointer;" onclick="window.location='/admin/categories'">
                             <div class="stat-icon primary">
-                                <i class="fas fa-folder"></i>
+                                <span style="font-size: 24px;">${cat.icon || '📦'}</span>
                             </div>
                             <div class="stat-info">
                                 <h3>${cat.count}</h3>
@@ -218,6 +294,25 @@
                     `).join('')
                     : '<div class="empty-state"><i class="fas fa-folder-open"></i><p>لا توجد أقسام</p></div>';
                 document.getElementById('categoriesChart').innerHTML = categoriesHtml;
+                
+                // Top products
+                if (stats.top_products && stats.top_products.length > 0) {
+                    let topProductsHtml = '<div class="card" style="margin-top: 20px;"><div class="card-header"><h3 class="card-title"><i class="fas fa-trophy"></i> أكثر المنتجات مبيعاً</h3></div><div class="card-body"><div class="table-container"><table><thead><tr><th>#</th><th>المنتج</th><th>المبيعات</th><th>الإيرادات</th></tr></thead><tbody>';
+                    stats.top_products.forEach((p, i) => {
+                        topProductsHtml += `<tr><td>${i + 1}</td><td>${p.name}</td><td><span class="badge badge-success">${p.sold}</span></td><td><strong class="text-primary">${formatMoney(p.revenue)}</strong></td></tr>`;
+                    });
+                    topProductsHtml += '</tbody></table></div></div></div>';
+                    
+                    // Add after categories
+                    const categoriesCard = document.getElementById('categoriesChart').closest('.card');
+                    if (categoriesCard && !document.getElementById('topProductsCard')) {
+                        categoriesCard.insertAdjacentHTML('afterend', topProductsHtml);
+                        const newCard = categoriesCard.nextElementSibling;
+                        if (newCard) newCard.id = 'topProductsCard';
+                    }
+                }
+            } else {
+                console.error('API returned error:', data.message);
             }
         } catch (error) {
             console.error('Error loading dashboard:', error);
