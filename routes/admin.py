@@ -592,7 +592,40 @@ def api_get_invoices():
         except Exception as e:
             print(f"⚠️ خطأ في جلب products: {e}")
         
-        # 6️⃣ إحصائيات
+        # 6️⃣ سجل عمليات الرصيد (balance_logs)
+        balance_logs_list = []
+        try:
+            logs_ref = db.collection('balance_logs').order_by('created_at', direction=firestore.Query.DESCENDING).limit(100)
+            for doc in logs_ref.stream():
+                data = doc.to_dict()
+                user_name = 'غير معروف'
+                user_id = data.get('user_id', '')
+                try:
+                    user_doc = db.collection('users').document(str(user_id)).get()
+                    if user_doc.exists:
+                        user_data = user_doc.to_dict()
+                        user_name = user_data.get('name', user_data.get('telegram_name', f'مستخدم {user_id}'))
+                except:
+                    pass
+                
+                op_type = data.get('operation_type', '')
+                balance_logs_list.append({
+                    'id': doc.id,
+                    'user_id': user_id,
+                    'user_name': user_name,
+                    'amount': data.get('amount', 0),
+                    'operation_type': op_type,
+                    'type': 'إضافة رصيد' if op_type == 'credit' else 'خصم رصيد',
+                    'description': data.get('description', ''),
+                    'order_id': data.get('order_id', ''),
+                    'old_balance': data.get('old_balance', 0),
+                    'new_balance': data.get('new_balance', 0),
+                    'created_at': str(data.get('created_at', ''))
+                })
+        except Exception as e:
+            print(f"⚠️ خطأ في جلب balance_logs: {e}")
+        
+        # 7️⃣ إحصائيات
         stats = {
             'total_payments': len(pending_payments_list),
             'completed_payments': len([p for p in pending_payments_list if p['status'] == 'completed']),
@@ -603,7 +636,10 @@ def api_get_invoices():
             'sold_products': len(sold_products_list),
             'available_products': len(available_products_list),
             'total_revenue': sum([o['price'] for o in orders_list]),
-            'total_charged': sum([c['amount'] for c in charge_history_list])
+            'total_charged': sum([c['amount'] for c in charge_history_list]),
+            'total_balance_logs': len(balance_logs_list),
+            'total_credits': sum([l['amount'] for l in balance_logs_list if l['operation_type'] == 'credit']),
+            'total_debits': sum([l['amount'] for l in balance_logs_list if l['operation_type'] == 'debit'])
         }
         
         return jsonify({
@@ -614,11 +650,134 @@ def api_get_invoices():
             'orders': orders_list,
             'sold_products': sold_products_list,
             'available_products': available_products_list,
+            'balance_logs': balance_logs_list,
             'stats': stats
         })
         
     except Exception as e:
         print(f"❌ خطأ في جلب الفواتير: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'status': 'error', 'message': str(e)})
+
+# ===================== API سجل عمليات الرصيد (balance_logs) =====================
+
+@admin_bp.route('/api/admin/get_balance_logs')
+def api_get_balance_logs():
+    """جلب جميع سجلات عمليات الرصيد"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'})
+    
+    try:
+        balance_logs_list = []
+        
+        if db:
+            logs_ref = db.collection('balance_logs').order_by('created_at', direction=firestore.Query.DESCENDING).limit(200)
+            for doc in logs_ref.stream():
+                data = doc.to_dict()
+                user_name = 'غير معروف'
+                user_id = data.get('user_id', '')
+                
+                # جلب اسم المستخدم
+                try:
+                    user_doc = db.collection('users').document(str(user_id)).get()
+                    if user_doc.exists:
+                        user_data = user_doc.to_dict()
+                        user_name = user_data.get('name', user_data.get('telegram_name', f'مستخدم {user_id}'))
+                except:
+                    pass
+                
+                balance_logs_list.append({
+                    'id': doc.id,
+                    'user_id': user_id,
+                    'user_name': user_name,
+                    'amount': data.get('amount', 0),
+                    'operation_type': data.get('operation_type', ''),
+                    'description': data.get('description', ''),
+                    'order_id': data.get('order_id', ''),
+                    'old_balance': data.get('old_balance', 0),
+                    'new_balance': data.get('new_balance', 0),
+                    'created_at': str(data.get('created_at', ''))
+                })
+        
+        # إحصائيات
+        total_credits = sum([l['amount'] for l in balance_logs_list if l['operation_type'] == 'credit'])
+        total_debits = sum([l['amount'] for l in balance_logs_list if l['operation_type'] == 'debit'])
+        
+        return jsonify({
+            'status': 'success',
+            'balance_logs': balance_logs_list,
+            'stats': {
+                'total_logs': len(balance_logs_list),
+                'total_credits': total_credits,
+                'total_debits': total_debits,
+                'net_balance': total_credits - total_debits
+            }
+        })
+        
+    except Exception as e:
+        print(f"❌ خطأ في جلب سجلات الرصيد: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'status': 'error', 'message': str(e)})
+
+# ===================== API السلات النشطة (carts) =====================
+
+@admin_bp.route('/api/admin/get_carts')
+def api_get_carts():
+    """جلب جميع السلات النشطة"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'})
+    
+    try:
+        carts_list = []
+        
+        if db:
+            for doc in db.collection('carts').stream():
+                data = doc.to_dict()
+                user_id = doc.id
+                user_name = 'غير معروف'
+                
+                # جلب اسم المستخدم
+                try:
+                    user_doc = db.collection('users').document(str(user_id)).get()
+                    if user_doc.exists:
+                        user_data = user_doc.to_dict()
+                        user_name = user_data.get('name', user_data.get('telegram_name', f'مستخدم {user_id}'))
+                except:
+                    pass
+                
+                items = data.get('items', [])
+                total_value = sum([float(item.get('price', 0)) for item in items])
+                
+                carts_list.append({
+                    'user_id': user_id,
+                    'user_name': user_name,
+                    'items_count': len(items),
+                    'items': items,
+                    'total_value': total_value,
+                    'status': data.get('status', 'active'),
+                    'created_at': str(data.get('created_at', '')),
+                    'expires_at': str(data.get('expires_at', ''))
+                })
+        
+        # إحصائيات
+        total_carts = len(carts_list)
+        total_items = sum([c['items_count'] for c in carts_list])
+        total_value = sum([c['total_value'] for c in carts_list])
+        
+        return jsonify({
+            'status': 'success',
+            'carts': carts_list,
+            'stats': {
+                'total_carts': total_carts,
+                'total_items': total_items,
+                'total_value': total_value
+            }
+        })
+        
+    except Exception as e:
+        print(f"❌ خطأ في جلب السلات: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'status': 'error', 'message': str(e)})

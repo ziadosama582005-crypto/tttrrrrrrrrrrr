@@ -51,7 +51,7 @@ def get_balance(user_id):
         print(f"⚠️ خطأ في جلب الرصيد: {e}")
         return 0.0
 
-def add_balance(user_id, amount, users_wallets=None):
+def add_balance(user_id, amount, users_wallets=None, description='شحن رصيد', order_id=''):
     """إضافة رصيد للمستخدم في Firebase والذاكرة"""
     uid = str(user_id)
     
@@ -74,13 +74,25 @@ def add_balance(user_id, amount, users_wallets=None):
                 'updated_at': firestore.SERVER_TIMESTAMP
             }, merge=True)
             print(f"✅ تم حفظ رصيد المستخدم {uid}: {new_balance} ريال في Firestore")
+            
+            # تسجيل العملية في balance_logs
+            add_balance_log(
+                user_id=uid,
+                amount=amount,
+                operation_type='credit',
+                description=description,
+                order_id=order_id,
+                old_balance=current_balance,
+                new_balance=new_balance
+            )
+            
             return new_balance
     except Exception as e:
         print(f"❌ خطأ في حفظ الرصيد إلى Firebase: {e}")
     
     return new_balance
 
-def deduct_balance(user_id, amount, users_wallets=None):
+def deduct_balance(user_id, amount, users_wallets=None, description='خصم رصيد', order_id=''):
     """خصم رصيد من المستخدم"""
     uid = str(user_id)
     
@@ -102,6 +114,18 @@ def deduct_balance(user_id, amount, users_wallets=None):
                 'updated_at': firestore.SERVER_TIMESTAMP
             }, merge=True)
             print(f"✅ تم خصم {amount} ريال من المستخدم {uid}. الرصيد الجديد: {new_balance}")
+            
+            # تسجيل العملية في balance_logs
+            add_balance_log(
+                user_id=uid,
+                amount=amount,
+                operation_type='debit',
+                description=description,
+                order_id=order_id,
+                old_balance=current_balance,
+                new_balance=new_balance
+            )
+            
             return new_balance
     except Exception as e:
         print(f"❌ خطأ في خصم الرصيد: {e}")
@@ -374,6 +398,85 @@ def clear_user_cart(user_id):
         print(f"❌ خطأ في مسح السلة: {e}")
         return False
 
+def get_all_carts():
+    """جلب جميع السلات النشطة (للأدمن)"""
+    try:
+        if not db:
+            return []
+        carts = []
+        for doc in db.collection('carts').stream():
+            data = doc.to_dict()
+            data['user_id'] = doc.id
+            # حساب عدد المنتجات والقيمة الإجمالية
+            items = data.get('items', [])
+            data['items_count'] = len(items)
+            data['total_value'] = sum([float(item.get('price', 0)) for item in items])
+            carts.append(data)
+        return carts
+    except Exception as e:
+        print(f"❌ خطأ في جلب السلات: {e}")
+        return []
+
+# === دوال سجل عمليات الرصيد (balance_logs) ===
+def add_balance_log(user_id, amount, operation_type, description='', order_id='', old_balance=0, new_balance=0):
+    """
+    إضافة سجل لعملية الرصيد
+    
+    operation_type: 'credit' (إضافة) أو 'debit' (خصم)
+    """
+    try:
+        if not db:
+            return False
+        db.collection('balance_logs').add({
+            'user_id': str(user_id),
+            'amount': float(amount),
+            'operation_type': operation_type,  # 'credit' أو 'debit'
+            'description': description,
+            'order_id': order_id,
+            'old_balance': float(old_balance),
+            'new_balance': float(new_balance),
+            'created_at': firestore.SERVER_TIMESTAMP
+        })
+        print(f"✅ تم تسجيل عملية الرصيد: {operation_type} {amount} للمستخدم {user_id}")
+        return True
+    except Exception as e:
+        print(f"❌ خطأ في إضافة سجل الرصيد: {e}")
+        return False
+
+def get_balance_logs(user_id, limit=50):
+    """جلب سجل عمليات الرصيد للمستخدم"""
+    try:
+        if not db:
+            return []
+        logs = []
+        logs_ref = query_where(db.collection('balance_logs'), 'user_id', '==', str(user_id))
+        for doc in logs_ref.stream():
+            data = doc.to_dict()
+            data['id'] = doc.id
+            logs.append(data)
+        # ترتيب من الأحدث
+        logs.sort(key=lambda x: x.get('created_at', 0) if x.get('created_at') else 0, reverse=True)
+        return logs[:limit]
+    except Exception as e:
+        print(f"❌ خطأ في جلب سجل الرصيد: {e}")
+        return []
+
+def get_all_balance_logs(limit=100):
+    """جلب جميع سجلات الرصيد (للأدمن)"""
+    try:
+        if not db:
+            return []
+        logs = []
+        logs_ref = db.collection('balance_logs').limit(limit)
+        for doc in logs_ref.stream():
+            data = doc.to_dict()
+            data['id'] = doc.id
+            logs.append(data)
+        return logs
+    except Exception as e:
+        print(f"❌ خطأ في جلب سجلات الرصيد: {e}")
+        return []
+
 # === دوال سجل الشحن ===
 def add_charge_history(user_id, amount, method='key', order_id=''):
     """إضافة سجل شحن"""
@@ -411,6 +514,40 @@ def add_purchase_history(buyer_id, seller_id, product_data, order_id=''):
     except Exception as e:
         print(f"❌ خطأ في إضافة سجل الشراء: {e}")
         return False
+
+def get_user_purchases(user_id, limit=50):
+    """جلب مشتريات المستخدم"""
+    try:
+        if not db:
+            return []
+        purchases = []
+        purchases_ref = query_where(db.collection('purchases'), 'buyer_id', '==', str(user_id))
+        for doc in purchases_ref.stream():
+            data = doc.to_dict()
+            data['id'] = doc.id
+            purchases.append(data)
+        # ترتيب من الأحدث
+        purchases.sort(key=lambda x: x.get('created_at', 0) if x.get('created_at') else 0, reverse=True)
+        return purchases[:limit]
+    except Exception as e:
+        print(f"❌ خطأ في جلب المشتريات: {e}")
+        return []
+
+def get_all_purchases(limit=100):
+    """جلب جميع المشتريات (للأدمن)"""
+    try:
+        if not db:
+            return []
+        purchases = []
+        purchases_ref = db.collection('purchases').limit(limit)
+        for doc in purchases_ref.stream():
+            data = doc.to_dict()
+            data['id'] = doc.id
+            purchases.append(data)
+        return purchases
+    except Exception as e:
+        print(f"❌ خطأ في جلب المشتريات: {e}")
+        return []
 
 # === دالة تحميل جميع البيانات ===
 def load_all_data():
