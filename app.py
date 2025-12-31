@@ -501,6 +501,85 @@ def api_send_code():
         print(f"❌ خطأ: {e}")
         return jsonify({'success': False, 'message': 'حدث خطأ في السيرفر'}), 500
 
+# 📧 تسجيل الدخول بالبريد الإلكتروني
+@app.route('/api/send_code_by_email', methods=['POST'])
+@limiter.limit("5 per minute")  # 🔒 Rate Limiting
+def send_code_by_email():
+    """البحث عن الحساب بالإيميل وإرسال كود التحقق لـ Telegram"""
+    try:
+        data = request.get_json()
+        email = data.get('email', '').strip().lower()
+        
+        if not email:
+            return jsonify({'success': False, 'message': 'الرجاء إدخال البريد الإلكتروني'}), 400
+        
+        # التحقق من صيغة البريد
+        import re
+        if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+            return jsonify({'success': False, 'message': 'صيغة البريد غير صحيحة'}), 400
+        
+        # البحث عن الحساب المرتبط بهذا البريد
+        users_ref = db.collection('users')
+        query = users_ref.where('email', '==', email).where('email_verified', '==', True).limit(1)
+        results = list(query.stream())
+        
+        if not results:
+            return jsonify({
+                'success': False, 
+                'message': 'لا يوجد حساب مرتبط بهذا البريد أو البريد غير موثق'
+            }), 404
+        
+        user_doc = results[0]
+        user_id = user_doc.id
+        user_data = user_doc.to_dict()
+        user_name = user_data.get('name', user_data.get('first_name', 'مستخدم'))
+        
+        # توليد كود عشوائي 6 أرقام
+        code = str(random.randint(100000, 999999))
+        
+        # حفظ الكود في الذاكرة
+        verification_codes[user_id] = {
+            'code': code,
+            'name': user_name,
+            'created_at': time.time()
+        }
+        
+        # إعادة تعيين المحاولات الفاشلة
+        from security_utils import reset_failed_attempts
+        reset_failed_attempts(user_id)
+        
+        # إرسال الكود للمستخدم عبر Telegram
+        try:
+            message_text = f"""
+🔐 كود التحقق للدخول عبر البريد الإلكتروني:
+<code>{code}</code>
+
+📧 تم طلب الدخول باستخدام: {email}
+
+⏰ صالح لمدة 2 دقيقة فقط
+3️⃣ محاولات خاطئة = الكود ينتهي
+
+⚠️ إذا لم تطلب هذا، تجاهل الرسالة!
+"""
+            bot.send_message(int(user_id), message_text, parse_mode='HTML')
+            
+            return jsonify({
+                'success': True, 
+                'message': '✅ تم إرسال كود التحقق إلى Telegram',
+                'user_id': user_id
+            })
+        
+        except Exception as e:
+            print(f"❌ خطأ في إرسال الرسالة: {e}")
+            return jsonify({
+                'success': False,
+                'message': 'فشل إرسال الكود، تأكد من تفعيل البوت'
+            }), 500
+    
+    except Exception as e:
+        print(f"❌ خطأ: {e}")
+        return jsonify({'success': False, 'message': 'حدث خطأ في السيرفر'}), 500
+
 # مسار التحقق من الكود وتسجيل الدخول
 @app.route('/verify', methods=['POST'])
 @limiter.limit("10 per minute")  # 🔒 Rate Limiting عام

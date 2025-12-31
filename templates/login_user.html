@@ -224,34 +224,108 @@
             margin-top: 10px;
             text-align: center;
         }
+        
+        /* تبويبات الاختيار */
+        .login-tabs {
+            display: flex;
+            margin-bottom: 25px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 5px;
+        }
+        
+        .login-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            color: #888;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .login-tab:hover {
+            color: #bbb;
+        }
+        
+        .login-tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .login-tab-icon {
+            font-size: 20px;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <!-- الخطوة 1: إدخال Telegram ID -->
+        <!-- الخطوة 1: إدخال Telegram ID أو Email -->
         <div id="step1" class="step active">
             <div class="logo-area">
-                <div class="logo">📱</div>
+                <div class="logo">🔐</div>
                 <h1>دخول المتجر</h1>
-                <p class="subtitle">أدخل رقم Telegram ID الخاص بك</p>
+                <p class="subtitle">اختر طريقة تسجيل الدخول</p>
             </div>
             
-            <form id="userIdForm">
-                <div class="form-group">
-                    <label for="userId">🆔 رقم Telegram ID</label>
-                    <input type="text" id="userId" placeholder="مثال: 123456789" required inputmode="numeric">
+            <!-- تبويبات الاختيار -->
+            <div class="login-tabs">
+                <div class="login-tab active" onclick="switchTab('telegram')">
+                    <span class="login-tab-icon">📱</span>
+                    Telegram ID
                 </div>
-                <button type="submit" id="sendCodeBtn">📤 إرسال كود التحقق</button>
-            </form>
+                <div class="login-tab" onclick="switchTab('email')">
+                    <span class="login-tab-icon">📧</span>
+                    البريد الإلكتروني
+                </div>
+            </div>
+            
+            <!-- محتوى تبويب Telegram -->
+            <div id="telegramTab" class="tab-content active">
+                <form id="userIdForm">
+                    <div class="form-group">
+                        <label for="userId">🆔 رقم Telegram ID</label>
+                        <input type="text" id="userId" placeholder="مثال: 123456789" inputmode="numeric">
+                    </div>
+                    <button type="submit" id="sendCodeBtn">📤 إرسال كود التحقق</button>
+                </form>
+                
+                <div class="help-text">
+                    💡 لا تعرف رقم Telegram ID؟ استخدم البوت واكتب /id
+                </div>
+            </div>
+            
+            <!-- محتوى تبويب Email -->
+            <div id="emailTab" class="tab-content">
+                <form id="emailForm">
+                    <div class="form-group">
+                        <label for="loginEmail">📧 البريد الإلكتروني</label>
+                        <input type="email" id="loginEmail" placeholder="example@email.com" dir="ltr">
+                    </div>
+                    <button type="submit" id="sendCodeEmailBtn">📤 إرسال كود التحقق</button>
+                </form>
+                
+                <div class="help-text">
+                    💡 يجب أن يكون البريد موثق في حسابك مسبقاً
+                </div>
+            </div>
             
             <div id="error1" class="message error"></div>
             
             <div class="security-note">
                 🛡️ سيتم إرسال كود مؤقت عبر البوت للتحقق من هويتك
-            </div>
-            
-            <div class="help-text">
-                💡 لا تعرف رقم Telegram ID؟ استخدم البوت واكتب /id
             </div>
         </div>
         
@@ -312,6 +386,27 @@
         let countdownInterval;
         let secondsLeft = 120; // 2 دقائق
         let currentUserId = '';
+        let loginMethod = 'telegram'; // telegram أو email
+        
+        // ===== التبديل بين التبويبات =====
+        function switchTab(tab) {
+            loginMethod = tab;
+            
+            // تحديث التبويبات
+            document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            if (tab === 'telegram') {
+                document.querySelector('.login-tab:first-child').classList.add('active');
+                document.getElementById('telegramTab').classList.add('active');
+            } else {
+                document.querySelector('.login-tab:last-child').classList.add('active');
+                document.getElementById('emailTab').classList.add('active');
+            }
+            
+            // مسح الأخطاء
+            document.getElementById('error1').style.display = 'none';
+        }
         
         // ===== الخطوة 1: إرسال Telegram ID =====
         document.getElementById('userIdForm').addEventListener('submit', async function(e) {
@@ -341,6 +436,53 @@
                 const data = await response.json();
                 
                 if (data.success) {
+                    // الانتقال للخطوة 2
+                    document.getElementById('step1').classList.remove('active');
+                    document.getElementById('step2').classList.add('active');
+                    startCountdown();
+                    document.getElementById('verifyCode').focus();
+                } else {
+                    errorDiv.textContent = `❌ ${data.message}`;
+                    errorDiv.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerHTML = '📤 إرسال كود التحقق';
+                }
+            } catch (error) {
+                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
+                errorDiv.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '📤 إرسال كود التحقق';
+            }
+        });
+        
+        // ===== إرسال كود عبر Email =====
+        document.getElementById('emailForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const btn = document.getElementById('sendCodeEmailBtn');
+            const errorDiv = document.getElementById('error1');
+            
+            if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+                errorDiv.textContent = '❌ الرجاء إدخال بريد إلكتروني صحيح';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.innerHTML = '⏳ جاري البحث...';
+            errorDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/send_code_by_email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentUserId = data.user_id;
                     // الانتقال للخطوة 2
                     document.getElementById('step1').classList.remove('active');
                     document.getElementById('step2').classList.add('active');
@@ -454,15 +596,17 @@
             document.getElementById('step2').classList.remove('active');
             document.getElementById('step1').classList.add('active');
             document.getElementById('userId').value = '';
+            document.getElementById('loginEmail').value = '';
             document.getElementById('verifyCode').value = '';
             document.getElementById('error1').style.display = 'none';
             document.getElementById('error2').style.display = 'none';
             document.getElementById('success2').style.display = 'none';
             document.getElementById('sendCodeBtn').disabled = false;
             document.getElementById('sendCodeBtn').innerHTML = '📤 إرسال كود التحقق';
+            document.getElementById('sendCodeEmailBtn').disabled = false;
+            document.getElementById('sendCodeEmailBtn').innerHTML = '📤 إرسال كود التحقق';
             document.getElementById('verifyBtn').disabled = false;
             document.getElementById('verifyBtn').innerHTML = '✅ تأكيد الدخول';
-            document.getElementById('userId').focus();
         }
         
         // ===== الرجوع للخطوة 1 من 2FA =====
@@ -470,6 +614,7 @@
             document.getElementById('step3').classList.remove('active');
             document.getElementById('step1').classList.add('active');
             document.getElementById('userId').value = '';
+            document.getElementById('loginEmail').value = '';
             document.getElementById('verifyCode').value = '';
             document.getElementById('twoFACode').value = '';
             document.getElementById('error1').style.display = 'none';
