@@ -1,0 +1,385 @@
+{% extends "admin/base.html" %}
+
+{% block title %}المدفوعات{% endblock %}
+{% block page_title %}إدارة المدفوعات{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex gap-3" style="flex-wrap: wrap; align-items: center;">
+            <div class="form-group" style="margin: 0; flex: 1; min-width: 200px;">
+                <input type="text" id="searchInput" class="form-control" placeholder="بحث برقم الفاتورة أو اسم العميل...">
+            </div>
+            <div class="form-group" style="margin: 0; min-width: 150px;">
+                <select id="statusFilter" class="form-control">
+                    <option value="">كل الحالات</option>
+                    <option value="pending">قيد الانتظار</option>
+                    <option value="completed">مكتمل</option>
+                    <option value="failed">فاشل</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin: 0; min-width: 150px;">
+                <select id="methodFilter" class="form-control">
+                    <option value="">كل الطرق</option>
+                    <option value="edfa">EdfaPay</option>
+                    <option value="balance">الرصيد</option>
+                    <option value="key">مفتاح شحن</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin: 0; min-width: 150px;">
+                <input type="date" id="dateFilter" class="form-control">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid" style="margin-top: 20px;">
+    <div class="stat-card">
+        <div class="stat-icon primary">
+            <i class="fas fa-file-invoice-dollar"></i>
+        </div>
+        <div class="stat-info">
+            <h3 id="totalInvoices">--</h3>
+            <p>إجمالي الفواتير</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon success">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-info">
+            <h3 id="completedInvoices">--</h3>
+            <p>مكتملة</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon warning">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-info">
+            <h3 id="pendingInvoices">--</h3>
+            <p>قيد الانتظار</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon secondary">
+            <i class="fas fa-dollar-sign"></i>
+        </div>
+        <div class="stat-info">
+            <h3 id="totalAmount">--</h3>
+            <p>إجمالي المبالغ</p>
+        </div>
+    </div>
+</div>
+
+<!-- Invoices Table -->
+<div class="card" style="margin-top: 20px;">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-file-invoice"></i> قائمة الفواتير</h3>
+        <span class="badge badge-primary" id="invoicesCount">0</span>
+    </div>
+    <div class="card-body">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>رقم الفاتورة</th>
+                        <th>العميل</th>
+                        <th>المبلغ</th>
+                        <th>طريقة الدفع</th>
+                        <th>الحالة</th>
+                        <th>التاريخ</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="invoicesTable">
+                    <tr>
+                        <td colspan="7">
+                            <div class="loading"><div class="spinner"></div></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Invoice Details Modal -->
+<div class="modal" id="invoiceModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">تفاصيل الفاتورة</h3>
+                <button class="modal-close" onclick="closeInvoiceModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="invoiceDetails">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeInvoiceModal()">إغلاق</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .payment-method-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+    
+    .payment-method-icon.edfa {
+        background: linear-gradient(135deg, #0984e3, #00cec9);
+    }
+    
+    .payment-method-icon.balance {
+        background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    }
+    
+    .payment-method-icon.key {
+        background: linear-gradient(135deg, #fdcb6e, #e17055);
+    }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let invoices = [];
+    
+    // Load invoices
+    async function loadInvoices() {
+        try {
+            const response = await fetch('/api/admin/invoices');
+            const data = await response.json();
+            
+            if (data.success) {
+                invoices = data.invoices || [];
+                updateStats();
+                renderInvoices();
+            }
+        } catch (error) {
+            console.error('Error loading invoices:', error);
+        }
+    }
+    
+    // Update stats
+    function updateStats() {
+        const total = invoices.length;
+        const completed = invoices.filter(i => i.status === 'completed' || i.status === 'success').length;
+        const pending = invoices.filter(i => i.status === 'pending').length;
+        const amount = invoices
+            .filter(i => i.status === 'completed' || i.status === 'success')
+            .reduce((sum, i) => sum + (parseFloat(i.amount) || 0), 0);
+        
+        document.getElementById('totalInvoices').textContent = formatNumber(total);
+        document.getElementById('completedInvoices').textContent = formatNumber(completed);
+        document.getElementById('pendingInvoices').textContent = formatNumber(pending);
+        document.getElementById('totalAmount').textContent = formatCurrency(amount);
+    }
+    
+    // Render invoices
+    function renderInvoices() {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const status = document.getElementById('statusFilter').value;
+        const method = document.getElementById('methodFilter').value;
+        const date = document.getElementById('dateFilter').value;
+        
+        let filtered = invoices.filter(i => {
+            const matchSearch = !search || 
+                (i.id && i.id.toLowerCase().includes(search)) ||
+                (i.invoice_id && i.invoice_id.toLowerCase().includes(search)) ||
+                (i.user_name && i.user_name.toLowerCase().includes(search));
+            
+            let matchStatus = !status;
+            if (status === 'completed') {
+                matchStatus = i.status === 'completed' || i.status === 'success';
+            } else if (status) {
+                matchStatus = i.status === status;
+            }
+            
+            const matchMethod = !method || i.payment_method === method;
+            
+            let matchDate = true;
+            if (date && i.created_at) {
+                const invoiceDate = new Date(i.created_at * 1000).toISOString().split('T')[0];
+                matchDate = invoiceDate === date;
+            }
+            
+            return matchSearch && matchStatus && matchMethod && matchDate;
+        });
+        
+        // Sort by date desc
+        filtered.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+        
+        document.getElementById('invoicesCount').textContent = filtered.length;
+        
+        if (filtered.length === 0) {
+            document.getElementById('invoicesTable').innerHTML = `
+                <tr><td colspan="7" class="text-muted" style="text-align: center;">لا توجد فواتير</td></tr>
+            `;
+            return;
+        }
+        
+        const html = filtered.map(i => {
+            const statusClass = {
+                'pending': 'warning',
+                'completed': 'success',
+                'success': 'success',
+                'failed': 'danger',
+                'cancelled': 'danger'
+            }[i.status] || 'secondary';
+            
+            const statusText = {
+                'pending': 'قيد الانتظار',
+                'completed': 'مكتمل',
+                'success': 'ناجح',
+                'failed': 'فاشل',
+                'cancelled': 'ملغي'
+            }[i.status] || i.status;
+            
+            const methodText = {
+                'edfa': 'EdfaPay',
+                'balance': 'الرصيد',
+                'key': 'مفتاح شحن'
+            }[i.payment_method] || i.payment_method || '-';
+            
+            return `
+                <tr>
+                    <td><code>#${(i.invoice_id || i.id || '').substring(0, 8)}</code></td>
+                    <td>${i.user_name || 'غير معروف'}</td>
+                    <td><strong class="text-primary">${formatCurrency(i.amount || 0)}</strong></td>
+                    <td>
+                        <div class="d-flex gap-2" style="align-items: center;">
+                            <div class="payment-method-icon ${i.payment_method || ''}">
+                                <i class="fas ${i.payment_method === 'edfa' ? 'fa-credit-card' : i.payment_method === 'key' ? 'fa-key' : 'fa-wallet'}"></i>
+                            </div>
+                            ${methodText}
+                        </div>
+                    </td>
+                    <td><span class="badge badge-${statusClass}">${statusText}</span></td>
+                    <td>${i.created_at ? new Date(i.created_at * 1000).toLocaleString('ar') : '-'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary" onclick="viewInvoice('${i.id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+        document.getElementById('invoicesTable').innerHTML = html;
+    }
+    
+    // View invoice
+    function viewInvoice(invoiceId) {
+        const invoice = invoices.find(i => i.id === invoiceId);
+        if (!invoice) return;
+        
+        const statusClass = {
+            'pending': 'warning',
+            'completed': 'success',
+            'success': 'success',
+            'failed': 'danger'
+        }[invoice.status] || 'secondary';
+        
+        const statusText = {
+            'pending': 'قيد الانتظار',
+            'completed': 'مكتمل',
+            'success': 'ناجح',
+            'failed': 'فاشل'
+        }[invoice.status] || invoice.status;
+        
+        const methodText = {
+            'edfa': 'EdfaPay',
+            'balance': 'الرصيد',
+            'key': 'مفتاح شحن'
+        }[invoice.payment_method] || invoice.payment_method || '-';
+        
+        document.getElementById('invoiceDetails').innerHTML = `
+            <div class="d-flex gap-3 mb-3" style="align-items: center; justify-content: space-between;">
+                <h4 style="margin: 0;"><code>#${(invoice.invoice_id || invoice.id || '').substring(0, 8)}</code></h4>
+                <span class="badge badge-${statusClass}">${statusText}</span>
+            </div>
+            
+            <div style="text-align: center; padding: 20px; background: var(--dark); border-radius: 10px; margin-bottom: 20px;">
+                <p class="text-muted" style="margin: 0;">المبلغ</p>
+                <h2 class="text-primary" style="margin: 10px 0;">${formatCurrency(invoice.amount || 0)}</h2>
+            </div>
+            
+            <div class="d-flex gap-3">
+                <div class="form-group" style="flex: 1;">
+                    <label>العميل</label>
+                    <p>${invoice.user_name || 'غير معروف'}</p>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Telegram ID</label>
+                    <p><code>${invoice.telegram_id || invoice.user_id || '-'}</code></p>
+                </div>
+            </div>
+            
+            <div class="d-flex gap-3">
+                <div class="form-group" style="flex: 1;">
+                    <label>طريقة الدفع</label>
+                    <p>
+                        <div class="d-flex gap-2" style="align-items: center;">
+                            <div class="payment-method-icon ${invoice.payment_method || ''}">
+                                <i class="fas ${invoice.payment_method === 'edfa' ? 'fa-credit-card' : invoice.payment_method === 'key' ? 'fa-key' : 'fa-wallet'}"></i>
+                            </div>
+                            ${methodText}
+                        </div>
+                    </p>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>تاريخ الإنشاء</label>
+                    <p>${invoice.created_at ? new Date(invoice.created_at * 1000).toLocaleString('ar') : '-'}</p>
+                </div>
+            </div>
+            
+            ${invoice.completed_at ? `
+                <div class="form-group">
+                    <label>تاريخ الإكمال</label>
+                    <p>${new Date(invoice.completed_at * 1000).toLocaleString('ar')}</p>
+                </div>
+            ` : ''}
+            
+            ${invoice.transaction_id ? `
+                <div class="form-group">
+                    <label>رقم المعاملة</label>
+                    <p><code>${invoice.transaction_id}</code></p>
+                </div>
+            ` : ''}
+            
+            ${invoice.error_message ? `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i>
+                    ${invoice.error_message}
+                </div>
+            ` : ''}
+        `;
+        
+        document.getElementById('invoiceModal').classList.add('active');
+    }
+    
+    function closeInvoiceModal() {
+        document.getElementById('invoiceModal').classList.remove('active');
+    }
+    
+    // Event listeners
+    document.getElementById('searchInput').addEventListener('input', renderInvoices);
+    document.getElementById('statusFilter').addEventListener('change', renderInvoices);
+    document.getElementById('methodFilter').addEventListener('change', renderInvoices);
+    document.getElementById('dateFilter').addEventListener('change', renderInvoices);
+    
+    // Load on page load
+    loadInvoices();
+</script>
+{% endblock %}

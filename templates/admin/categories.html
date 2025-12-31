@@ -1,0 +1,429 @@
+{% extends "admin/base.html" %}
+
+{% block title %}الأقسام{% endblock %}
+{% block page_title %}إدارة الأقسام{% endblock %}
+
+{% block content %}
+<!-- Actions -->
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex gap-3" style="justify-content: space-between; align-items: center; flex-wrap: wrap;">
+            <div class="form-group" style="margin: 0; flex: 1; min-width: 200px;">
+                <input type="text" id="searchInput" class="form-control" placeholder="بحث في الأقسام...">
+            </div>
+            <button class="btn btn-primary" onclick="openAddModal()">
+                <i class="fas fa-plus"></i> إضافة قسم
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Categories Grid -->
+<div id="categoriesContainer" class="grid-3" style="margin-top: 20px;">
+    <div class="card"><div class="card-body"><div class="loading"><div class="spinner"></div></div></div></div>
+</div>
+
+<!-- Add/Edit Category Modal -->
+<div class="modal" id="categoryModal">
+    <div class="modal-dialog" style="max-width: 500px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">إضافة قسم جديد</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="categoryForm">
+                    <input type="hidden" id="categoryId">
+                    
+                    <div class="form-group">
+                        <label>اسم القسم</label>
+                        <input type="text" id="categoryName" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>الوصف</label>
+                        <textarea id="categoryDesc" class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>الأيقونة (Font Awesome)</label>
+                        <div class="d-flex gap-2">
+                            <input type="text" id="categoryIcon" class="form-control" placeholder="fa-folder">
+                            <div id="iconPreview" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; background: var(--dark-light); border-radius: 8px;">
+                                <i class="fas fa-folder" style="font-size: 24px;"></i>
+                            </div>
+                        </div>
+                        <small class="text-muted">مثال: fa-gamepad, fa-shopping-bag, fa-gift</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>رابط الصورة (اختياري)</label>
+                        <input type="url" id="categoryImage" class="form-control" placeholder="https://...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>اللون</label>
+                        <div class="d-flex gap-2" style="flex-wrap: wrap;">
+                            <input type="color" id="categoryColor" class="form-control" value="#6c5ce7" style="width: 60px; height: 40px; padding: 5px;">
+                            <div class="color-presets d-flex gap-2">
+                                <button type="button" class="color-btn" data-color="#6c5ce7" style="background: #6c5ce7;"></button>
+                                <button type="button" class="color-btn" data-color="#00b894" style="background: #00b894;"></button>
+                                <button type="button" class="color-btn" data-color="#e17055" style="background: #e17055;"></button>
+                                <button type="button" class="color-btn" data-color="#0984e3" style="background: #0984e3;"></button>
+                                <button type="button" class="color-btn" data-color="#fdcb6e" style="background: #fdcb6e;"></button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>الترتيب</label>
+                        <input type="number" id="categoryOrder" class="form-control" value="0" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="categoryActive" checked>
+                            <span>نشط</span>
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">إلغاء</button>
+                <button class="btn btn-primary" onclick="saveCategory()">
+                    <i class="fas fa-save"></i> حفظ
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal" id="deleteModal">
+    <div class="modal-dialog" style="max-width: 400px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">تأكيد الحذف</h3>
+                <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: var(--danger); margin-bottom: 15px;"></i>
+                <p>هل أنت متأكد من حذف هذا القسم؟</p>
+                <p class="text-muted">سيتم حذف جميع المنتجات المرتبطة بهذا القسم</p>
+                <input type="hidden" id="deleteCategoryId">
+            </div>
+            <div class="modal-footer" style="justify-content: center;">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">إلغاء</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">
+                    <i class="fas fa-trash"></i> حذف
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .category-card {
+        background: var(--dark-light);
+        border-radius: 15px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    .category-header {
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+    
+    .category-header i {
+        font-size: 40px;
+        color: white;
+    }
+    
+    .category-body {
+        padding: 20px;
+    }
+    
+    .category-body h3 {
+        margin: 0 0 5px;
+        font-size: 18px;
+    }
+    
+    .category-body p {
+        color: var(--text-secondary);
+        font-size: 14px;
+        margin: 0 0 15px;
+    }
+    
+    .category-stats {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .category-stats .stat {
+        flex: 1;
+        text-align: center;
+        padding: 10px;
+        background: var(--dark);
+        border-radius: 8px;
+    }
+    
+    .category-stats .stat h4 {
+        margin: 0;
+        font-size: 20px;
+        color: var(--primary);
+    }
+    
+    .category-stats .stat span {
+        font-size: 12px;
+        color: var(--text-secondary);
+    }
+    
+    .category-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .category-actions .btn {
+        flex: 1;
+    }
+    
+    .color-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .color-btn:hover, .color-btn.active {
+        border-color: white;
+        transform: scale(1.1);
+    }
+    
+    .category-inactive {
+        opacity: 0.5;
+    }
+    
+    .badge-inactive {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: var(--danger);
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let categories = [];
+    
+    // Load categories
+    async function loadCategories() {
+        try {
+            const response = await fetch('/api/admin/categories');
+            const data = await response.json();
+            
+            if (data.success) {
+                categories = data.categories || [];
+                renderCategories();
+            }
+        } catch (error) {
+            console.error('Error loading categories:', error);
+        }
+    }
+    
+    // Render categories
+    function renderCategories() {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        
+        let filtered = categories.filter(c => {
+            return !search || c.name.toLowerCase().includes(search);
+        });
+        
+        if (filtered.length === 0) {
+            document.getElementById('categoriesContainer').innerHTML = `
+                <div class="card">
+                    <div class="card-body" style="text-align: center;">
+                        <div class="empty-state">
+                            <i class="fas fa-folder-open"></i>
+                            <p>لا توجد أقسام</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
+        const html = filtered.map(c => `
+            <div class="category-card ${c.active === false ? 'category-inactive' : ''}">
+                <div class="category-header" style="background: ${c.color || '#6c5ce7'};">
+                    ${c.active === false ? '<span class="badge-inactive">غير نشط</span>' : ''}
+                    ${c.image ? `<img src="${c.image}" style="width: 100%; height: 100%; object-fit: cover;">` : `<i class="fas ${c.icon || 'fa-folder'}"></i>`}
+                </div>
+                <div class="category-body">
+                    <h3>${c.name}</h3>
+                    <p>${c.description || 'بدون وصف'}</p>
+                    <div class="category-stats">
+                        <div class="stat">
+                            <h4>${c.products_count || 0}</h4>
+                            <span>منتج</span>
+                        </div>
+                        <div class="stat">
+                            <h4>${c.order || 0}</h4>
+                            <span>الترتيب</span>
+                        </div>
+                    </div>
+                    <div class="category-actions">
+                        <button class="btn btn-sm btn-primary" onclick="editCategory('${c.id}')">
+                            <i class="fas fa-edit"></i> تعديل
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteCategory('${c.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+        document.getElementById('categoriesContainer').innerHTML = html;
+    }
+    
+    // Open add modal
+    function openAddModal() {
+        document.getElementById('modalTitle').textContent = 'إضافة قسم جديد';
+        document.getElementById('categoryForm').reset();
+        document.getElementById('categoryId').value = '';
+        document.getElementById('categoryColor').value = '#6c5ce7';
+        document.getElementById('categoryActive').checked = true;
+        updateIconPreview();
+        document.getElementById('categoryModal').classList.add('active');
+    }
+    
+    // Close modal
+    function closeModal() {
+        document.getElementById('categoryModal').classList.remove('active');
+    }
+    
+    // Edit category
+    function editCategory(id) {
+        const category = categories.find(c => c.id === id);
+        if (!category) return;
+        
+        document.getElementById('modalTitle').textContent = 'تعديل القسم';
+        document.getElementById('categoryId').value = id;
+        document.getElementById('categoryName').value = category.name || '';
+        document.getElementById('categoryDesc').value = category.description || '';
+        document.getElementById('categoryIcon').value = category.icon || 'fa-folder';
+        document.getElementById('categoryImage').value = category.image || '';
+        document.getElementById('categoryColor').value = category.color || '#6c5ce7';
+        document.getElementById('categoryOrder').value = category.order || 0;
+        document.getElementById('categoryActive').checked = category.active !== false;
+        
+        updateIconPreview();
+        document.getElementById('categoryModal').classList.add('active');
+    }
+    
+    // Save category
+    async function saveCategory() {
+        const id = document.getElementById('categoryId').value;
+        const data = {
+            name: document.getElementById('categoryName').value,
+            description: document.getElementById('categoryDesc').value,
+            icon: document.getElementById('categoryIcon').value,
+            image: document.getElementById('categoryImage').value,
+            color: document.getElementById('categoryColor').value,
+            order: parseInt(document.getElementById('categoryOrder').value) || 0,
+            active: document.getElementById('categoryActive').checked
+        };
+        
+        try {
+            const url = id ? `/api/admin/categories/${id}` : '/api/admin/categories';
+            const method = id ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showAlert('success', id ? 'تم تحديث القسم بنجاح' : 'تم إضافة القسم بنجاح');
+                closeModal();
+                loadCategories();
+            } else {
+                showAlert('danger', result.message || 'حدث خطأ');
+            }
+        } catch (error) {
+            showAlert('danger', 'حدث خطأ في الاتصال');
+        }
+    }
+    
+    // Delete category
+    function deleteCategory(id) {
+        document.getElementById('deleteCategoryId').value = id;
+        document.getElementById('deleteModal').classList.add('active');
+    }
+    
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('active');
+    }
+    
+    async function confirmDelete() {
+        const id = document.getElementById('deleteCategoryId').value;
+        
+        try {
+            const response = await fetch(`/api/admin/categories/${id}`, {
+                method: 'DELETE'
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showAlert('success', 'تم حذف القسم بنجاح');
+                closeDeleteModal();
+                loadCategories();
+            } else {
+                showAlert('danger', result.message || 'حدث خطأ');
+            }
+        } catch (error) {
+            showAlert('danger', 'حدث خطأ في الاتصال');
+        }
+    }
+    
+    // Update icon preview
+    function updateIconPreview() {
+        const icon = document.getElementById('categoryIcon').value || 'fa-folder';
+        document.getElementById('iconPreview').innerHTML = `<i class="fas ${icon}" style="font-size: 24px;"></i>`;
+    }
+    
+    // Event listeners
+    document.getElementById('searchInput').addEventListener('input', renderCategories);
+    document.getElementById('categoryIcon').addEventListener('input', updateIconPreview);
+    
+    // Color preset buttons
+    document.querySelectorAll('.color-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('categoryColor').value = btn.dataset.color;
+        });
+    });
+    
+    // Load on page load
+    loadCategories();
+</script>
+{% endblock %}

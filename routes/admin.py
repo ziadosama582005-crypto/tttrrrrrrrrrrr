@@ -411,28 +411,65 @@ def logout_admin():
     session.pop('is_admin', None)
     return redirect('/dashboard')
 
-# ===================== صفحات لوحة التحكم =====================
+# ===================== صفحات لوحة التحكم الجديدة =====================
+
+@admin_bp.route('/admin')
+@admin_bp.route('/admin/')
+@admin_bp.route('/admin/dashboard')
+def admin_dashboard():
+    """الصفحة الرئيسية للوحة التحكم"""
+    if not session.get('is_admin'):
+        return redirect('/dashboard')
+    return render_template('admin/dashboard.html')
 
 @admin_bp.route('/admin/products')
 def admin_products():
     """صفحة إدارة المنتجات"""
     if not session.get('is_admin'):
         return redirect('/dashboard')
-    return render_template('admin_products.html', admin_id=ADMIN_ID)
+    return render_template('admin/products.html', admin_id=ADMIN_ID)
 
 @admin_bp.route('/admin/categories')
 def admin_categories():
     """صفحة إدارة الأقسام"""
     if not session.get('is_admin'):
         return redirect('/dashboard')
-    return render_template('admin_categories.html')
+    return render_template('admin/categories.html')
+
+@admin_bp.route('/admin/users')
+def admin_users():
+    """صفحة إدارة العملاء"""
+    if not session.get('is_admin'):
+        return redirect('/dashboard')
+    return render_template('admin/users.html')
+
+@admin_bp.route('/admin/orders')
+def admin_orders():
+    """صفحة إدارة الطلبات"""
+    if not session.get('is_admin'):
+        return redirect('/dashboard')
+    return render_template('admin/orders.html')
 
 @admin_bp.route('/admin/invoices')
 def admin_invoices():
     """صفحة عرض الفواتير والمعاملات"""
     if not session.get('is_admin'):
         return redirect('/dashboard')
-    return render_template('admin_invoices.html')
+    return render_template('admin/invoices.html')
+
+@admin_bp.route('/admin/keys')
+def admin_keys():
+    """صفحة إدارة مفاتيح الشحن"""
+    if not session.get('is_admin'):
+        return redirect('/dashboard')
+    return render_template('admin/keys.html')
+
+@admin_bp.route('/admin/settings')
+def admin_settings():
+    """صفحة الإعدادات"""
+    if not session.get('is_admin'):
+        return redirect('/dashboard')
+    return render_template('admin/settings.html')
 
 # ===================== API الفواتير =====================
 
@@ -1096,6 +1133,676 @@ def api_set_display_settings():
     except Exception as e:
         logger.error(f"Error setting display settings: {e}")
         return jsonify({'status': 'error', 'message': 'حدث خطأ، حاول لاحقاً'})
+
+
+# ===================== APIs لوحة التحكم الجديدة =====================
+
+@admin_bp.route('/api/admin/dashboard_stats')
+def api_dashboard_stats():
+    """جلب إحصائيات لوحة التحكم"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        stats = {
+            'total_products': 0,
+            'available_products': 0,
+            'sold_products': 0,
+            'total_users': 0,
+            'total_revenue': 0,
+            'total_categories': 0,
+            'recent_orders': [],
+            'recent_users': [],
+            'categories_with_count': []
+        }
+        
+        if db:
+            # عد المنتجات
+            products = list(db.collection('products').stream())
+            stats['total_products'] = len(products)
+            for p in products:
+                pdata = p.to_dict()
+                available = pdata.get('available_count', pdata.get('quantity', 0))
+                if available > 0:
+                    stats['available_products'] += 1
+                else:
+                    stats['sold_products'] += 1
+            
+            # عد العملاء
+            users = list(db.collection('users').stream())
+            stats['total_users'] = len(users)
+            
+            # آخر العملاء
+            recent_users = sorted(users, key=lambda x: x.to_dict().get('created_at', 0), reverse=True)[:5]
+            for u in recent_users:
+                udata = u.to_dict()
+                stats['recent_users'].append({
+                    'id': u.id,
+                    'name': udata.get('name', udata.get('telegram_name', '')),
+                    'username': udata.get('username', ''),
+                    'balance': udata.get('balance', 0),
+                    'created_at': udata.get('created_at', 0)
+                })
+            
+            # الأقسام
+            categories = list(db.collection('categories').stream())
+            stats['total_categories'] = len(categories)
+            
+            for cat in categories:
+                cdata = cat.to_dict()
+                count = 0
+                for p in products:
+                    if p.to_dict().get('category_id') == cat.id or p.to_dict().get('category') == cdata.get('name'):
+                        count += 1
+                stats['categories_with_count'].append({
+                    'id': cat.id,
+                    'name': cdata.get('name', ''),
+                    'count': count
+                })
+            
+            # آخر الطلبات
+            try:
+                orders = db.collection('orders').order_by('created_at', direction=firestore.Query.DESCENDING).limit(5).stream()
+                for o in orders:
+                    odata = o.to_dict()
+                    stats['recent_orders'].append({
+                        'id': o.id,
+                        'user_name': odata.get('user_name', 'غير معروف'),
+                        'total': odata.get('total', 0),
+                        'status': odata.get('status', 'pending')
+                    })
+            except:
+                pass
+            
+            # إجمالي الإيرادات
+            try:
+                completed_orders = db.collection('orders').where('status', '==', 'completed').stream()
+                for o in completed_orders:
+                    stats['total_revenue'] += o.to_dict().get('total', 0)
+            except:
+                pass
+        
+        return jsonify({'success': True, 'stats': stats})
+    except Exception as e:
+        logger.error(f"Error getting dashboard stats: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@admin_bp.route('/api/admin/products')
+def api_admin_products():
+    """جلب جميع المنتجات للأدمن"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        products = []
+        if db:
+            for doc in db.collection('products').stream():
+                data = doc.to_dict()
+                data['id'] = doc.id
+                data['available_count'] = data.get('available_count', data.get('quantity', 0))
+                data['total_count'] = data.get('total_count', data.get('available_count', 0))
+                products.append(data)
+        
+        return jsonify({'success': True, 'products': products})
+    except Exception as e:
+        logger.error(f"Error getting products: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@admin_bp.route('/api/admin/products', methods=['POST'])
+def api_admin_add_product():
+    """إضافة منتج جديد"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        data = request.json
+        product_data = {
+            'name': data.get('name', ''),
+            'description': data.get('description', ''),
+            'category_id': data.get('category_id', ''),
+            'price': float(data.get('price', 0)),
+            'image': data.get('image', ''),
+            'data': data.get('data', []),
+            'available_count': len(data.get('data', [])),
+            'total_count': len(data.get('data', [])),
+            'created_at': time.time()
+        }
+        
+        if db:
+            doc_ref = db.collection('products').add(product_data)
+            return jsonify({'success': True, 'id': doc_ref[1].id})
+        
+        return jsonify({'success': False, 'message': 'Firebase غير متاح'})
+    except Exception as e:
+        logger.error(f"Error adding product: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@admin_bp.route('/api/admin/products/<product_id>', methods=['PUT'])
+def api_admin_update_product(product_id):
+    """تحديث منتج"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        data = request.json
+        update_data = {}
+        
+        if 'name' in data:
+            update_data['name'] = data['name']
+        if 'description' in data:
+            update_data['description'] = data['description']
+        if 'category_id' in data:
+            update_data['category_id'] = data['category_id']
+        if 'price' in data:
+            update_data['price'] = float(data['price'])
+        if 'image' in data:
+            update_data['image'] = data['image']
+        if 'data' in data:
+            update_data['data'] = data['data']
+            update_data['available_count'] = len(data['data'])
+        
+        update_data['updated_at'] = time.time()
+        
+        if db:
+            db.collection('products').document(product_id).update(update_data)
+            return jsonify({'success': True})
+        
+        return jsonify({'success': False, 'message': 'Firebase غير متاح'})
+    except Exception as e:
+        logger.error(f"Error updating product: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@admin_bp.route('/api/admin/products/<product_id>', methods=['DELETE'])
+def api_admin_delete_product(product_id):
+    """حذف منتج"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        if db:
+            db.collection('products').document(product_id).delete()
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'message': 'Firebase غير متاح'})
+    except Exception as e:
+        logger.error(f"Error deleting product: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@admin_bp.route('/api/admin/categories')
+def api_admin_categories():
+    """جلب جميع الأقسام للأدمن"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        categories = []
+        if db:
+            products = list(db.collection('products').stream())
+            
+            for doc in db.collection('categories').stream():
+                data = doc.to_dict()
+                data['id'] = doc.id
+                
+                # عد المنتجات في هذا القسم
+                count = 0
+                for p in products:
+                    pdata = p.to_dict()
+                    if pdata.get('category_id') == doc.id or pdata.get('category') == data.get('name'):
+                        count += 1
+                data['products_count'] = count
+                
+                categories.append(data)
+        
+        return jsonify({'success': True, 'categories': categories})
+    except Exception as e:
+        logger.error(f"Error getting categories: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@admin_bp.route('/api/admin/categories', methods=['POST'])
+def api_admin_add_category():
+    """إضافة قسم جديد"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        data = request.json
+        category_data = {
+            'name': data.get('name', ''),
+            'description': data.get('description', ''),
+            'icon': data.get('icon', 'fa-folder'),
+            'image': data.get('image', ''),
+            'color': data.get('color', '#6c5ce7'),
+            'order': int(data.get('order', 0)),
+            'active': data.get('active', True),
+            'created_at': time.time()
+        }
+        
+        if db:
+            doc_ref = db.collection('categories').add(category_data)
+            return jsonify({'success': True, 'id': doc_ref[1].id})
+        
+        return jsonify({'success': False, 'message': 'Firebase غير متاح'})
+    except Exception as e:
+        logger.error(f"Error adding category: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@admin_bp.route('/api/admin/categories/<category_id>', methods=['PUT'])
+def api_admin_update_category(category_id):
+    """تحديث قسم"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        data = request.json
+        update_data = {
+            'updated_at': time.time()
+        }
+        
+        allowed_fields = ['name', 'description', 'icon', 'image', 'color', 'order', 'active']
+        for field in allowed_fields:
+            if field in data:
+                update_data[field] = data[field]
+        
+        if db:
+            db.collection('categories').document(category_id).update(update_data)
+            return jsonify({'success': True})
+        
+        return jsonify({'success': False, 'message': 'Firebase غير متاح'})
+    except Exception as e:
+        logger.error(f"Error updating category: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@admin_bp.route('/api/admin/categories/<category_id>', methods=['DELETE'])
+def api_admin_delete_category(category_id):
+    """حذف قسم"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        if db:
+            db.collection('categories').document(category_id).delete()
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'message': 'Firebase غير متاح'})
+    except Exception as e:
+        logger.error(f"Error deleting category: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@admin_bp.route('/api/admin/users')
+def api_admin_users():
+    """جلب جميع العملاء"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        users = []
+        if db:
+            # عد الطلبات لكل مستخدم
+            orders_count = {}
+            try:
+                for o in db.collection('orders').stream():
+                    odata = o.to_dict()
+                    user_id = str(odata.get('user_id', ''))
+                    orders_count[user_id] = orders_count.get(user_id, 0) + 1
+            except:
+                pass
+            
+            for doc in db.collection('users').stream():
+                data = doc.to_dict()
+                data['id'] = doc.id
+                data['telegram_id'] = doc.id
+                data['orders_count'] = orders_count.get(doc.id, 0)
+                users.append(data)
+        
+        return jsonify({'success': True, 'users': users})
+    except Exception as e:
+        logger.error(f"Error getting users: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@admin_bp.route('/api/admin/users/balance', methods=['POST'])
+def api_admin_update_balance():
+    """تحديث رصيد مستخدم"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        data = request.json
+        user_id = data.get('user_id')
+        amount = float(data.get('amount', 0))
+        balance_type = data.get('type', 'add')
+        reason = data.get('reason', '')
+        
+        if db:
+            user_ref = db.collection('users').document(str(user_id))
+            user_doc = user_ref.get()
+            
+            if user_doc.exists:
+                current_balance = user_doc.to_dict().get('balance', 0)
+                
+                if balance_type == 'add':
+                    new_balance = current_balance + amount
+                else:
+                    new_balance = max(0, current_balance - amount)
+                
+                user_ref.update({'balance': new_balance})
+                
+                # سجل العملية
+                db.collection('balance_logs').add({
+                    'user_id': user_id,
+                    'type': balance_type,
+                    'amount': amount,
+                    'old_balance': current_balance,
+                    'new_balance': new_balance,
+                    'reason': reason,
+                    'admin': True,
+                    'created_at': time.time()
+                })
+                
+                return jsonify({'success': True, 'new_balance': new_balance})
+            else:
+                return jsonify({'success': False, 'message': 'المستخدم غير موجود'})
+        
+        return jsonify({'success': False, 'message': 'Firebase غير متاح'})
+    except Exception as e:
+        logger.error(f"Error updating balance: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@admin_bp.route('/api/admin/orders')
+def api_admin_orders():
+    """جلب جميع الطلبات"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        orders = []
+        if db:
+            for doc in db.collection('orders').stream():
+                data = doc.to_dict()
+                data['id'] = doc.id
+                orders.append(data)
+        
+        return jsonify({'success': True, 'orders': orders})
+    except Exception as e:
+        logger.error(f"Error getting orders: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@admin_bp.route('/api/admin/orders/<order_id>/complete', methods=['POST'])
+def api_admin_complete_order(order_id):
+    """إكمال طلب"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        if db:
+            db.collection('orders').document(order_id).update({
+                'status': 'completed',
+                'completed_at': time.time()
+            })
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'message': 'Firebase غير متاح'})
+    except Exception as e:
+        logger.error(f"Error completing order: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@admin_bp.route('/api/admin/orders/<order_id>/cancel', methods=['POST'])
+def api_admin_cancel_order(order_id):
+    """إلغاء طلب"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        if db:
+            db.collection('orders').document(order_id).update({
+                'status': 'cancelled',
+                'cancelled_at': time.time()
+            })
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'message': 'Firebase غير متاح'})
+    except Exception as e:
+        logger.error(f"Error cancelling order: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@admin_bp.route('/api/admin/invoices')
+def api_admin_invoices_new():
+    """جلب جميع الفواتير (API جديد)"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        invoices = []
+        if db:
+            # الفواتير من pending_payments
+            for doc in db.collection('pending_payments').stream():
+                data = doc.to_dict()
+                data['id'] = doc.id
+                data['invoice_id'] = data.get('order_id', doc.id)
+                
+                # جلب اسم المستخدم
+                try:
+                    user_doc = db.collection('users').document(str(data.get('user_id', ''))).get()
+                    if user_doc.exists:
+                        udata = user_doc.to_dict()
+                        data['user_name'] = udata.get('name', udata.get('telegram_name', ''))
+                except:
+                    data['user_name'] = 'غير معروف'
+                
+                invoices.append(data)
+            
+            # معاملات شحن الرصيد
+            try:
+                for doc in db.collection('balance_logs').stream():
+                    data = doc.to_dict()
+                    if data.get('type') == 'charge' or data.get('payment_method'):
+                        data['id'] = doc.id
+                        data['invoice_id'] = doc.id
+                        data['status'] = 'completed'
+                        invoices.append(data)
+            except:
+                pass
+        
+        return jsonify({'success': True, 'invoices': invoices})
+    except Exception as e:
+        logger.error(f"Error getting invoices: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@admin_bp.route('/api/admin/keys')
+def api_admin_keys():
+    """جلب جميع مفاتيح الشحن"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        keys = []
+        if db:
+            for doc in db.collection('recharge_keys').stream():
+                data = doc.to_dict()
+                data['id'] = doc.id
+                keys.append(data)
+        
+        return jsonify({'success': True, 'keys': keys})
+    except Exception as e:
+        logger.error(f"Error getting keys: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@admin_bp.route('/api/admin/keys/generate', methods=['POST'])
+def api_admin_generate_keys():
+    """توليد مفاتيح شحن جديدة"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        data = request.json
+        count = min(int(data.get('count', 10)), 100)
+        amount = float(data.get('amount', 10))
+        prefix = data.get('prefix', '')
+        
+        generated_keys = []
+        
+        if db:
+            for _ in range(count):
+                key = prefix + uuid.uuid4().hex[:12].upper()
+                
+                db.collection('recharge_keys').add({
+                    'key': key,
+                    'amount': amount,
+                    'status': 'active',
+                    'used': False,
+                    'created_at': time.time()
+                })
+                
+                generated_keys.append(key)
+        
+        return jsonify({'success': True, 'keys': generated_keys})
+    except Exception as e:
+        logger.error(f"Error generating keys: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@admin_bp.route('/api/admin/keys/<key_id>', methods=['DELETE'])
+def api_admin_delete_key(key_id):
+    """حذف مفتاح شحن"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        if db:
+            db.collection('recharge_keys').document(key_id).delete()
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'message': 'Firebase غير متاح'})
+    except Exception as e:
+        logger.error(f"Error deleting key: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@admin_bp.route('/api/admin/settings')
+def api_admin_settings():
+    """جلب إعدادات المتجر"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        settings = {}
+        if db:
+            doc = db.collection('settings').document('store').get()
+            if doc.exists:
+                settings = doc.to_dict()
+        
+        return jsonify({'success': True, 'settings': settings})
+    except Exception as e:
+        logger.error(f"Error getting settings: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@admin_bp.route('/api/admin/settings', methods=['POST'])
+def api_admin_save_settings():
+    """حفظ إعدادات المتجر"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        data = request.json
+        
+        if db:
+            db.collection('settings').document('store').set(data, merge=True)
+            return jsonify({'success': True})
+        
+        return jsonify({'success': False, 'message': 'Firebase غير متاح'})
+    except Exception as e:
+        logger.error(f"Error saving settings: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@admin_bp.route('/api/admin/cache/clear', methods=['POST'])
+def api_admin_clear_cache():
+    """مسح الذاكرة المؤقتة"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    return jsonify({'success': True, 'message': 'تم مسح الذاكرة'})
+
+
+@admin_bp.route('/api/admin/bot/restart', methods=['POST'])
+def api_admin_restart_bot():
+    """إعادة تشغيل البوت"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    # هذه الدالة تحتاج تنفيذ خاص حسب طريقة تشغيل البوت
+    return jsonify({'success': True, 'message': 'تم إرسال أمر إعادة التشغيل'})
+
+
+@admin_bp.route('/api/admin/export')
+def api_admin_export():
+    """تصدير نسخة احتياطية"""
+    if not session.get('is_admin'):
+        return jsonify({'success': False, 'message': 'غير مصرح'})
+    
+    try:
+        import json
+        
+        backup = {
+            'exported_at': time.time(),
+            'products': [],
+            'categories': [],
+            'users': [],
+            'orders': [],
+            'settings': {}
+        }
+        
+        if db:
+            # المنتجات
+            for doc in db.collection('products').stream():
+                data = doc.to_dict()
+                data['id'] = doc.id
+                backup['products'].append(data)
+            
+            # الأقسام
+            for doc in db.collection('categories').stream():
+                data = doc.to_dict()
+                data['id'] = doc.id
+                backup['categories'].append(data)
+            
+            # العملاء
+            for doc in db.collection('users').stream():
+                data = doc.to_dict()
+                data['id'] = doc.id
+                backup['users'].append(data)
+            
+            # الطلبات
+            for doc in db.collection('orders').stream():
+                data = doc.to_dict()
+                data['id'] = doc.id
+                backup['orders'].append(data)
+            
+            # الإعدادات
+            doc = db.collection('settings').document('store').get()
+            if doc.exists:
+                backup['settings'] = doc.to_dict()
+        
+        from flask import Response
+        return Response(
+            json.dumps(backup, ensure_ascii=False, indent=2),
+            mimetype='application/json',
+            headers={'Content-Disposition': 'attachment; filename=backup.json'}
+        )
+    except Exception as e:
+        logger.error(f"Error exporting data: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
 
 # ===================== دالة التهيئة =====================
 

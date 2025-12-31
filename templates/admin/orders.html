@@ -1,0 +1,441 @@
+{% extends "admin/base.html" %}
+
+{% block title %}الطلبات{% endblock %}
+{% block page_title %}إدارة الطلبات{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex gap-3" style="flex-wrap: wrap; align-items: center;">
+            <div class="form-group" style="margin: 0; flex: 1; min-width: 200px;">
+                <input type="text" id="searchInput" class="form-control" placeholder="بحث برقم الطلب أو اسم العميل...">
+            </div>
+            <div class="form-group" style="margin: 0; min-width: 150px;">
+                <select id="statusFilter" class="form-control">
+                    <option value="">كل الحالات</option>
+                    <option value="pending">قيد الانتظار</option>
+                    <option value="completed">مكتمل</option>
+                    <option value="cancelled">ملغي</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin: 0; min-width: 150px;">
+                <input type="date" id="dateFilter" class="form-control">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid" style="margin-top: 20px;">
+    <div class="stat-card">
+        <div class="stat-icon primary">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <div class="stat-info">
+            <h3 id="totalOrders">--</h3>
+            <p>إجمالي الطلبات</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon warning">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-info">
+            <h3 id="pendingOrders">--</h3>
+            <p>قيد الانتظار</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon success">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-info">
+            <h3 id="completedOrders">--</h3>
+            <p>مكتملة</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon secondary">
+            <i class="fas fa-dollar-sign"></i>
+        </div>
+        <div class="stat-info">
+            <h3 id="totalRevenue">--</h3>
+            <p>إجمالي الإيرادات</p>
+        </div>
+    </div>
+</div>
+
+<!-- Orders Table -->
+<div class="card" style="margin-top: 20px;">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-receipt"></i> قائمة الطلبات</h3>
+        <span class="badge badge-primary" id="ordersCount">0</span>
+    </div>
+    <div class="card-body">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>رقم الطلب</th>
+                        <th>العميل</th>
+                        <th>المنتج</th>
+                        <th>المبلغ</th>
+                        <th>الحالة</th>
+                        <th>التاريخ</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersTable">
+                    <tr>
+                        <td colspan="7">
+                            <div class="loading"><div class="spinner"></div></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Order Details Modal -->
+<div class="modal" id="orderModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">تفاصيل الطلب</h3>
+                <button class="modal-close" onclick="closeOrderModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="orderDetails">
+            </div>
+            <div class="modal-footer" id="orderActions">
+                <button class="btn btn-secondary" onclick="closeOrderModal()">إغلاق</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .order-timeline {
+        padding: 15px;
+        background: var(--dark);
+        border-radius: 10px;
+        margin-top: 15px;
+    }
+    
+    .timeline-item {
+        display: flex;
+        gap: 15px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--dark-light);
+    }
+    
+    .timeline-item:last-child {
+        border-bottom: none;
+    }
+    
+    .timeline-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+    }
+    
+    .timeline-content h4 {
+        margin: 0;
+        font-size: 14px;
+    }
+    
+    .timeline-content span {
+        font-size: 12px;
+        color: var(--text-secondary);
+    }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let orders = [];
+    
+    // Load orders
+    async function loadOrders() {
+        try {
+            const response = await fetch('/api/admin/orders');
+            const data = await response.json();
+            
+            if (data.success) {
+                orders = data.orders || [];
+                updateStats();
+                renderOrders();
+            }
+        } catch (error) {
+            console.error('Error loading orders:', error);
+        }
+    }
+    
+    // Update stats
+    function updateStats() {
+        const total = orders.length;
+        const pending = orders.filter(o => o.status === 'pending').length;
+        const completed = orders.filter(o => o.status === 'completed').length;
+        const revenue = orders
+            .filter(o => o.status === 'completed')
+            .reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+        
+        document.getElementById('totalOrders').textContent = formatNumber(total);
+        document.getElementById('pendingOrders').textContent = formatNumber(pending);
+        document.getElementById('completedOrders').textContent = formatNumber(completed);
+        document.getElementById('totalRevenue').textContent = formatCurrency(revenue);
+    }
+    
+    // Render orders
+    function renderOrders() {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const status = document.getElementById('statusFilter').value;
+        const date = document.getElementById('dateFilter').value;
+        
+        let filtered = orders.filter(o => {
+            const matchSearch = !search || 
+                (o.id && o.id.toLowerCase().includes(search)) ||
+                (o.user_name && o.user_name.toLowerCase().includes(search)) ||
+                (o.product_name && o.product_name.toLowerCase().includes(search));
+            
+            const matchStatus = !status || o.status === status;
+            
+            let matchDate = true;
+            if (date && o.created_at) {
+                const orderDate = new Date(o.created_at * 1000).toISOString().split('T')[0];
+                matchDate = orderDate === date;
+            }
+            
+            return matchSearch && matchStatus && matchDate;
+        });
+        
+        // Sort by date desc
+        filtered.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+        
+        document.getElementById('ordersCount').textContent = filtered.length;
+        
+        if (filtered.length === 0) {
+            document.getElementById('ordersTable').innerHTML = `
+                <tr><td colspan="7" class="text-muted" style="text-align: center;">لا توجد طلبات</td></tr>
+            `;
+            return;
+        }
+        
+        const html = filtered.map(o => {
+            const statusClass = {
+                'pending': 'warning',
+                'completed': 'success',
+                'cancelled': 'danger'
+            }[o.status] || 'secondary';
+            
+            const statusText = {
+                'pending': 'قيد الانتظار',
+                'completed': 'مكتمل',
+                'cancelled': 'ملغي'
+            }[o.status] || o.status;
+            
+            return `
+                <tr>
+                    <td><code>#${o.id ? o.id.substring(0, 8) : '--'}</code></td>
+                    <td>${o.user_name || 'غير معروف'}</td>
+                    <td>${o.product_name || '-'}</td>
+                    <td><strong class="text-primary">${formatCurrency(o.total || 0)}</strong></td>
+                    <td><span class="badge badge-${statusClass}">${statusText}</span></td>
+                    <td>${o.created_at ? new Date(o.created_at * 1000).toLocaleString('ar') : '-'}</td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-secondary" onclick="viewOrder('${o.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            ${o.status === 'pending' ? `
+                                <button class="btn btn-sm btn-success" onclick="completeOrder('${o.id}')">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="cancelOrder('${o.id}')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+        document.getElementById('ordersTable').innerHTML = html;
+    }
+    
+    // View order
+    function viewOrder(orderId) {
+        const order = orders.find(o => o.id === orderId);
+        if (!order) return;
+        
+        const statusClass = {
+            'pending': 'warning',
+            'completed': 'success',
+            'cancelled': 'danger'
+        }[order.status] || 'secondary';
+        
+        const statusText = {
+            'pending': 'قيد الانتظار',
+            'completed': 'مكتمل',
+            'cancelled': 'ملغي'
+        }[order.status] || order.status;
+        
+        document.getElementById('orderDetails').innerHTML = `
+            <div class="d-flex gap-3 mb-3" style="align-items: center; justify-content: space-between;">
+                <h4 style="margin: 0;"><code>#${order.id ? order.id.substring(0, 8) : '--'}</code></h4>
+                <span class="badge badge-${statusClass}">${statusText}</span>
+            </div>
+            
+            <div class="d-flex gap-3">
+                <div class="form-group" style="flex: 1;">
+                    <label>العميل</label>
+                    <p>${order.user_name || 'غير معروف'}</p>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Telegram ID</label>
+                    <p><code>${order.telegram_id || order.user_id || '-'}</code></p>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>المنتج</label>
+                <p>${order.product_name || '-'}</p>
+            </div>
+            
+            <div class="d-flex gap-3">
+                <div class="form-group" style="flex: 1;">
+                    <label>الكمية</label>
+                    <p>${order.quantity || 1}</p>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>المبلغ</label>
+                    <p class="text-primary" style="font-size: 20px; font-weight: bold;">${formatCurrency(order.total || 0)}</p>
+                </div>
+            </div>
+            
+            ${order.data ? `
+                <div class="form-group">
+                    <label>البيانات المرسلة</label>
+                    <div style="background: var(--dark); padding: 10px; border-radius: 8px; font-family: monospace; white-space: pre-wrap; word-break: break-all;">
+                        ${Array.isArray(order.data) ? order.data.join('\n') : order.data}
+                    </div>
+                </div>
+            ` : ''}
+            
+            <div class="order-timeline">
+                <h5 style="margin: 0 0 15px;">سجل الطلب</h5>
+                <div class="timeline-item">
+                    <div class="timeline-icon" style="background: var(--primary);">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h4>تم إنشاء الطلب</h4>
+                        <span>${order.created_at ? new Date(order.created_at * 1000).toLocaleString('ar') : '-'}</span>
+                    </div>
+                </div>
+                ${order.status === 'completed' ? `
+                    <div class="timeline-item">
+                        <div class="timeline-icon" style="background: var(--success);">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <h4>تم إكمال الطلب</h4>
+                            <span>${order.completed_at ? new Date(order.completed_at * 1000).toLocaleString('ar') : '-'}</span>
+                        </div>
+                    </div>
+                ` : ''}
+                ${order.status === 'cancelled' ? `
+                    <div class="timeline-item">
+                        <div class="timeline-icon" style="background: var(--danger);">
+                            <i class="fas fa-times"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <h4>تم إلغاء الطلب</h4>
+                            <span>${order.cancelled_at ? new Date(order.cancelled_at * 1000).toLocaleString('ar') : '-'}</span>
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+        
+        // Update actions
+        let actionsHtml = '<button class="btn btn-secondary" onclick="closeOrderModal()">إغلاق</button>';
+        if (order.status === 'pending') {
+            actionsHtml = `
+                <button class="btn btn-danger" onclick="cancelOrder('${order.id}'); closeOrderModal();">
+                    <i class="fas fa-times"></i> إلغاء
+                </button>
+                <button class="btn btn-success" onclick="completeOrder('${order.id}'); closeOrderModal();">
+                    <i class="fas fa-check"></i> إكمال
+                </button>
+            ` + actionsHtml;
+        }
+        document.getElementById('orderActions').innerHTML = actionsHtml;
+        
+        document.getElementById('orderModal').classList.add('active');
+    }
+    
+    function closeOrderModal() {
+        document.getElementById('orderModal').classList.remove('active');
+    }
+    
+    // Complete order
+    async function completeOrder(orderId) {
+        try {
+            const response = await fetch(`/api/admin/orders/${orderId}/complete`, {
+                method: 'POST'
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showAlert('success', 'تم إكمال الطلب بنجاح');
+                loadOrders();
+            } else {
+                showAlert('danger', result.message || 'حدث خطأ');
+            }
+        } catch (error) {
+            showAlert('danger', 'حدث خطأ في الاتصال');
+        }
+    }
+    
+    // Cancel order
+    async function cancelOrder(orderId) {
+        if (!confirm('هل أنت متأكد من إلغاء هذا الطلب؟')) return;
+        
+        try {
+            const response = await fetch(`/api/admin/orders/${orderId}/cancel`, {
+                method: 'POST'
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showAlert('success', 'تم إلغاء الطلب بنجاح');
+                loadOrders();
+            } else {
+                showAlert('danger', result.message || 'حدث خطأ');
+            }
+        } catch (error) {
+            showAlert('danger', 'حدث خطأ في الاتصال');
+        }
+    }
+    
+    // Event listeners
+    document.getElementById('searchInput').addEventListener('input', renderOrders);
+    document.getElementById('statusFilter').addEventListener('change', renderOrders);
+    document.getElementById('dateFilter').addEventListener('change', renderOrders);
+    
+    // Load on page load
+    loadOrders();
+</script>
+{% endblock %}

@@ -1,0 +1,233 @@
+{% extends "admin/base.html" %}
+
+{% block title %}الرئيسية{% endblock %}
+{% block page_title %}لوحة التحكم{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon primary">
+            <i class="fas fa-box"></i>
+        </div>
+        <div class="stat-info">
+            <h3 id="totalProducts">--</h3>
+            <p>إجمالي المنتجات</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon success">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-info">
+            <h3 id="availableProducts">--</h3>
+            <p>منتجات متاحة</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon warning">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <div class="stat-info">
+            <h3 id="soldProducts">--</h3>
+            <p>منتجات مباعة</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon secondary">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-info">
+            <h3 id="totalUsers">--</h3>
+            <p>إجمالي العملاء</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon danger">
+            <i class="fas fa-dollar-sign"></i>
+        </div>
+        <div class="stat-info">
+            <h3 id="totalRevenue">--</h3>
+            <p>إجمالي الإيرادات</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon primary">
+            <i class="fas fa-folder"></i>
+        </div>
+        <div class="stat-info">
+            <h3 id="totalCategories">--</h3>
+            <p>الأقسام</p>
+        </div>
+    </div>
+</div>
+
+<!-- Main Grid -->
+<div class="grid-2">
+    <!-- Recent Orders -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-clock"></i> آخر الطلبات</h3>
+            <a href="/admin/orders" class="btn btn-sm btn-secondary">عرض الكل</a>
+        </div>
+        <div class="card-body">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>رقم الطلب</th>
+                            <th>العميل</th>
+                            <th>المبلغ</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentOrders">
+                        <tr>
+                            <td colspan="4" class="text-muted" style="text-align: center;">جاري التحميل...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Users -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-user-plus"></i> آخر العملاء</h3>
+            <a href="/admin/users" class="btn btn-sm btn-secondary">عرض الكل</a>
+        </div>
+        <div class="card-body">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>العميل</th>
+                            <th>الرصيد</th>
+                            <th>تاريخ التسجيل</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentUsers">
+                        <tr>
+                            <td colspan="3" class="text-muted" style="text-align: center;">جاري التحميل...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card" style="margin-top: 20px;">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-bolt"></i> إجراءات سريعة</h3>
+    </div>
+    <div class="card-body">
+        <div class="d-flex gap-3" style="flex-wrap: wrap;">
+            <a href="/admin/products" class="btn btn-primary">
+                <i class="fas fa-plus"></i> إضافة منتج
+            </a>
+            <a href="/admin/categories" class="btn btn-secondary">
+                <i class="fas fa-folder-plus"></i> إضافة قسم
+            </a>
+            <a href="/admin/keys" class="btn btn-success">
+                <i class="fas fa-key"></i> توليد مفاتيح
+            </a>
+            <a href="/admin/users" class="btn btn-secondary">
+                <i class="fas fa-user-plus"></i> إضافة رصيد
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Categories Overview -->
+<div class="card" style="margin-top: 20px;">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-chart-bar"></i> المنتجات حسب القسم</h3>
+    </div>
+    <div class="card-body">
+        <div id="categoriesChart" class="d-flex gap-3" style="flex-wrap: wrap;">
+            <div class="loading"><div class="spinner"></div></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Load dashboard data
+    async function loadDashboardData() {
+        try {
+            const response = await fetch('/api/admin/dashboard_stats');
+            const data = await response.json();
+            
+            if (data.success) {
+                const stats = data.stats;
+                
+                // Update stats
+                document.getElementById('totalProducts').textContent = formatNumber(stats.total_products || 0);
+                document.getElementById('availableProducts').textContent = formatNumber(stats.available_products || 0);
+                document.getElementById('soldProducts').textContent = formatNumber(stats.sold_products || 0);
+                document.getElementById('totalUsers').textContent = formatNumber(stats.total_users || 0);
+                document.getElementById('totalRevenue').textContent = formatCurrency(stats.total_revenue || 0);
+                document.getElementById('totalCategories').textContent = formatNumber(stats.total_categories || 0);
+                
+                // Recent orders
+                const ordersHtml = stats.recent_orders && stats.recent_orders.length > 0
+                    ? stats.recent_orders.map(order => `
+                        <tr>
+                            <td>#${order.id}</td>
+                            <td>${order.user_name || 'غير معروف'}</td>
+                            <td>${formatCurrency(order.total)}</td>
+                            <td><span class="badge badge-${order.status === 'completed' ? 'success' : 'warning'}">${order.status === 'completed' ? 'مكتمل' : 'قيد الانتظار'}</span></td>
+                        </tr>
+                    `).join('')
+                    : '<tr><td colspan="4" class="text-muted" style="text-align: center;">لا توجد طلبات</td></tr>';
+                document.getElementById('recentOrders').innerHTML = ordersHtml;
+                
+                // Recent users
+                const usersHtml = stats.recent_users && stats.recent_users.length > 0
+                    ? stats.recent_users.map(user => `
+                        <tr>
+                            <td>${user.name || user.username || 'مستخدم ' + user.id}</td>
+                            <td>${formatCurrency(user.balance || 0)}</td>
+                            <td>${user.created_at ? new Date(user.created_at * 1000).toLocaleDateString('ar') : '-'}</td>
+                        </tr>
+                    `).join('')
+                    : '<tr><td colspan="3" class="text-muted" style="text-align: center;">لا يوجد عملاء</td></tr>';
+                document.getElementById('recentUsers').innerHTML = usersHtml;
+                
+                // Categories chart
+                const categoriesHtml = stats.categories_with_count && stats.categories_with_count.length > 0
+                    ? stats.categories_with_count.map(cat => `
+                        <div class="stat-card" style="min-width: 150px;">
+                            <div class="stat-icon primary">
+                                <i class="fas fa-folder"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>${cat.count}</h3>
+                                <p>${cat.name}</p>
+                            </div>
+                        </div>
+                    `).join('')
+                    : '<div class="empty-state"><i class="fas fa-folder-open"></i><p>لا توجد أقسام</p></div>';
+                document.getElementById('categoriesChart').innerHTML = categoriesHtml;
+            }
+        } catch (error) {
+            console.error('Error loading dashboard:', error);
+        }
+    }
+    
+    // Load on page load
+    loadDashboardData();
+    
+    // Auto refresh every 30 seconds
+    setInterval(loadDashboardData, 30000);
+</script>
+{% endblock %}

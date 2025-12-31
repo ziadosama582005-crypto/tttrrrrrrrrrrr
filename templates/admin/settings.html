@@ -1,0 +1,388 @@
+{% extends "admin/base.html" %}
+
+{% block title %}الإعدادات{% endblock %}
+{% block page_title %}إعدادات المتجر{% endblock %}
+
+{% block content %}
+<div class="grid-2">
+    <!-- General Settings -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-cog"></i> الإعدادات العامة</h3>
+        </div>
+        <div class="card-body">
+            <form id="generalForm">
+                <div class="form-group">
+                    <label>اسم المتجر</label>
+                    <input type="text" id="storeName" class="form-control" placeholder="اسم المتجر">
+                </div>
+                
+                <div class="form-group">
+                    <label>وصف المتجر</label>
+                    <textarea id="storeDesc" class="form-control" rows="3" placeholder="وصف قصير للمتجر"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>شعار المتجر (رابط)</label>
+                    <input type="url" id="storeLogo" class="form-control" placeholder="https://...">
+                </div>
+                
+                <div class="form-group">
+                    <label>العملة</label>
+                    <select id="currency" class="form-control">
+                        <option value="USD">دولار أمريكي (USD)</option>
+                        <option value="SAR">ريال سعودي (SAR)</option>
+                        <option value="AED">درهم إماراتي (AED)</option>
+                        <option value="EUR">يورو (EUR)</option>
+                    </select>
+                </div>
+                
+                <button type="button" class="btn btn-primary" onclick="saveGeneralSettings()">
+                    <i class="fas fa-save"></i> حفظ
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Telegram Settings -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fab fa-telegram"></i> إعدادات تيليجرام</h3>
+        </div>
+        <div class="card-body">
+            <form id="telegramForm">
+                <div class="form-group">
+                    <label>Bot Token</label>
+                    <input type="password" id="botToken" class="form-control" placeholder="xxxxx:yyyyy">
+                    <small class="text-muted">احصل عليه من @BotFather</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Admin User ID</label>
+                    <input type="text" id="adminId" class="form-control" placeholder="123456789">
+                    <small class="text-muted">معرف حسابك على تيليجرام</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>قناة الإشعارات</label>
+                    <input type="text" id="notifyChannel" class="form-control" placeholder="@channel_name">
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="notifyOrders">
+                        <span>إشعار عند طلب جديد</span>
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="notifyPayments">
+                        <span>إشعار عند دفع جديد</span>
+                    </label>
+                </div>
+                
+                <button type="button" class="btn btn-primary" onclick="saveTelegramSettings()">
+                    <i class="fas fa-save"></i> حفظ
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Payment Settings -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-credit-card"></i> إعدادات الدفع</h3>
+        </div>
+        <div class="card-body">
+            <form id="paymentForm">
+                <div class="form-group">
+                    <label>EdfaPay Merchant ID</label>
+                    <input type="text" id="edfaMerchantId" class="form-control" placeholder="Merchant ID">
+                </div>
+                
+                <div class="form-group">
+                    <label>EdfaPay Password</label>
+                    <input type="password" id="edfaPassword" class="form-control" placeholder="Password">
+                </div>
+                
+                <div class="form-group">
+                    <label>EdfaPay Secret Key</label>
+                    <input type="password" id="edfaSecretKey" class="form-control" placeholder="Secret Key">
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="edfaEnabled">
+                        <span>تفعيل بوابة EdfaPay</span>
+                    </label>
+                </div>
+                
+                <hr style="border-color: var(--dark-light); margin: 20px 0;">
+                
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="balanceEnabled" checked>
+                        <span>تفعيل الدفع بالرصيد</span>
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="keysEnabled" checked>
+                        <span>تفعيل مفاتيح الشحن</span>
+                    </label>
+                </div>
+                
+                <button type="button" class="btn btn-primary" onclick="savePaymentSettings()">
+                    <i class="fas fa-save"></i> حفظ
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Security Settings -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-shield-alt"></i> إعدادات الأمان</h3>
+        </div>
+        <div class="card-body">
+            <form id="securityForm">
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="require2FA">
+                        <span>إلزام العملاء بتفعيل 2FA</span>
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="requireEmailVerification">
+                        <span>إلزام التحقق من البريد الإلكتروني</span>
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label>الحد الأقصى لمحاولات تسجيل الدخول</label>
+                    <input type="number" id="maxLoginAttempts" class="form-control" value="5" min="1" max="20">
+                </div>
+                
+                <div class="form-group">
+                    <label>مدة الحظر (بالدقائق)</label>
+                    <input type="number" id="lockoutDuration" class="form-control" value="30" min="5" max="1440">
+                </div>
+                
+                <button type="button" class="btn btn-primary" onclick="saveSecuritySettings()">
+                    <i class="fas fa-save"></i> حفظ
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Danger Zone -->
+<div class="card" style="margin-top: 20px; border: 1px solid var(--danger);">
+    <div class="card-header" style="background: rgba(231, 76, 60, 0.1);">
+        <h3 class="card-title" style="color: var(--danger);"><i class="fas fa-exclamation-triangle"></i> منطقة الخطر</h3>
+    </div>
+    <div class="card-body">
+        <div class="d-flex gap-3" style="flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+                <h4>مسح ذاكرة التخزين المؤقت</h4>
+                <p class="text-muted">حذف جميع البيانات المؤقتة</p>
+                <button class="btn btn-danger" onclick="clearCache()">
+                    <i class="fas fa-trash"></i> مسح الذاكرة
+                </button>
+            </div>
+            
+            <div style="flex: 1; min-width: 200px;">
+                <h4>إعادة تشغيل البوت</h4>
+                <p class="text-muted">إعادة تشغيل بوت تيليجرام</p>
+                <button class="btn btn-warning" onclick="restartBot()">
+                    <i class="fas fa-sync"></i> إعادة تشغيل
+                </button>
+            </div>
+            
+            <div style="flex: 1; min-width: 200px;">
+                <h4>تصدير البيانات</h4>
+                <p class="text-muted">تصدير نسخة احتياطية</p>
+                <button class="btn btn-secondary" onclick="exportData()">
+                    <i class="fas fa-download"></i> تصدير
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Load settings
+    async function loadSettings() {
+        try {
+            const response = await fetch('/api/admin/settings');
+            const data = await response.json();
+            
+            if (data.success && data.settings) {
+                const s = data.settings;
+                
+                // General
+                document.getElementById('storeName').value = s.store_name || '';
+                document.getElementById('storeDesc').value = s.store_description || '';
+                document.getElementById('storeLogo').value = s.store_logo || '';
+                document.getElementById('currency').value = s.currency || 'USD';
+                
+                // Telegram
+                document.getElementById('botToken').value = s.bot_token || '';
+                document.getElementById('adminId').value = s.admin_id || '';
+                document.getElementById('notifyChannel').value = s.notify_channel || '';
+                document.getElementById('notifyOrders').checked = s.notify_orders !== false;
+                document.getElementById('notifyPayments').checked = s.notify_payments !== false;
+                
+                // Payment
+                document.getElementById('edfaMerchantId').value = s.edfa_merchant_id || '';
+                document.getElementById('edfaPassword').value = s.edfa_password || '';
+                document.getElementById('edfaSecretKey').value = s.edfa_secret_key || '';
+                document.getElementById('edfaEnabled').checked = s.edfa_enabled === true;
+                document.getElementById('balanceEnabled').checked = s.balance_enabled !== false;
+                document.getElementById('keysEnabled').checked = s.keys_enabled !== false;
+                
+                // Security
+                document.getElementById('require2FA').checked = s.require_2fa === true;
+                document.getElementById('requireEmailVerification').checked = s.require_email_verification === true;
+                document.getElementById('maxLoginAttempts').value = s.max_login_attempts || 5;
+                document.getElementById('lockoutDuration').value = s.lockout_duration || 30;
+            }
+        } catch (error) {
+            console.error('Error loading settings:', error);
+        }
+    }
+    
+    // Save general settings
+    async function saveGeneralSettings() {
+        const data = {
+            store_name: document.getElementById('storeName').value,
+            store_description: document.getElementById('storeDesc').value,
+            store_logo: document.getElementById('storeLogo').value,
+            currency: document.getElementById('currency').value
+        };
+        
+        await saveSettings('general', data);
+    }
+    
+    // Save telegram settings
+    async function saveTelegramSettings() {
+        const data = {
+            bot_token: document.getElementById('botToken').value,
+            admin_id: document.getElementById('adminId').value,
+            notify_channel: document.getElementById('notifyChannel').value,
+            notify_orders: document.getElementById('notifyOrders').checked,
+            notify_payments: document.getElementById('notifyPayments').checked
+        };
+        
+        await saveSettings('telegram', data);
+    }
+    
+    // Save payment settings
+    async function savePaymentSettings() {
+        const data = {
+            edfa_merchant_id: document.getElementById('edfaMerchantId').value,
+            edfa_password: document.getElementById('edfaPassword').value,
+            edfa_secret_key: document.getElementById('edfaSecretKey').value,
+            edfa_enabled: document.getElementById('edfaEnabled').checked,
+            balance_enabled: document.getElementById('balanceEnabled').checked,
+            keys_enabled: document.getElementById('keysEnabled').checked
+        };
+        
+        await saveSettings('payment', data);
+    }
+    
+    // Save security settings
+    async function saveSecuritySettings() {
+        const data = {
+            require_2fa: document.getElementById('require2FA').checked,
+            require_email_verification: document.getElementById('requireEmailVerification').checked,
+            max_login_attempts: parseInt(document.getElementById('maxLoginAttempts').value),
+            lockout_duration: parseInt(document.getElementById('lockoutDuration').value)
+        };
+        
+        await saveSettings('security', data);
+    }
+    
+    // Generic save function
+    async function saveSettings(type, data) {
+        try {
+            const response = await fetch('/api/admin/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type, ...data })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                showAlert('success', 'تم حفظ الإعدادات بنجاح');
+            } else {
+                showAlert('danger', result.message || 'حدث خطأ');
+            }
+        } catch (error) {
+            showAlert('danger', 'حدث خطأ في الاتصال');
+        }
+    }
+    
+    // Clear cache
+    async function clearCache() {
+        if (!confirm('هل أنت متأكد من مسح ذاكرة التخزين المؤقت؟')) return;
+        
+        try {
+            const response = await fetch('/api/admin/cache/clear', { method: 'POST' });
+            const result = await response.json();
+            
+            if (result.success) {
+                showAlert('success', 'تم مسح الذاكرة بنجاح');
+            } else {
+                showAlert('danger', result.message || 'حدث خطأ');
+            }
+        } catch (error) {
+            showAlert('danger', 'حدث خطأ في الاتصال');
+        }
+    }
+    
+    // Restart bot
+    async function restartBot() {
+        if (!confirm('هل أنت متأكد من إعادة تشغيل البوت؟')) return;
+        
+        try {
+            const response = await fetch('/api/admin/bot/restart', { method: 'POST' });
+            const result = await response.json();
+            
+            if (result.success) {
+                showAlert('success', 'تم إعادة تشغيل البوت بنجاح');
+            } else {
+                showAlert('danger', result.message || 'حدث خطأ');
+            }
+        } catch (error) {
+            showAlert('danger', 'حدث خطأ في الاتصال');
+        }
+    }
+    
+    // Export data
+    async function exportData() {
+        try {
+            const response = await fetch('/api/admin/export');
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            showAlert('danger', 'حدث خطأ في التصدير');
+        }
+    }
+    
+    // Load on page load
+    loadSettings();
+</script>
+{% endblock %}
