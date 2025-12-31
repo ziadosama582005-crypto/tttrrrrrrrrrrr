@@ -7,3 +7,5 @@ firebase-admin
 gunicorn
 flask-limiter
 requests
+pyotp
+qrcode[pil]
