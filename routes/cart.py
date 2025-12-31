@@ -9,6 +9,10 @@ import random
 from extensions import db, FIREBASE_AVAILABLE
 from firebase_utils import get_user_cart, save_user_cart, clear_user_cart, get_balance
 from google.cloud import firestore
+from security_utils import (
+    require_session_user, get_session_user_id, verify_user_ownership,
+    checkout_with_transaction, log_security_event, sanitize_error_message
+)
 
 # إنشاء Blueprint
 cart_bp = Blueprint('cart', __name__)
@@ -39,11 +43,12 @@ def cart_page():
 
 
 @cart_bp.route('/api/cart/add', methods=['POST'])
+@require_session_user()
 def api_cart_add():
-    """إضافة منتج للسلة"""
+    """إضافة منتج للسلة - محمي من Authentication Bypass"""
     try:
         data = request.json
-        user_id = str(data.get('user_id'))
+        user_id = get_session_user_id()  # من Session فقط، ليس من المستخدم
         product_id = data.get('product_id')
         buyer_details = data.get('buyer_details', '')
         
@@ -213,16 +218,16 @@ def api_cart_remove():
 
 
 @cart_bp.route('/api/cart/checkout', methods=['POST'])
+@require_session_user()
 def api_cart_checkout():
-    """إتمام شراء السلة"""
+    """إتمام شراء السلة - محمي من Race Condition و Authentication Bypass"""
     global bot, ADMIN_ID
     
     try:
-        data = request.json
-        user_id = str(data.get('user_id'))
+        user_id = get_session_user_id()  # من Session فقط
         
         if not user_id:
-            return jsonify({'status': 'error', 'message': 'معرف المستخدم مطلوب'})
+            return jsonify({'status': 'error', 'message': 'معرف المستخدم مطلوب'}), 401
         
         # جلب السلة من Firebase
         cart = get_user_cart(user_id) or {}
@@ -246,83 +251,114 @@ def api_cart_checkout():
         if not available_items:
             return jsonify({'status': 'error', 'message': 'لا توجد منتجات متاحة في السلة'})
         
-        # التحقق من الرصيد
-        user_doc = db.collection('users').document(user_id).get()
-        if not user_doc.exists:
-            return jsonify({'status': 'error', 'message': 'حدث خطأ في المستخدم'})
-        
-        user_data = user_doc.to_dict()
-        balance = float(user_data.get('balance', 0))
-        
-        if balance < total:
-            return jsonify({'status': 'error', 'message': f'رصيدك غير كافي! تحتاج {total - balance:.2f} ر.س إضافية'})
-        
-        # تنفيذ الشراء باستخدام batch
-        batch = db.batch()
-        new_balance = balance - total
-        purchased_items = []
-        order_ids = []
-        
-        # جلب اسم المشتري
-        buyer_name = user_data.get('name') or user_data.get('username') or user_data.get('first_name') or 'مستخدم'
-        
-        for item in available_items:
-            product = item['product_data']
-            product_id = item['product_id']
-            delivery_type = item.get('delivery_type', product.get('delivery_type', 'instant'))
-            order_status = 'completed' if delivery_type == 'instant' else 'pending'
+        # ✅ استخدام Firestore Transaction لضمان عدم Race Condition
+        def checkout_callback(transaction):
+            """callback لتنفيذ الشراء بشكل آمن"""
+            # اقرأ بيانات المستخدم
+            user_ref = db.collection('users').document(user_id)
+            user_snapshot = transaction.get(user_ref)
             
-            # تحديث المنتج كمباع
-            product_ref = db.collection('products').document(product_id)
-            batch.update(product_ref, {
-                'sold': True,
-                'buyer_id': user_id,
+            if not user_snapshot.exists:
+                raise ValueError('المستخدم غير موجود')
+            
+            user_data = user_snapshot.to_dict()
+            balance = float(user_data.get('balance', 0))
+            
+            # تحقق من الرصيد
+            if balance < total:
+                raise ValueError(f'رصيدك غير كافي! تحتاج {total - balance:.2f} ر.س إضافية')
+            
+            # حدّث الرصيد الجديد
+            new_balance = balance - total
+            transaction.update(user_ref, {
+                'balance': new_balance,
+                'last_purchase': firestore.SERVER_TIMESTAMP
+            })
+            
+            # تحضير البيانات للمشتري
+            buyer_name = user_data.get('name') or user_data.get('username') or user_data.get('first_name') or 'مستخدم'
+            purchased_items_data = []
+            order_ids = []
+            
+            # معالجة كل منتج
+            for item in available_items:
+                product = item['product_data']
+                product_id = item['product_id']
+                delivery_type = item.get('delivery_type', product.get('delivery_type', 'instant'))
+                order_status = 'completed' if delivery_type == 'instant' else 'pending'
+                
+                # تحديث المنتج كمباع
+                product_ref = db.collection('products').document(product_id)
+                transaction.update(product_ref, {
+                    'sold': True,
+                    'buyer_id': user_id,
+                    'buyer_name': buyer_name,
+                    'sold_at': firestore.SERVER_TIMESTAMP
+                })
+                
+                # إنشاء الطلب
+                order_id = f"ORD_{random.randint(100000, 999999)}"
+                order_ref = db.collection('orders').document(order_id)
+                transaction.set(order_ref, {
+                    'buyer_id': user_id,
+                    'buyer_name': buyer_name,
+                    'item_name': product.get('item_name'),
+                    'price': item['current_price'],
+                    'hidden_data': product.get('hidden_data'),
+                    'details': product.get('details', ''),
+                    'category': product.get('category', ''),
+                    'delivery_type': delivery_type,
+                    'buyer_details': item.get('buyer_details', ''),
+                    'buyer_instructions': item.get('buyer_instructions', ''),
+                    'status': order_status,
+                    'from_cart': True,
+                    'created_at': firestore.SERVER_TIMESTAMP
+                })
+                
+                order_ids.append(order_id)
+                purchased_items_data.append({
+                    'name': product.get('item_name'),
+                    'price': item['current_price'],
+                    'hidden_data': product.get('hidden_data'),
+                    'order_id': order_id,
+                    'delivery_type': delivery_type,
+                    'buyer_details': item.get('buyer_details', '')
+                })
+                
+                # تحديث إحصائيات
+                try:
+                    stats_ref = db.collection('cart_stats').document(product_id)
+                    stats_snapshot = transaction.get(stats_ref)
+                    if stats_snapshot.exists:
+                        current_count = stats_snapshot.get('purchase_count', 0)
+                        transaction.update(stats_ref, {'purchase_count': current_count + 1})
+                except:
+                    pass
+            
+            return {
+                'purchased_items': purchased_items_data,
+                'new_balance': new_balance,
                 'buyer_name': buyer_name,
-                'sold_at': firestore.SERVER_TIMESTAMP
-            })
-            
-            # إنشاء الطلب
-            order_id = f"ORD_{random.randint(100000, 999999)}"
-            order_ref = db.collection('orders').document(order_id)
-            batch.set(order_ref, {
-                'buyer_id': user_id,
-                'buyer_name': buyer_name,
-                'item_name': product.get('item_name'),
-                'price': item['current_price'],
-                'hidden_data': product.get('hidden_data'),
-                'details': product.get('details', ''),
-                'category': product.get('category', ''),
-                'delivery_type': delivery_type,
-                'buyer_details': item.get('buyer_details', ''),
-                'buyer_instructions': item.get('buyer_instructions', ''),
-                'status': order_status,
-                'from_cart': True,
-                'created_at': firestore.SERVER_TIMESTAMP
-            })
-            
-            order_ids.append(order_id)
-            purchased_items.append({
-                'name': product.get('item_name'),
-                'price': item['current_price'],
-                'hidden_data': product.get('hidden_data'),
-                'order_id': order_id,
-                'delivery_type': delivery_type,
-                'buyer_details': item.get('buyer_details', '')
-            })
-            
-            # تحديث إحصائيات
-            try:
-                stats_ref = db.collection('cart_stats').document(product_id)
-                batch.update(stats_ref, {'purchase_count': firestore.Increment(1)})
-            except:
-                pass
+                'order_ids': order_ids
+            }
         
-        # تحديث رصيد المستخدم
-        user_ref = db.collection('users').document(user_id)
-        batch.update(user_ref, {'balance': new_balance})
+        # تنفيذ العملية بأمان
+        try:
+            @firestore.transactional
+            def do_checkout(transaction):
+                return checkout_callback(transaction)
+            
+            transaction = db.transaction()
+            result = do_checkout(transaction)
+        except ValueError as e:
+            # خطأ متعلق بالأعمال (رصيد غير كافي، إلخ)
+            return jsonify({'status': 'error', 'message': str(e)})
         
-        # تنفيذ كل العمليات
-        batch.commit()
+        # بعد نجاح العملية
+        purchased_items = result['purchased_items']
+        new_balance = result['new_balance']
+        buyer_name = result['buyer_name']
+        order_ids = result['order_ids']
         
         # حذف السلة من Firebase
         clear_user_cart(user_id)
@@ -397,6 +433,9 @@ def api_cart_checkout():
                 except:
                     pass
         
+        # تسجيل الحدث الأمني
+        log_security_event('CHECKOUT_SUCCESS', user_id, f'الإجمالي: {total}, المنتجات: {len(purchased_items)}')
+        
         return jsonify({
             'status': 'success',
             'message': 'تم الشراء بنجاح!',
@@ -407,6 +446,8 @@ def api_cart_checkout():
         })
         
     except Exception as e:
+        error_msg = sanitize_error_message(str(e))
+        log_security_event('CHECKOUT_ERROR', user_id, error_msg)
         print(f"❌ خطأ في إتمام الشراء: {e}")
         import traceback
         traceback.print_exc()
