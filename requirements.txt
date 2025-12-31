@@ -9,3 +9,4 @@ flask-limiter
 requests
 pyotp
 qrcode[pil]
+cryptography

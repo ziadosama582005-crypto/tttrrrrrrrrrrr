@@ -10,6 +10,16 @@ import base64
 import io
 from datetime import datetime
 
+# استيراد أدوات التشفير
+try:
+    from encryption_utils import encrypt_data, decrypt_data
+    ENCRYPTION_AVAILABLE = True
+except ImportError:
+    ENCRYPTION_AVAILABLE = False
+    encrypt_data = lambda x: x
+    decrypt_data = lambda x: x
+    print("⚠️ encryption_utils غير متوفرة - التشفير معطل")
+
 # محاولة استيراد مكتبة TOTP
 try:
     import pyotp
@@ -349,11 +359,11 @@ def verify_2fa_setup():
         if not totp.verify(code):
             return jsonify({'success': False, 'message': 'الكود غير صحيح'}), 400
         
-        # حفظ 2FA في قاعدة البيانات
+        # حفظ 2FA في قاعدة البيانات (مع تشفير المفتاح)
         user_ref = db.collection('users').document(user_id)
         user_ref.update({
             'totp_enabled': True,
-            'totp_secret': secret,
+            'totp_secret': encrypt_data(secret),
             'totp_enabled_at': time.time()
         })
         
@@ -412,6 +422,9 @@ def disable_2fa():
         secret = user_data.get('totp_secret')
         if not secret:
             return jsonify({'success': False, 'message': 'مفتاح غير موجود'}), 400
+        
+        # فك تشفير المفتاح
+        secret = decrypt_data(secret)
         
         # التحقق من صحة الكود
         totp = pyotp.TOTP(secret)

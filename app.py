@@ -47,6 +47,16 @@ from payment import (
 )
 from utils import sanitize, regenerate_session, generate_code, validate_phone
 
+# استيراد أدوات التشفير
+try:
+    from encryption_utils import encrypt_data, decrypt_data
+    ENCRYPTION_AVAILABLE = True
+except ImportError:
+    ENCRYPTION_AVAILABLE = False
+    encrypt_data = lambda x: x
+    decrypt_data = lambda x: x
+    print("⚠️ encryption_utils غير متوفرة - التشفير معطل")
+
 # استيراد نظام المسارات المفصولة (Blueprints)
 from routes import cart_bp, init_cart, wallet_bp, init_wallet, admin_bp, init_admin
 from routes.api_routes import api_bp
@@ -746,6 +756,9 @@ def verify_2fa_login():
         
         if not totp_secret:
             return {'success': False, 'message': '❌ المصادقة الثنائية غير مفعّلة'}, 400
+        
+        # فك تشفير المفتاح
+        totp_secret = decrypt_data(totp_secret)
         
         # التحقق من الكود
         totp = pyotp.TOTP(totp_secret)
