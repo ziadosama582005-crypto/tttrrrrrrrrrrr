@@ -225,47 +225,30 @@
             text-align: center;
         }
         
-        /* تبويبات الاختيار */
-        .login-tabs {
-            display: flex;
-            margin-bottom: 25px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 12px;
-            padding: 5px;
-        }
-        
-        .login-tab {
-            flex: 1;
-            padding: 12px;
+        /* رابط التبديل */
+        .switch-method {
             text-align: center;
-            cursor: pointer;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            color: #888;
-            font-weight: 500;
+            margin: 15px 0;
+        }
+        
+        .switch-method a {
+            color: #667eea;
+            text-decoration: none;
             font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
         
-        .login-tab:hover {
-            color: #bbb;
+        .switch-method a:hover {
+            color: #a8b8f5;
+            text-decoration: underline;
         }
         
-        .login-tab.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-        
-        .login-tab-icon {
-            font-size: 20px;
-            display: block;
-            margin-bottom: 5px;
-        }
-        
-        .tab-content {
+        .login-input-section {
             display: none;
         }
         
-        .tab-content.active {
+        .login-input-section.active {
             display: block;
         }
     </style>
@@ -275,30 +258,23 @@
         <!-- الخطوة 1: إدخال Telegram ID أو Email -->
         <div id="step1" class="step active">
             <div class="logo-area">
-                <div class="logo">🔐</div>
+                <div class="logo">📱</div>
                 <h1>دخول المتجر</h1>
-                <p class="subtitle">اختر طريقة تسجيل الدخول</p>
+                <p class="subtitle" id="loginSubtitle">أدخل رقم Telegram ID الخاص بك</p>
             </div>
             
-            <!-- تبويبات الاختيار -->
-            <div class="login-tabs">
-                <div class="login-tab active" onclick="switchTab('telegram')">
-                    <span class="login-tab-icon">📱</span>
-                    Telegram ID
-                </div>
-                <div class="login-tab" onclick="switchTab('email')">
-                    <span class="login-tab-icon">📧</span>
-                    البريد الإلكتروني
-                </div>
-            </div>
-            
-            <!-- محتوى تبويب Telegram -->
-            <div id="telegramTab" class="tab-content active">
+            <!-- قسم Telegram ID -->
+            <div id="telegramSection" class="login-input-section active">
                 <form id="userIdForm">
                     <div class="form-group">
                         <label for="userId">🆔 رقم Telegram ID</label>
                         <input type="text" id="userId" placeholder="مثال: 123456789" inputmode="numeric">
                     </div>
+                    
+                    <div class="switch-method">
+                        <a onclick="switchToEmail()">📧 التسجيل بالبريد الإلكتروني</a>
+                    </div>
+                    
                     <button type="submit" id="sendCodeBtn">📤 إرسال كود التحقق</button>
                 </form>
                 
@@ -307,13 +283,18 @@
                 </div>
             </div>
             
-            <!-- محتوى تبويب Email -->
-            <div id="emailTab" class="tab-content">
+            <!-- قسم Email -->
+            <div id="emailSection" class="login-input-section">
                 <form id="emailForm">
                     <div class="form-group">
                         <label for="loginEmail">📧 البريد الإلكتروني</label>
                         <input type="email" id="loginEmail" placeholder="example@email.com" dir="ltr">
                     </div>
+                    
+                    <div class="switch-method">
+                        <a onclick="switchToTelegram()">📱 التسجيل بـ Telegram ID</a>
+                    </div>
+                    
                     <button type="submit" id="sendCodeEmailBtn">📤 إرسال كود التحقق</button>
                 </form>
                 
@@ -388,24 +369,24 @@
         let currentUserId = '';
         let loginMethod = 'telegram'; // telegram أو email
         
-        // ===== التبديل بين التبويبات =====
-        function switchTab(tab) {
-            loginMethod = tab;
-            
-            // تحديث التبويبات
-            document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            if (tab === 'telegram') {
-                document.querySelector('.login-tab:first-child').classList.add('active');
-                document.getElementById('telegramTab').classList.add('active');
-            } else {
-                document.querySelector('.login-tab:last-child').classList.add('active');
-                document.getElementById('emailTab').classList.add('active');
-            }
-            
-            // مسح الأخطاء
+        // ===== التبديل للبريد الإلكتروني =====
+        function switchToEmail() {
+            loginMethod = 'email';
+            document.getElementById('telegramSection').classList.remove('active');
+            document.getElementById('emailSection').classList.add('active');
+            document.getElementById('loginSubtitle').textContent = 'أدخل البريد الإلكتروني الموثق';
             document.getElementById('error1').style.display = 'none';
+            document.getElementById('loginEmail').focus();
+        }
+        
+        // ===== التبديل للـ Telegram =====
+        function switchToTelegram() {
+            loginMethod = 'telegram';
+            document.getElementById('emailSection').classList.remove('active');
+            document.getElementById('telegramSection').classList.add('active');
+            document.getElementById('loginSubtitle').textContent = 'أدخل رقم Telegram ID الخاص بك';
+            document.getElementById('error1').style.display = 'none';
+            document.getElementById('userId').focus();
         }
         
         // ===== الخطوة 1: إرسال Telegram ID =====
