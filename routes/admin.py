@@ -464,12 +464,6 @@ def admin_keys():
         return redirect('/dashboard')
     return render_template('admin/keys.html')
 
-@admin_bp.route('/admin/settings')
-def admin_settings():
-    """صفحة الإعدادات"""
-    if not session.get('is_admin'):
-        return redirect('/dashboard')
-    return render_template('admin/settings.html')
 
 # ===================== API الفواتير =====================
 
@@ -1745,122 +1739,6 @@ def api_admin_delete_key(key_id):
         return jsonify({'success': False, 'message': 'Firebase غير متاح'})
     except Exception as e:
         logger.error(f"Error deleting key: {e}")
-        return jsonify({'success': False, 'message': str(e)})
-
-
-@admin_bp.route('/api/admin/settings')
-def api_admin_settings():
-    """جلب إعدادات المتجر"""
-    if not session.get('is_admin'):
-        return jsonify({'success': False, 'message': 'غير مصرح'})
-    
-    try:
-        settings = {}
-        if db:
-            doc = db.collection('settings').document('store').get()
-            if doc.exists:
-                settings = doc.to_dict()
-        
-        return jsonify({'success': True, 'settings': settings})
-    except Exception as e:
-        logger.error(f"Error getting settings: {e}")
-        return jsonify({'success': False, 'message': str(e)})
-
-
-@admin_bp.route('/api/admin/settings', methods=['POST'])
-def api_admin_save_settings():
-    """حفظ إعدادات المتجر"""
-    if not session.get('is_admin'):
-        return jsonify({'success': False, 'message': 'غير مصرح'})
-    
-    try:
-        data = request.json
-        
-        if db:
-            db.collection('settings').document('store').set(data, merge=True)
-            return jsonify({'success': True})
-        
-        return jsonify({'success': False, 'message': 'Firebase غير متاح'})
-    except Exception as e:
-        logger.error(f"Error saving settings: {e}")
-        return jsonify({'success': False, 'message': str(e)})
-
-
-@admin_bp.route('/api/admin/cache/clear', methods=['POST'])
-def api_admin_clear_cache():
-    """مسح الذاكرة المؤقتة"""
-    if not session.get('is_admin'):
-        return jsonify({'success': False, 'message': 'غير مصرح'})
-    
-    return jsonify({'success': True, 'message': 'تم مسح الذاكرة'})
-
-
-@admin_bp.route('/api/admin/bot/restart', methods=['POST'])
-def api_admin_restart_bot():
-    """إعادة تشغيل البوت"""
-    if not session.get('is_admin'):
-        return jsonify({'success': False, 'message': 'غير مصرح'})
-    
-    # هذه الدالة تحتاج تنفيذ خاص حسب طريقة تشغيل البوت
-    return jsonify({'success': True, 'message': 'تم إرسال أمر إعادة التشغيل'})
-
-
-@admin_bp.route('/api/admin/export')
-def api_admin_export():
-    """تصدير نسخة احتياطية"""
-    if not session.get('is_admin'):
-        return jsonify({'success': False, 'message': 'غير مصرح'})
-    
-    try:
-        import json
-        
-        backup = {
-            'exported_at': time.time(),
-            'products': [],
-            'categories': [],
-            'users': [],
-            'orders': [],
-            'settings': {}
-        }
-        
-        if db:
-            # المنتجات
-            for doc in db.collection('products').stream():
-                data = doc.to_dict()
-                data['id'] = doc.id
-                backup['products'].append(data)
-            
-            # الأقسام
-            for doc in db.collection('categories').stream():
-                data = doc.to_dict()
-                data['id'] = doc.id
-                backup['categories'].append(data)
-            
-            # العملاء
-            for doc in db.collection('users').stream():
-                data = doc.to_dict()
-                data['id'] = doc.id
-                backup['users'].append(data)
-            
-            # الطلبات
-            for doc in db.collection('orders').stream():
-                data = doc.to_dict()
-                data['id'] = doc.id
-                backup['orders'].append(data)
-            
-            # الإعدادات
-            doc = db.collection('settings').document('store').get()
-            if doc.exists:
-                backup['settings'] = doc.to_dict()
-        
-        from flask import Response
-        return Response(
-            json.dumps(backup, ensure_ascii=False, indent=2),
-            mimetype='application/json',
-            headers={'Content-Disposition': 'attachment; filename=backup.json'}
-        )
-    except Exception as e:
-        logger.error(f"Error exporting data: {e}")
         return jsonify({'success': False, 'message': str(e)})
 
 
