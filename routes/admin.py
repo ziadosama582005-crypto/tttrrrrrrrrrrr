@@ -1312,15 +1312,28 @@ def api_admin_add_product():
     
     try:
         data = request.json
+        product_type = data.get('type', 'instant')  # instant = فوري, manual = يدوي
+        product_data_list = data.get('data', [])
+        
+        # للمنتجات اليدوية، الكمية = 1 بدون بيانات
+        if product_type == 'manual':
+            available_count = 1
+            total_count = 1
+            product_data_list = []
+        else:
+            available_count = len(product_data_list)
+            total_count = len(product_data_list)
+        
         product_data = {
             'name': data.get('name', ''),
             'description': data.get('description', ''),
             'category_id': data.get('category_id', ''),
             'price': float(data.get('price', 0)),
             'image': data.get('image', ''),
-            'data': data.get('data', []),
-            'available_count': len(data.get('data', [])),
-            'total_count': len(data.get('data', [])),
+            'type': product_type,
+            'data': product_data_list,
+            'available_count': available_count,
+            'total_count': total_count,
             'created_at': time.time()
         }
         
@@ -1348,6 +1361,8 @@ def api_admin_update_product(product_id):
             update_data['name'] = data['name']
         if 'description' in data:
             update_data['description'] = data['description']
+        if 'type' in data:
+            update_data['type'] = data['type']
         if 'category_id' in data:
             update_data['category_id'] = data['category_id']
         if 'price' in data:
