@@ -317,8 +317,8 @@ def verify_code(user_id, code):
     
     code_data = verification_codes[user_id]
     
-    # التحقق من صلاحية الكود (10 دقائق)
-    if time.time() - code_data['created_at'] > 600:  # 10 * 60 ثانية
+    # ✅ التحقق من صلاحية الكود (2 دقيقة فقط بدل 10)
+    if time.time() - code_data['created_at'] > 120:  # 2 * 60 ثانية
         del verification_codes[user_id]
         return None
     
@@ -457,6 +457,7 @@ def api_send_code():
         code = str(random.randint(100000, 999999))
         
         # حفظ الكود في الذاكرة مع الـ timestamp
+        # ✅ الكود صالح لـ 2 دقيقة فقط (بدل 10 دقائق سابقاً)
         verification_codes[user_id] = {
             'code': code,
             'name': user_name,
@@ -469,7 +470,9 @@ def api_send_code():
 🔐 كود التحقق من حسابك في المتجر:
 <code>{code}</code>
 
-⏰ صالح لمدة 10 دقائق
+⏰ صالح لمدة 2 دقيقة فقط (بدل 10!)
+3️⃣ محاولات خاطئة = كود جديد تلقائي
+🔒 الحظر التدريجي يحميك من الهجمات
 
 ⚠️ لا تشارك هذا الكود مع أحد!
 """
@@ -477,7 +480,7 @@ def api_send_code():
             
             return jsonify({
                 'success': True, 
-                'message': f'✅ تم إرسال كود التحقق إلى Telegram',
+                'message': f'✅ تم إرسال كود التحقق إلى Telegram (صالح 2 دقيقة)',
                 'user_name': user_name
             })
         
@@ -496,20 +499,57 @@ def api_send_code():
 
 # مسار التحقق من الكود وتسجيل الدخول
 @app.route('/verify', methods=['POST'])
-@limiter.limit("5 per minute")  # 🔒 Rate Limiting: 5 محاولات/دقيقة
+@limiter.limit("10 per minute")  # 🔒 Rate Limiting: 10 محاولات/دقيقة (محاية عامة)
 def verify_login():
+    from security_utils import (
+        check_if_user_blocked, record_failed_code_attempt,
+        reset_failed_attempts, get_remaining_attempts, log_security_event
+    )
+    
     data = request.get_json()
     user_id = data.get('user_id')
     code = data.get('code')
     
     if not user_id or not code:
-        return {'success': False, 'message': 'الرجاء إدخال الآيدي والكود'}
+        return {'success': False, 'message': 'الرجاء إدخال الآيدي والكود'}, 400
+    
+    user_id = str(user_id)
+    
+    # ✅ فحص الحظر أولاً
+    is_blocked, block_msg = check_if_user_blocked(user_id)
+    if is_blocked:
+        log_security_event('BLOCKED_USER_ATTEMPT', user_id, block_msg)
+        return {'success': False, 'message': f'🔒 {block_msg}'}, 429
     
     # التحقق من صحة الكود
     code_data = verify_code(user_id, code)
     
     if not code_data:
-        return {'success': False, 'message': 'الكود غير صحيح أو منتهي الصلاحية'}
+        # ❌ كود خاطئ - تسجيل المحاولة
+        action, wait_time = record_failed_code_attempt(user_id)
+        remaining = get_remaining_attempts(user_id)[0]
+        
+        error_msg = f'الكود غير صحيح. محاولات متبقية: {remaining}'
+        
+        if action == 'send_new_code':
+            log_security_event('CODE_WRONG_ATTEMPT', user_id, f'محاولة {remaining}')
+            return {
+                'success': False, 
+                'message': f'❌ {error_msg}\n⏰ يرجى الانتظار 5 دقائق وطلب كود جديد',
+                'action': 'wait_and_request_new'
+            }, 429
+        elif action == 'block_user':
+            log_security_event('CODE_BRUTE_FORCE_BLOCKED', user_id, f'تم حظر المستخدم')
+            return {
+                'success': False,
+                'message': '🔒 تم حظرك مؤقتاً لأسباب أمنية. حاول لاحقاً',
+                'action': 'blocked'
+            }, 429
+        
+        return {'success': False, 'message': error_msg}, 401
+    
+    # ✅ كود صحيح - إعادة تعيين المحاولات
+    reset_failed_attempts(user_id)
     
     # تجديد الجلسة لمنع Session Fixation
     regenerate_session()
@@ -521,7 +561,7 @@ def verify_login():
     session['login_time'] = time.time()  # وقت تسجيل الدخول
 
     # حذف الكود بعد الاستخدام
-    del verification_codes[str(user_id)]
+    del verification_codes[user_id]
 
     # جلب الرصيد
     balance = get_balance(user_id)
@@ -530,7 +570,7 @@ def verify_login():
     profile_photo_url = None
     try:
         # أولاً: محاولة جلب من Firebase
-        user_doc = db.collection('users').document(str(user_id)).get()
+        user_doc = db.collection('users').document(user_id).get()
         if user_doc.exists:
             profile_photo_url = user_doc.to_dict().get('profile_photo')
         
@@ -543,7 +583,7 @@ def verify_login():
                 token = bot.token
                 profile_photo_url = f"https://api.telegram.org/file/bot{token}/{file_info.file_path}"
                 # حفظ في Firebase للاستخدام لاحقاً
-                db.collection('users').document(str(user_id)).update({'profile_photo': profile_photo_url})
+                db.collection('users').document(user_id).update({'profile_photo': profile_photo_url})
     except Exception as e:
         print(f"⚠️ خطأ في جلب صورة الحساب: {e}")
     
