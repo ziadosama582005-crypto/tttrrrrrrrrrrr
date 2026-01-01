@@ -1008,17 +1008,16 @@ def api_get_products():
         if db:
             products_ref = db.collection('products')
             
-            available_query = query_where(products_ref, 'sold', '==', False)
-            for doc in available_query.stream():
+            # جلب جميع المنتجات وفرزها
+            all_products = list(products_ref.stream())
+            for doc in all_products:
                 data = doc.to_dict()
                 data['id'] = doc.id
-                available.append(data)
-            
-            sold_query = query_where(products_ref, 'sold', '==', True)
-            for doc in sold_query.stream():
-                data = doc.to_dict()
-                data['id'] = doc.id
-                sold.append(data)
+                # المنتج يعتبر متاح إذا لم يكن sold أو sold = False
+                if data.get('sold', False):
+                    sold.append(data)
+                else:
+                    available.append(data)
         
         return jsonify({
             'status': 'success',
