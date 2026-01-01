@@ -418,87 +418,185 @@ def admin_products():
     """صفحة إدارة المنتجات"""
     if not session.get('is_admin'):
         return redirect('/dashboard')
-    return render_template('admin_products.html', admin_id=ADMIN_ID)
+    return render_template('admin_products_new.html', admin_id=ADMIN_ID, active_page='products')
 
 @admin_bp.route('/admin/categories')
 def admin_categories():
     """صفحة إدارة الأقسام"""
     if not session.get('is_admin'):
         return redirect('/dashboard')
-    return render_template('admin_categories.html')
+    return render_template('admin_categories_new.html', active_page='categories')
 
 @admin_bp.route('/admin/invoices')
 def admin_invoices():
     """صفحة عرض الفواتير والمعاملات"""
     if not session.get('is_admin'):
         return redirect('/dashboard')
-    return render_template('admin_invoices.html')
+    return render_template('admin_invoices_new.html', active_page='invoices')
+
+@admin_bp.route('/admin/customers')
+def admin_customers():
+    """صفحة إدارة العملاء"""
+    if not session.get('is_admin'):
+        return redirect('/dashboard')
+    return render_template('admin_customers.html', active_page='customers')
+
+@admin_bp.route('/admin/orders')
+def admin_orders():
+    """صفحة إدارة الطلبات"""
+    if not session.get('is_admin'):
+        return redirect('/dashboard')
+    return render_template('admin_orders.html', active_page='orders')
+
+@admin_bp.route('/admin/balance-logs')
+def admin_balance_logs_page():
+    """صفحة سجل الرصيد"""
+    if not session.get('is_admin'):
+        return redirect('/dashboard')
+    return render_template('admin_balance_logs.html', active_page='balance_logs')
+
+@admin_bp.route('/admin/carts')
+def admin_carts_page():
+    """صفحة السلات النشطة"""
+    if not session.get('is_admin'):
+        return redirect('/dashboard')
+    return render_template('admin_carts.html', active_page='carts')
+
+@admin_bp.route('/admin/charge-keys')
+def admin_charge_keys():
+    """صفحة كروت الشحن"""
+    if not session.get('is_admin'):
+        return redirect('/dashboard')
+    return render_template('admin_charge_keys.html', active_page='charge_keys')
 
 # ===================== API إحصائيات لوحة التحكم =====================
 
 @admin_bp.route('/api/admin/dashboard_stats')
 def api_dashboard_stats():
-    """جلب إحصائيات لوحة التحكم"""
+    """جلب إحصائيات لوحة التحكم الكاملة"""
     if not session.get('is_admin'):
         return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
     
     try:
         stats = {
-            'products': 0,
+            'total_products': 0,
+            'available_products': 0,
             'sold_products': 0,
-            'users': 0,
-            'orders': 0,
+            'total_users': 0,
+            'total_orders': 0,
+            'pending_orders': 0,
             'categories': 0,
             'pending_payments': 0,
             'completed_payments': 0,
             'total_revenue': 0,
             'total_balance': 0,
-            'active_carts': 0
+            'active_carts': 0,
+            'active_keys': 0,
+            'used_keys': 0,
+            'pending_invoices': 0,
+            'recent_orders': [],
+            'users_list': [],
+            'top_cart_products': []
         }
         
         if db:
-            # عدد المنتجات المتاحة
+            # المنتجات
             try:
-                available_products = list(db.collection('products').where('sold', '==', False).stream())
-                stats['products'] = len(available_products)
-            except:
-                pass
+                all_products = list(db.collection('products').stream())
+                stats['total_products'] = len(all_products)
+                available = [p for p in all_products if not p.to_dict().get('sold', False)]
+                stats['available_products'] = len(available)
+                stats['sold_products'] = len(all_products) - len(available)
+            except Exception as e:
+                logger.error(f"Error getting products: {e}")
             
-            # عدد المنتجات المباعة
-            try:
-                sold_products = list(db.collection('products').where('sold', '==', True).stream())
-                stats['sold_products'] = len(sold_products)
-            except:
-                pass
-            
-            # عدد المستخدمين
+            # المستخدمين والأرصدة
             try:
                 users = list(db.collection('users').stream())
-                stats['users'] = len(users)
-                # حساب إجمالي الأرصدة
-                total_balance = sum([u.to_dict().get('balance', 0) for u in users])
+                stats['total_users'] = len(users)
+                users_list = []
+                total_balance = 0
+                for u in users:
+                    u_data = u.to_dict()
+                    balance = u_data.get('balance', 0)
+                    total_balance += balance
+                    users_list.append({
+                        'id': u.id,
+                        'name': u_data.get('name', u_data.get('telegram_name', 'مستخدم')),
+                        'balance': balance,
+                        'username': u_data.get('username', '')
+                    })
                 stats['total_balance'] = total_balance
-            except:
-                pass
+                stats['users_list'] = users_list
+            except Exception as e:
+                logger.error(f"Error getting users: {e}")
             
-            # عدد الطلبات
+            # الطلبات
             try:
-                orders = list(db.collection('orders').stream())
-                stats['orders'] = len(orders)
-                # حساب إجمالي الإيرادات
-                total_revenue = sum([o.to_dict().get('price', 0) for o in orders])
-                stats['total_revenue'] = total_revenue
-            except:
-                pass
+                orders_ref = db.collection('orders')
+                all_orders = list(orders_ref.stream())
+                stats['total_orders'] = len(all_orders)
+                
+                # حساب الإيرادات وآخر الطلبات
+                recent_orders = []
+                total_revenue = 0
+                pending_count = 0
+                
+                # جلب آخر 20 طلب
+                recent_docs = list(orders_ref.order_by('created_at', direction=firestore.Query.DESCENDING).limit(20).stream())
+                for doc in recent_docs:
+                    data = doc.to_dict()
+                    price = data.get('price', 0)
+                    total_revenue += price
+                    
+                    if data.get('status') in ['pending', 'processing']:
+                        pending_count += 1
+                    
+                    recent_orders.append({
+                        'id': doc.id[:8],
+                        'item_name': data.get('item_name', 'منتج'),
+                        'price': price,
+                        'buyer_name': data.get('buyer_name', 'مشتري'),
+                        'buyer_id': data.get('buyer_id', ''),
+                        'created_at': str(data.get('created_at', ''))
+                    })
+                
+                stats['total_revenue'] = sum([o.to_dict().get('price', 0) for o in all_orders])
+                stats['recent_orders'] = recent_orders
+                stats['pending_orders'] = pending_count
+            except Exception as e:
+                logger.error(f"Error getting orders: {e}")
             
-            # عدد الأقسام
+            # الأقسام
             try:
                 categories = list(db.collection('categories').stream())
                 stats['categories'] = len(categories)
             except:
                 pass
             
-            # طلبات الدفع المعلقة والمكتملة
+            # كروت الشحن
+            try:
+                keys = list(db.collection('charge_keys').stream())
+                active_keys = 0
+                used_keys = 0
+                for k in keys:
+                    if k.to_dict().get('used', False):
+                        used_keys += 1
+                    else:
+                        active_keys += 1
+                stats['active_keys'] = active_keys
+                stats['used_keys'] = used_keys
+            except:
+                pass
+            
+            # الفواتير المعلقة
+            try:
+                invoices = list(db.collection('merchant_invoices').where('status', '==', 'pending').stream())
+                stats['pending_invoices'] = len(invoices)
+            except:
+                pass
+            
+            # طلبات الدفع
             try:
                 pending = list(db.collection('pending_payments').where('status', '==', 'pending').stream())
                 stats['pending_payments'] = len(pending)
@@ -512,6 +610,29 @@ def api_dashboard_stats():
             try:
                 carts = list(db.collection('carts').stream())
                 stats['active_carts'] = len(carts)
+            except:
+                pass
+            
+            # إحصائيات السلة - أكثر المنتجات إضافة
+            try:
+                cart_stats = list(db.collection('cart_stats').order_by('add_to_cart_count', direction=firestore.Query.DESCENDING).limit(10).stream())
+                top_cart_products = []
+                for stat in cart_stats:
+                    stat_data = stat.to_dict()
+                    # جلب اسم المنتج
+                    try:
+                        prod_doc = db.collection('products').document(stat.id).get()
+                        prod_name = prod_doc.to_dict().get('item_name', 'منتج') if prod_doc.exists else 'محذوف'
+                    except:
+                        prod_name = 'غير معروف'
+                    
+                    top_cart_products.append({
+                        'product_id': stat.id,
+                        'name': prod_name,
+                        'add_count': stat_data.get('add_to_cart_count', 0),
+                        'purchase_count': stat_data.get('purchase_count', 0)
+                    })
+                stats['top_cart_products'] = top_cart_products
             except:
                 pass
         
@@ -1345,6 +1466,308 @@ def api_set_display_settings():
     except Exception as e:
         logger.error(f"Error setting display settings: {e}")
         return jsonify({'status': 'error', 'message': 'حدث خطأ، حاول لاحقاً'})
+
+
+# ===================== APIs العملاء =====================
+
+@admin_bp.route('/api/admin/get_customers')
+def api_get_customers():
+    """جلب جميع العملاء مع إحصائياتهم"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    
+    try:
+        customers = []
+        total_balance = 0
+        total_orders = 0
+        total_spent = 0
+        
+        if db:
+            # جلب المستخدمين
+            users_ref = db.collection('users').stream()
+            
+            for doc in users_ref:
+                user_data = doc.to_dict()
+                user_id = doc.id
+                
+                # حساب عدد الطلبات وإجمالي المشتريات
+                orders_count = 0
+                user_spent = 0
+                last_activity = None
+                
+                try:
+                    orders = db.collection('orders').where('buyer_id', '==', user_id).stream()
+                    for order in orders:
+                        order_data = order.to_dict()
+                        orders_count += 1
+                        user_spent += float(order_data.get('price', 0))
+                        
+                        order_date = order_data.get('created_at')
+                        if order_date and (not last_activity or order_date > last_activity):
+                            last_activity = order_date
+                except:
+                    pass
+                
+                balance = float(user_data.get('balance', 0))
+                total_balance += balance
+                total_orders += orders_count
+                total_spent += user_spent
+                
+                customers.append({
+                    'id': user_id,
+                    'user_id': user_id,
+                    'name': user_data.get('name') or user_data.get('username') or user_data.get('first_name'),
+                    'username': user_data.get('username'),
+                    'first_name': user_data.get('first_name'),
+                    'balance': balance,
+                    'orders_count': orders_count,
+                    'total_spent': user_spent,
+                    'last_activity': last_activity.isoformat() if last_activity else None,
+                    'has_2fa': user_data.get('has_2fa', False)
+                })
+        
+        return jsonify({
+            'status': 'success',
+            'customers': customers,
+            'stats': {
+                'total_customers': len(customers),
+                'total_balance': total_balance,
+                'total_orders': total_orders,
+                'total_spent': total_spent
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting customers: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+
+
+@admin_bp.route('/api/admin/get_customer_details')
+def api_get_customer_details():
+    """جلب تفاصيل عميل معين"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return jsonify({'status': 'error', 'message': 'معرف المستخدم مطلوب'})
+    
+    try:
+        if not db:
+            return jsonify({'status': 'error', 'message': 'قاعدة البيانات غير متاحة'})
+        
+        # جلب بيانات المستخدم
+        user_doc = db.collection('users').document(user_id).get()
+        if not user_doc.exists:
+            return jsonify({'status': 'error', 'message': 'المستخدم غير موجود'})
+        
+        user_data = user_doc.to_dict()
+        
+        # جلب الطلبات
+        orders = []
+        total_spent = 0
+        try:
+            orders_ref = db.collection('orders').where('buyer_id', '==', user_id).stream()
+            for doc in orders_ref:
+                order = doc.to_dict()
+                order['id'] = doc.id
+                if order.get('created_at'):
+                    order['created_at'] = order['created_at'].isoformat() if hasattr(order['created_at'], 'isoformat') else str(order['created_at'])
+                orders.append(order)
+                total_spent += float(order.get('price', 0))
+        except:
+            pass
+        
+        # جلب سجل الرصيد
+        balance_logs = []
+        try:
+            logs_ref = db.collection('balance_logs').where('user_id', '==', user_id).order_by('created_at', direction=firestore.Query.DESCENDING).limit(50).stream()
+            for doc in logs_ref:
+                log = doc.to_dict()
+                log['id'] = doc.id
+                if log.get('created_at'):
+                    log['created_at'] = log['created_at'].isoformat() if hasattr(log['created_at'], 'isoformat') else str(log['created_at'])
+                balance_logs.append(log)
+        except:
+            pass
+        
+        customer = {
+            'id': user_id,
+            'user_id': user_id,
+            'name': user_data.get('name') or user_data.get('username') or user_data.get('first_name'),
+            'username': user_data.get('username'),
+            'first_name': user_data.get('first_name'),
+            'balance': float(user_data.get('balance', 0)),
+            'orders_count': len(orders),
+            'total_spent': total_spent,
+            'has_2fa': user_data.get('has_2fa', False),
+            'orders': orders,
+            'balance_logs': balance_logs
+        }
+        
+        return jsonify({
+            'status': 'success',
+            'customer': customer
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting customer details: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+
+
+# ===================== APIs الطلبات =====================
+
+@admin_bp.route('/api/admin/get_orders')
+def api_get_orders():
+    """جلب جميع الطلبات"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    
+    try:
+        orders = []
+        completed = 0
+        pending = 0
+        revenue = 0
+        
+        if db:
+            orders_ref = db.collection('orders').order_by('created_at', direction=firestore.Query.DESCENDING).stream()
+            
+            for doc in orders_ref:
+                order = doc.to_dict()
+                order['id'] = doc.id
+                
+                if order.get('created_at'):
+                    order['created_at'] = order['created_at'].isoformat() if hasattr(order['created_at'], 'isoformat') else str(order['created_at'])
+                
+                price = float(order.get('price', 0))
+                revenue += price
+                
+                if order.get('status') == 'completed':
+                    completed += 1
+                else:
+                    pending += 1
+                
+                orders.append(order)
+        
+        return jsonify({
+            'status': 'success',
+            'orders': orders,
+            'stats': {
+                'total': len(orders),
+                'completed': completed,
+                'pending': pending,
+                'revenue': revenue
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting orders: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+
+
+@admin_bp.route('/api/admin/complete_order', methods=['POST'])
+def api_complete_order():
+    """إكمال طلب يدوي"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    
+    try:
+        data = request.json
+        order_id = data.get('order_id')
+        
+        if not order_id or not db:
+            return jsonify({'status': 'error', 'message': 'بيانات ناقصة'})
+        
+        # تحديث حالة الطلب
+        order_ref = db.collection('orders').document(order_id)
+        order_doc = order_ref.get()
+        
+        if not order_doc.exists:
+            return jsonify({'status': 'error', 'message': 'الطلب غير موجود'})
+        
+        order_ref.update({
+            'status': 'completed',
+            'completed_at': firestore.SERVER_TIMESTAMP
+        })
+        
+        # إشعار المشتري
+        order_data = order_doc.to_dict()
+        buyer_id = order_data.get('buyer_id')
+        
+        if bot and buyer_id:
+            try:
+                msg = f"✅ تم إكمال طلبك!\n\n"
+                msg += f"🆔 رقم الطلب: #{order_id}\n"
+                msg += f"📦 المنتج: {order_data.get('item_name', '-')}\n"
+                if order_data.get('hidden_data'):
+                    msg += f"\n🔐 البيانات:\n{order_data.get('hidden_data')}"
+                bot.send_message(int(buyer_id), msg)
+            except Exception as e:
+                logger.error(f"Error notifying buyer: {e}")
+        
+        return jsonify({'status': 'success', 'message': 'تم إكمال الطلب'})
+        
+    except Exception as e:
+        logger.error(f"Error completing order: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+
+
+# ===================== APIs كروت الشحن =====================
+
+@admin_bp.route('/api/admin/get_charge_keys')
+def api_get_charge_keys():
+    """جلب جميع كروت الشحن"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    
+    try:
+        keys = []
+        
+        if db:
+            keys_ref = db.collection('charge_keys').order_by('created_at', direction=firestore.Query.DESCENDING).stream()
+            
+            for doc in keys_ref:
+                key_data = doc.to_dict()
+                key_data['id'] = doc.id
+                
+                if key_data.get('created_at'):
+                    key_data['created_at'] = key_data['created_at'].isoformat() if hasattr(key_data['created_at'], 'isoformat') else str(key_data['created_at'])
+                if key_data.get('used_at'):
+                    key_data['used_at'] = key_data['used_at'].isoformat() if hasattr(key_data['used_at'], 'isoformat') else str(key_data['used_at'])
+                
+                keys.append(key_data)
+        
+        return jsonify({
+            'status': 'success',
+            'keys': keys
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting charge keys: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+
+
+@admin_bp.route('/api/admin/delete_charge_key', methods=['POST'])
+def api_delete_charge_key():
+    """حذف كرت شحن"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    
+    try:
+        data = request.json
+        key_id = data.get('key_id')
+        
+        if not key_id or not db:
+            return jsonify({'status': 'error', 'message': 'بيانات ناقصة'})
+        
+        db.collection('charge_keys').document(key_id).delete()
+        
+        return jsonify({'status': 'success', 'message': 'تم الحذف'})
+        
+    except Exception as e:
+        logger.error(f"Error deleting charge key: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+
 
 # ===================== دالة التهيئة =====================
 

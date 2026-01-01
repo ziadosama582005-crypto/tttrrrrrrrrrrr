@@ -1,0 +1,157 @@
+{% extends "admin_base.html" %}
+
+{% block title %}سجل الرصيد - لوحة التحكم{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    <h1>💳 سجل عمليات الرصيد</h1>
+    <div class="top-bar-actions">
+        <button class="btn btn-secondary" onclick="loadLogs()">🔄 تحديث</button>
+    </div>
+</div>
+
+<!-- الإحصائيات -->
+<div class="stats-grid">
+    <div class="stat-card" style="border-color: var(--success);">
+        <div class="icon">➕</div>
+        <div class="value" id="totalDeposits" style="color: var(--success);">-</div>
+        <div class="label">إجمالي الإيداعات</div>
+    </div>
+    <div class="stat-card" style="border-color: var(--danger);">
+        <div class="icon">➖</div>
+        <div class="value" id="totalDeductions" style="color: var(--danger);">-</div>
+        <div class="label">إجمالي الخصومات</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">📊</div>
+        <div class="value" id="totalTransactions">-</div>
+        <div class="label">إجمالي العمليات</div>
+    </div>
+</div>
+
+<!-- الفلترة -->
+<div class="card">
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <select id="typeFilter" style="padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
+            <option value="all">جميع الأنواع</option>
+            <option value="add">➕ إيداع</option>
+            <option value="deduct">➖ خصم</option>
+        </select>
+        <input type="text" id="searchInput" placeholder="🔍 بحث بالمستخدم..." 
+               style="flex: 1; min-width: 150px; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
+    </div>
+</div>
+
+<!-- جدول السجلات -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">📋 سجل العمليات</span>
+        <span id="logsCountLabel" style="color: var(--muted); font-size: 13px;">جاري التحميل...</span>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>النوع</th>
+                    <th>المستخدم</th>
+                    <th>المبلغ</th>
+                    <th>الوصف</th>
+                    <th>التاريخ</th>
+                </tr>
+            </thead>
+            <tbody id="logsTable">
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 40px;">
+                        <div class="spinner" style="margin: 0 auto;"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let allLogs = [];
+
+    async function loadLogs() {
+        const tbody = document.getElementById('logsTable');
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
+        
+        try {
+            const res = await fetch('/api/admin/get_balance_logs');
+            const data = await res.json();
+            
+            if (data.status === 'success') {
+                allLogs = data.logs || [];
+                updateStats();
+                renderLogs();
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #e74c3c;">❌ ' + (data.message || 'حدث خطأ') + '</td></tr>';
+            }
+        } catch (e) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #e74c3c;">❌ خطأ في الاتصال</td></tr>';
+        }
+    }
+
+    function updateStats() {
+        let deposits = 0, deductions = 0;
+        allLogs.forEach(l => {
+            const amount = parseFloat(l.amount) || 0;
+            if (l.type === 'add') deposits += amount;
+            else deductions += amount;
+        });
+        
+        document.getElementById('totalDeposits').textContent = deposits.toFixed(2) + ' ر.س';
+        document.getElementById('totalDeductions').textContent = deductions.toFixed(2) + ' ر.س';
+        document.getElementById('totalTransactions').textContent = allLogs.length;
+    }
+
+    function renderLogs() {
+        const tbody = document.getElementById('logsTable');
+        const typeFilter = document.getElementById('typeFilter').value;
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        
+        let filtered = allLogs.filter(l => {
+            if (typeFilter !== 'all' && l.type !== typeFilter) return false;
+            if (search && !(l.user_id || '').toLowerCase().includes(search)) return false;
+            return true;
+        });
+        
+        document.getElementById('logsCountLabel').textContent = `${filtered.length} عملية`;
+        
+        if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--muted);">لا يوجد سجلات</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = filtered.map(l => {
+            const typeBadge = l.type === 'add'
+                ? '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(0,184,148,0.2); color: var(--success);">➕ إيداع</span>'
+                : '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(231,76,60,0.2); color: var(--danger);">➖ خصم</span>';
+            
+            const date = l.created_at ? new Date(l.created_at).toLocaleString('ar-SA') : '-';
+            const amount = parseFloat(l.amount) || 0;
+            
+            return `
+                <tr>
+                    <td>${typeBadge}</td>
+                    <td style="font-family: monospace;">#${l.user_id || '-'}</td>
+                    <td style="color: ${l.type === 'add' ? 'var(--success)' : 'var(--danger)'}; font-weight: 600;">
+                        ${l.type === 'add' ? '+' : '-'}${amount.toFixed(2)} ر.س
+                    </td>
+                    <td style="font-size: 12px; color: var(--muted);">${l.description || '-'}</td>
+                    <td style="font-size: 12px; color: var(--muted);">${date}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // Filters
+    document.getElementById('typeFilter').addEventListener('change', renderLogs);
+    document.getElementById('searchInput').addEventListener('input', renderLogs);
+
+    loadLogs();
+</script>
+{% endblock %}

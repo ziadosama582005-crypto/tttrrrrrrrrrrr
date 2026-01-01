@@ -1,0 +1,137 @@
+{% extends "admin_base.html" %}
+
+{% block title %}السلات النشطة - لوحة التحكم{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    <h1>🛒 السلات النشطة</h1>
+    <div class="top-bar-actions">
+        <button class="btn btn-secondary" onclick="loadCarts()">🔄 تحديث</button>
+    </div>
+</div>
+
+<!-- الإحصائيات -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="icon">🛒</div>
+        <div class="value" id="totalCarts">-</div>
+        <div class="label">سلات نشطة</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">📦</div>
+        <div class="value" id="totalItems">-</div>
+        <div class="label">إجمالي المنتجات</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">💰</div>
+        <div class="value" id="totalValue">-</div>
+        <div class="label">القيمة الإجمالية</div>
+    </div>
+</div>
+
+<!-- جدول السلات -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">📋 السلات النشطة</span>
+        <span id="cartsCountLabel" style="color: var(--muted); font-size: 13px;">جاري التحميل...</span>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>المستخدم</th>
+                    <th>عدد المنتجات</th>
+                    <th>القيمة</th>
+                    <th>تاريخ الإنشاء</th>
+                    <th>تنتهي في</th>
+                    <th>الحالة</th>
+                </tr>
+            </thead>
+            <tbody id="cartsTable">
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px;">
+                        <div class="spinner" style="margin: 0 auto;"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function loadCarts() {
+        const tbody = document.getElementById('cartsTable');
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
+        
+        try {
+            const res = await fetch('/api/admin/get_carts');
+            const data = await res.json();
+            
+            if (data.status === 'success') {
+                const carts = data.carts || [];
+                
+                // تحديث الإحصائيات
+                let totalItems = 0, totalValue = 0;
+                carts.forEach(c => {
+                    totalItems += c.items_count || 0;
+                    totalValue += c.total_value || 0;
+                });
+                
+                document.getElementById('totalCarts').textContent = carts.length;
+                document.getElementById('totalItems').textContent = totalItems;
+                document.getElementById('totalValue').textContent = totalValue.toFixed(2) + ' ر.س';
+                document.getElementById('cartsCountLabel').textContent = `${carts.length} سلة`;
+                
+                if (carts.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--muted);">لا يوجد سلات نشطة</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = carts.map(c => {
+                    const createdAt = c.created_at ? new Date(c.created_at).toLocaleString('ar-SA') : '-';
+                    const expiresAt = c.expires_at ? new Date(c.expires_at) : null;
+                    const now = new Date();
+                    const isExpired = expiresAt && expiresAt < now;
+                    
+                    let expiresText = '-';
+                    if (expiresAt) {
+                        const diff = expiresAt - now;
+                        if (diff > 0) {
+                            const hours = Math.floor(diff / (1000 * 60 * 60));
+                            const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                            expiresText = `${hours}س ${mins}د`;
+                        } else {
+                            expiresText = 'منتهية';
+                        }
+                    }
+                    
+                    const statusBadge = isExpired
+                        ? '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(231,76,60,0.2); color: var(--danger);">❌ منتهية</span>'
+                        : '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(0,184,148,0.2); color: var(--success);">✅ نشطة</span>';
+                    
+                    return `
+                        <tr>
+                            <td style="font-family: monospace;">#${c.user_id || '-'}</td>
+                            <td>${c.items_count || 0}</td>
+                            <td style="color: var(--success); font-weight: 600;">${(c.total_value || 0).toFixed(2)} ر.س</td>
+                            <td style="font-size: 12px; color: var(--muted);">${createdAt}</td>
+                            <td style="font-size: 12px; color: ${isExpired ? 'var(--danger)' : 'var(--warning)'};">${expiresText}</td>
+                            <td>${statusBadge}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #e74c3c;">❌ ' + (data.message || 'حدث خطأ') + '</td></tr>';
+            }
+        } catch (e) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #e74c3c;">❌ خطأ في الاتصال</td></tr>';
+        }
+    }
+
+    loadCarts();
+    // تحديث تلقائي كل 30 ثانية
+    setInterval(loadCarts, 30000);
+</script>
+{% endblock %}

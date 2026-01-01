@@ -1,0 +1,347 @@
+{% extends "admin_base.html" %}
+
+{% block title %}العملاء - لوحة التحكم{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    <h1>👥 إدارة العملاء</h1>
+    <div class="top-bar-actions">
+        <button class="btn btn-secondary" onclick="loadCustomers()">🔄 تحديث</button>
+    </div>
+</div>
+
+<!-- الإحصائيات -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="icon">👥</div>
+        <div class="value" id="totalCustomers">-</div>
+        <div class="label">إجمالي العملاء</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">💰</div>
+        <div class="value" id="totalBalance">-</div>
+        <div class="label">إجمالي الأرصدة</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">🛒</div>
+        <div class="value" id="totalOrders">-</div>
+        <div class="label">إجمالي الطلبات</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">💳</div>
+        <div class="value" id="totalSpent">-</div>
+        <div class="label">إجمالي المشتريات</div>
+    </div>
+</div>
+
+<!-- البحث -->
+<div class="card">
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <input type="text" id="searchInput" placeholder="🔍 البحث بالاسم أو ID..." 
+               style="flex: 1; min-width: 200px; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
+        <select id="sortBy" style="padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
+            <option value="balance_desc">الرصيد (الأعلى)</option>
+            <option value="balance_asc">الرصيد (الأقل)</option>
+            <option value="orders_desc">الطلبات (الأكثر)</option>
+            <option value="name_asc">الاسم (أ-ي)</option>
+        </select>
+        <button class="btn btn-primary" onclick="loadCustomers()">بحث</button>
+    </div>
+</div>
+
+<!-- جدول العملاء -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">📋 قائمة العملاء</span>
+        <span id="customersCountLabel" style="color: var(--muted); font-size: 13px;">جاري التحميل...</span>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>العميل</th>
+                    <th>الرصيد</th>
+                    <th>الطلبات</th>
+                    <th>إجمالي المشتريات</th>
+                    <th>آخر نشاط</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody id="customersTable">
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px;">
+                        <div class="spinner" style="margin: 0 auto;"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal تفاصيل العميل -->
+<div id="customerModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto;">
+    <div style="max-width: 800px; margin: 40px auto; padding: 20px;">
+        <div class="card" style="position: relative;">
+            <button onclick="closeModal()" style="position: absolute; left: 15px; top: 15px; background: none; border: none; color: white; font-size: 24px; cursor: pointer;">✕</button>
+            <div id="customerDetails">
+                <!-- سيتم تحميله ديناميكياً -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let allCustomers = [];
+
+    async function loadCustomers() {
+        const tbody = document.getElementById('customersTable');
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
+        
+        try {
+            const res = await fetch('/api/admin/get_customers');
+            const data = await res.json();
+            
+            if (data.status === 'success') {
+                allCustomers = data.customers;
+                updateStats(data.stats);
+                renderCustomers();
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #e74c3c;">❌ ' + (data.message || 'حدث خطأ') + '</td></tr>';
+            }
+        } catch (e) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #e74c3c;">❌ خطأ في الاتصال</td></tr>';
+        }
+    }
+
+    function updateStats(stats) {
+        document.getElementById('totalCustomers').textContent = stats.total_customers || 0;
+        document.getElementById('totalBalance').textContent = (stats.total_balance || 0).toFixed(2) + ' ر.س';
+        document.getElementById('totalOrders').textContent = stats.total_orders || 0;
+        document.getElementById('totalSpent').textContent = (stats.total_spent || 0).toFixed(2) + ' ر.س';
+    }
+
+    function renderCustomers() {
+        const tbody = document.getElementById('customersTable');
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const sortBy = document.getElementById('sortBy').value;
+        
+        let filtered = allCustomers.filter(c => {
+            const name = (c.name || c.username || c.first_name || '').toLowerCase();
+            const id = (c.user_id || c.id || '').toString();
+            return name.includes(search) || id.includes(search);
+        });
+        
+        // Sort
+        filtered.sort((a, b) => {
+            switch (sortBy) {
+                case 'balance_desc': return (b.balance || 0) - (a.balance || 0);
+                case 'balance_asc': return (a.balance || 0) - (b.balance || 0);
+                case 'orders_desc': return (b.orders_count || 0) - (a.orders_count || 0);
+                case 'name_asc': return (a.name || '').localeCompare(b.name || '');
+                default: return 0;
+            }
+        });
+        
+        document.getElementById('customersCountLabel').textContent = `${filtered.length} عميل`;
+        
+        if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--muted);">لا يوجد عملاء</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = filtered.map(c => {
+            const name = c.name || c.username || c.first_name || 'بدون اسم';
+            const userId = c.user_id || c.id || '-';
+            const balance = (c.balance || 0).toFixed(2);
+            const orders = c.orders_count || 0;
+            const spent = (c.total_spent || 0).toFixed(2);
+            const lastActivity = c.last_activity ? new Date(c.last_activity).toLocaleDateString('ar-SA') : '-';
+            
+            return `
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #8b7cf7); display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                                ${name.charAt(0)}
+                            </div>
+                            <div>
+                                <div style="font-weight: 600;">${name}</div>
+                                <div style="font-size: 12px; color: var(--muted);">#${userId}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span style="color: ${parseFloat(balance) > 0 ? 'var(--success)' : 'var(--muted)'}; font-weight: 600;">
+                            ${balance} ر.س
+                        </span>
+                    </td>
+                    <td>${orders}</td>
+                    <td>${spent} ر.س</td>
+                    <td style="font-size: 12px; color: var(--muted);">${lastActivity}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="viewCustomer('${userId}')">
+                            👁️ عرض
+                        </button>
+                        <button class="btn btn-success btn-sm" onclick="addBalance('${userId}', '${name}')">
+                            💰 شحن
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    async function viewCustomer(userId) {
+        const modal = document.getElementById('customerModal');
+        const details = document.getElementById('customerDetails');
+        
+        modal.style.display = 'block';
+        details.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto;"></div></div>';
+        
+        try {
+            const res = await fetch(`/api/admin/get_customer_details?user_id=${userId}`);
+            const data = await res.json();
+            
+            if (data.status === 'success') {
+                const c = data.customer;
+                const name = c.name || c.username || c.first_name || 'بدون اسم';
+                
+                details.innerHTML = `
+                    <h2 style="margin-bottom: 20px;">👤 ${name}</h2>
+                    
+                    <div class="stats-grid" style="margin-bottom: 20px;">
+                        <div class="stat-card">
+                            <div class="icon">💰</div>
+                            <div class="value">${(c.balance || 0).toFixed(2)}</div>
+                            <div class="label">الرصيد الحالي</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="icon">🛒</div>
+                            <div class="value">${c.orders_count || 0}</div>
+                            <div class="label">إجمالي الطلبات</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="icon">💳</div>
+                            <div class="value">${(c.total_spent || 0).toFixed(2)}</div>
+                            <div class="label">إجمالي المشتريات</div>
+                        </div>
+                    </div>
+                    
+                    <!-- الطلبات -->
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="margin-bottom: 10px;">🛒 الطلبات (${(c.orders || []).length})</h3>
+                        ${c.orders && c.orders.length > 0 ? `
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>رقم الطلب</th>
+                                            <th>المنتج</th>
+                                            <th>السعر</th>
+                                            <th>الحالة</th>
+                                            <th>التاريخ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${c.orders.map(o => `
+                                            <tr>
+                                                <td style="font-family: monospace;">${o.id || '-'}</td>
+                                                <td>${o.item_name || '-'}</td>
+                                                <td>${o.price || 0} ر.س</td>
+                                                <td>
+                                                    <span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: ${o.status === 'completed' ? 'rgba(0,184,148,0.2)' : 'rgba(243,156,18,0.2)'}; color: ${o.status === 'completed' ? 'var(--success)' : 'var(--warning)'};">
+                                                        ${o.status === 'completed' ? '✅ مكتمل' : '⏳ معلق'}
+                                                    </span>
+                                                </td>
+                                                <td style="font-size: 12px;">${o.created_at ? new Date(o.created_at).toLocaleDateString('ar-SA') : '-'}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ` : '<p style="color: var(--muted);">لا يوجد طلبات</p>'}
+                    </div>
+                    
+                    <!-- سجل الرصيد -->
+                    <div>
+                        <h3 style="margin-bottom: 10px;">💳 سجل الرصيد (${(c.balance_logs || []).length})</h3>
+                        ${c.balance_logs && c.balance_logs.length > 0 ? `
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>النوع</th>
+                                            <th>المبلغ</th>
+                                            <th>الوصف</th>
+                                            <th>التاريخ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${c.balance_logs.map(l => `
+                                            <tr>
+                                                <td>
+                                                    <span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: ${l.type === 'add' ? 'rgba(0,184,148,0.2)' : 'rgba(231,76,60,0.2)'}; color: ${l.type === 'add' ? 'var(--success)' : 'var(--danger)'};">
+                                                        ${l.type === 'add' ? '➕ إيداع' : '➖ خصم'}
+                                                    </span>
+                                                </td>
+                                                <td style="color: ${l.type === 'add' ? 'var(--success)' : 'var(--danger)'}; font-weight: 600;">
+                                                    ${l.type === 'add' ? '+' : '-'}${l.amount || 0} ر.س
+                                                </td>
+                                                <td style="font-size: 12px;">${l.description || '-'}</td>
+                                                <td style="font-size: 12px;">${l.created_at ? new Date(l.created_at).toLocaleDateString('ar-SA') : '-'}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ` : '<p style="color: var(--muted);">لا يوجد سجلات</p>'}
+                    </div>
+                `;
+            } else {
+                details.innerHTML = '<p style="color: var(--danger); text-align: center;">❌ حدث خطأ في جلب البيانات</p>';
+            }
+        } catch (e) {
+            details.innerHTML = '<p style="color: var(--danger); text-align: center;">❌ خطأ في الاتصال</p>';
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('customerModal').style.display = 'none';
+    }
+
+    async function addBalance(userId, name) {
+        const amount = prompt(`💰 كم تريد إضافة لرصيد ${name}؟`);
+        if (!amount || isNaN(amount) || parseFloat(amount) <= 0) return;
+        
+        try {
+            const res = await fetch('/api/add_balance', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    user_id: userId, 
+                    amount: parseFloat(amount) 
+                })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                showToast(`✅ تم إضافة ${amount} ر.س لـ ${name}`);
+                loadCustomers();
+            } else {
+                showToast(data.message || 'حدث خطأ', 'error');
+            }
+        } catch (e) {
+            showToast('خطأ في الاتصال', 'error');
+        }
+    }
+
+    // Search on input
+    document.getElementById('searchInput').addEventListener('input', renderCustomers);
+    document.getElementById('sortBy').addEventListener('change', renderCustomers);
+
+    // Load on page load
+    loadCustomers();
+</script>
+{% endblock %}
