@@ -670,12 +670,14 @@ def api_get_invoices():
             for doc in pending_ref.stream():
                 data = doc.to_dict()
                 user_name = 'غير معروف'
+                user_phone = ''
                 user_id = data.get('user_id', '')
                 try:
                     user_doc = db.collection('users').document(str(user_id)).get()
                     if user_doc.exists:
                         user_data = user_doc.to_dict()
                         user_name = user_data.get('name', user_data.get('telegram_name', f'مستخدم {user_id}'))
+                        user_phone = user_data.get('phone', data.get('customer_phone', ''))
                 except:
                     pass
                 
@@ -684,6 +686,7 @@ def api_get_invoices():
                     'order_id': data.get('order_id', doc.id),
                     'user_id': user_id,
                     'user_name': user_name,
+                    'user_phone': user_phone or data.get('customer_phone', ''),
                     'amount': data.get('amount', 0),
                     'status': data.get('status', 'pending'),
                     'type': 'فاتورة تاجر' if data.get('is_merchant_invoice') else 'شحن رصيد',

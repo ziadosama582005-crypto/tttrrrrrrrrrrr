@@ -563,6 +563,7 @@
         document.getElementById('modalBody').innerHTML = `
             <div class="detail-row"><span class="detail-label">رقم الطلب:</span><span class="detail-value">${payment.order_id || ''}</span></div>
             <div class="detail-row"><span class="detail-label">المستخدم:</span><span class="detail-value">${payment.user_name || ''} (${payment.user_id || ''})</span></div>
+            <div class="detail-row"><span class="detail-label">رقم الجوال:</span><span class="detail-value">${payment.user_phone || '-'}</span></div>
             <div class="detail-row"><span class="detail-label">المبلغ:</span><span class="detail-value amount">${(payment.amount || 0).toLocaleString()} ر.س</span></div>
             <div class="detail-row"><span class="detail-label">النوع:</span><span class="detail-value">${payment.type || ''}</span></div>
             <div class="detail-row"><span class="detail-label">الحالة:</span><span class="detail-value"><span class="status ${payment.status || ''}">${getStatusText(payment.status)}</span></span></div>
