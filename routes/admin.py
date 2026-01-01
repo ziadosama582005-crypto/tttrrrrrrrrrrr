@@ -500,26 +500,22 @@ def api_dashboard_stats():
         }
         
         if db:
-            # المنتجات
+            # المنتجات - نستخدم نفس query المستخدمة في المتجر للحصول على نتائج متطابقة
             try:
-                all_products = list(db.collection('products').stream())
-                stats['total_products'] = len(all_products)
+                # المنتجات المتاحة: sold == False بالضبط (نفس query المتجر)
+                available_query = query_where(db.collection('products'), 'sold', '==', False)
+                available_products = list(available_query.stream())
+                stats['available_products'] = len(available_products)
                 
-                # نفس المنطق المستخدم في get_products
-                available_count = 0
-                sold_count = 0
-                for p in all_products:
-                    p_data = p.to_dict()
-                    is_sold = p_data.get('sold', False)
-                    logger.info(f"Dashboard - Product {p.id}: sold={is_sold}, type={type(is_sold)}")
-                    if is_sold:
-                        sold_count += 1
-                    else:
-                        available_count += 1
+                # المنتجات المباعة: sold == True
+                sold_query = query_where(db.collection('products'), 'sold', '==', True)
+                sold_products = list(sold_query.stream())
+                stats['sold_products'] = len(sold_products)
                 
-                stats['available_products'] = available_count
-                stats['sold_products'] = sold_count
-                logger.info(f"Dashboard stats: total={stats['total_products']}, available={available_count}, sold={sold_count}")
+                # إجمالي المنتجات = متاح + مباع
+                stats['total_products'] = stats['available_products'] + stats['sold_products']
+                
+                logger.info(f"Dashboard stats: available={stats['available_products']}, sold={stats['sold_products']}, total={stats['total_products']}")
             except Exception as e:
                 logger.error(f"Error getting products: {e}")
             
@@ -1019,26 +1015,22 @@ def api_get_products():
         sold = []
         
         if db:
-            products_ref = db.collection('products')
+            # استخدام نفس query المتجر للحصول على نتائج متطابقة
+            # المنتجات المتاحة: sold == False بالضبط
+            available_query = query_where(db.collection('products'), 'sold', '==', False)
+            for doc in available_query.stream():
+                data = doc.to_dict()
+                data['id'] = doc.id
+                available.append(data)
             
-            # جلب جميع المنتجات وفرزها
-            all_products = list(products_ref.stream())
-            logger.info(f"Found {len(all_products)} products")
+            # المنتجات المباعة: sold == True
+            sold_query = query_where(db.collection('products'), 'sold', '==', True)
+            for doc in sold_query.stream():
+                data = doc.to_dict()
+                data['id'] = doc.id
+                sold.append(data)
             
-            for doc in all_products:
-                try:
-                    data = doc.to_dict()
-                    data['id'] = doc.id
-                    # المنتج يعتبر متاح إذا لم يكن sold أو sold = False
-                    if data.get('sold', False):
-                        sold.append(data)
-                    else:
-                        available.append(data)
-                except Exception as doc_error:
-                    logger.error(f"Error processing product {doc.id}: {doc_error}")
-                    continue
-            
-            logger.info(f"Available: {len(available)}, Sold: {len(sold)}")
+            logger.info(f"Products API: Available={len(available)}, Sold={len(sold)}")
         
         return jsonify({
             'status': 'success',
