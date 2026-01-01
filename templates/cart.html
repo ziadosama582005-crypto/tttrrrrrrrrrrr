@@ -469,9 +469,21 @@
         const userBalance = userBalanceValue ? parseFloat(userBalanceValue) : 0;
         let cartData = null;
         let countdownInterval = null;
+        let isLoadingCart = false;  // منع الطلبات المتكررة
+        let lastLoadTime = 0;       // آخر وقت تحميل
         
-        // تحميل السلة
+        // تحميل السلة مع حماية من الطلبات المتكررة
         async function loadCart() {
+            // منع الطلبات المتكررة (مرة واحدة كل 5 ثواني كحد أدنى)
+            const now = Date.now();
+            if (isLoadingCart || (now - lastLoadTime) < 5000) {
+                console.log('⏳ تم تخطي الطلب - التحميل قيد التنفيذ أو تم التحميل مؤخراً');
+                return;
+            }
+            
+            isLoadingCart = true;
+            lastLoadTime = now;
+            
             try {
                 const response = await fetch('/api/cart/get?user_id=' + userId);
                 const data = await response.json();
@@ -484,12 +496,19 @@
                     renderCart();
                     startCountdown(data.cart.expires_at);
                 } else {
+                    // إيقاف العداد عند السلة الفارغة
+                    if (countdownInterval) {
+                        clearInterval(countdownInterval);
+                        countdownInterval = null;
+                    }
                     renderEmptyCart();
                 }
             } catch (error) {
                 console.error('Error loading cart:', error);
                 document.getElementById('loadingDiv').style.display = 'none';
                 document.getElementById('cartContent').innerHTML = '<div class="empty-cart"><div class="empty-cart-icon">❌</div><div class="empty-cart-text">حدث خطأ في تحميل السلة</div></div>';
+            } finally {
+                isLoadingCart = false;
             }
         }
         
@@ -682,6 +701,12 @@
         function startCountdown(expiresAt) {
             if (!expiresAt) return;
             
+            // إيقاف أي عداد سابق
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            
             document.getElementById('timerBar').style.display = 'block';
             
             function updateTimer() {
@@ -691,8 +716,12 @@
                 
                 if (diff <= 0) {
                     document.getElementById('timerCountdown').textContent = 'انتهت!';
-                    clearInterval(countdownInterval);
-                    loadCart();
+                    if (countdownInterval) {
+                        clearInterval(countdownInterval);
+                        countdownInterval = null;
+                    }
+                    // تحميل السلة مرة واحدة فقط عند الانتهاء
+                    setTimeout(() => loadCart(), 1000);
                     return;
                 }
                 
