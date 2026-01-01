@@ -3,11 +3,13 @@ Profile Routes - مسارات صفحة الحساب الشخصي
 """
 from flask import Blueprint, render_template, session, redirect, url_for, jsonify, request
 from extensions import db, logger, bot
+from google.cloud import firestore
 import json
 import random
 import time
 import base64
 import io
+import os
 from datetime import datetime
 
 # استيراد أدوات التشفير
@@ -117,6 +119,32 @@ def profile():
         # التحقق من وجود الصورة
         profile_photo = user_data.get('profile_photo', '')
         
+        # التحقق من إمكانية السحب العادي (3 أيام من آخر شحن)
+        can_withdraw_normal = False
+        hours_until_withdraw = 72
+        
+        try:
+            last_charge = user_data.get('last_charge_at')
+            if last_charge:
+                import datetime
+                now = datetime.datetime.now(datetime.timezone.utc)
+                if hasattr(last_charge, 'timestamp'):
+                    last_charge_time = datetime.datetime.fromtimestamp(last_charge.timestamp(), datetime.timezone.utc)
+                else:
+                    last_charge_time = last_charge
+                
+                hours_passed = (now - last_charge_time).total_seconds() / 3600
+                if hours_passed >= 72:
+                    can_withdraw_normal = True
+                else:
+                    hours_until_withdraw = int(72 - hours_passed)
+            else:
+                # لا يوجد شحن سابق، يمكن السحب
+                can_withdraw_normal = True
+        except Exception as e:
+            logger.error(f"خطأ في حساب وقت السحب: {e}")
+            can_withdraw_normal = True  # السماح في حالة الخطأ
+        
         return render_template('profile.html',
             user_name=user_data.get('name', 'المستخدم'),
             user_id=user_id,
@@ -126,7 +154,10 @@ def profile():
             # بيانات الأمان
             email=user_data.get('email', ''),
             email_verified=user_data.get('email_verified', False),
-            totp_enabled=user_data.get('totp_enabled', False)
+            totp_enabled=user_data.get('totp_enabled', False),
+            # بيانات السحب
+            can_withdraw_normal=can_withdraw_normal,
+            hours_until_withdraw=hours_until_withdraw
         )
     
     except Exception as e:
@@ -457,3 +488,188 @@ def disable_2fa():
     except Exception as e:
         logger.error(f"خطأ في disable_2fa: {e}")
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
+
+
+# ==================== طلبات السحب ====================
+
+@profile_bp.route('/api/withdraw', methods=['POST'])
+def submit_withdraw():
+    """إرسال طلب سحب"""
+    try:
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'message': 'يجب تسجيل الدخول أولاً'}), 401
+        
+        user_id = session['user_id']
+        data = request.get_json()
+        
+        withdraw_type = data.get('type', '')  # normal أو instant
+        method = data.get('method', '')  # wallet أو bank
+        amount = data.get('amount', 0)
+        full_name = data.get('full_name', '').strip()
+        
+        # التحقق من البيانات
+        if withdraw_type not in ['normal', 'instant']:
+            return jsonify({'success': False, 'message': 'نوع السحب غير صحيح'}), 400
+        
+        if method not in ['wallet', 'bank']:
+            return jsonify({'success': False, 'message': 'طريقة السحب غير صحيحة'}), 400
+        
+        try:
+            amount = float(amount)
+            if amount <= 0:
+                return jsonify({'success': False, 'message': 'المبلغ يجب أن يكون أكبر من صفر'}), 400
+        except:
+            return jsonify({'success': False, 'message': 'المبلغ غير صحيح'}), 400
+        
+        # التحقق من الاسم (3 أجزاء على الأقل)
+        name_parts = full_name.split()
+        if len(name_parts) < 3:
+            return jsonify({'success': False, 'message': 'يجب إدخال الاسم الثلاثي كاملاً'}), 400
+        
+        # الحصول على بيانات المستخدم
+        user_ref = db.collection('users').document(user_id)
+        user_doc = user_ref.get()
+        
+        if not user_doc.exists:
+            return jsonify({'success': False, 'message': 'المستخدم غير موجود'}), 404
+        
+        user_data = user_doc.to_dict()
+        balance = user_data.get('balance', 0)
+        
+        # التحقق من الرصيد
+        if amount > balance:
+            return jsonify({'success': False, 'message': 'الرصيد غير كافٍ'}), 400
+        
+        # حساب الرسوم
+        if withdraw_type == 'normal':
+            fee_percent = 6.5
+            # التحقق من مرور 72 ساعة
+            import datetime
+            last_charge = user_data.get('last_charge_at')
+            if last_charge:
+                now = datetime.datetime.now(datetime.timezone.utc)
+                if hasattr(last_charge, 'timestamp'):
+                    last_charge_time = datetime.datetime.fromtimestamp(last_charge.timestamp(), datetime.timezone.utc)
+                else:
+                    last_charge_time = last_charge
+                
+                hours_passed = (now - last_charge_time).total_seconds() / 3600
+                if hours_passed < 72:
+                    hours_left = int(72 - hours_passed)
+                    return jsonify({
+                        'success': False, 
+                        'message': f'يجب انتظار {hours_left} ساعة للسحب العادي. استخدم السحب الفوري.'
+                    }), 400
+        else:
+            fee_percent = 8.0
+        
+        fee_amount = amount * (fee_percent / 100)
+        net_amount = amount - fee_amount
+        
+        # بناء بيانات السحب
+        withdraw_data = {
+            'user_id': user_id,
+            'user_name': user_data.get('name', 'غير معروف'),
+            'amount': amount,
+            'fee_percent': fee_percent,
+            'fee_amount': fee_amount,
+            'net_amount': net_amount,
+            'withdraw_type': withdraw_type,
+            'method': method,
+            'full_name': full_name,
+            'status': 'pending',  # pending, approved, rejected
+            'created_at': firestore.SERVER_TIMESTAMP
+        }
+        
+        # إضافة بيانات الطريقة
+        if method == 'wallet':
+            wallet_type = data.get('wallet_type', '').strip()
+            wallet_number = data.get('wallet_number', '').strip()
+            
+            if not wallet_type or not wallet_number:
+                return jsonify({'success': False, 'message': 'يجب إدخال نوع المحفظة ورقمها'}), 400
+            
+            withdraw_data['wallet_type'] = wallet_type
+            withdraw_data['wallet_number'] = wallet_number
+            method_display = f"محفظة {wallet_type}"
+        else:
+            bank_name = data.get('bank_name', '').strip()
+            iban = data.get('iban', '').strip().upper()
+            
+            if not bank_name or not iban:
+                return jsonify({'success': False, 'message': 'يجب إدخال اسم البنك ورقم الآيبان'}), 400
+            
+            # التحقق من صيغة IBAN
+            if not iban.startswith('SA') or len(iban) != 24:
+                return jsonify({'success': False, 'message': 'رقم الآيبان غير صحيح. يجب أن يبدأ بـ SA ويكون 24 حرف'}), 400
+            
+            withdraw_data['bank_name'] = bank_name
+            withdraw_data['iban'] = iban
+            method_display = f"حوالة بنكية - {bank_name}"
+        
+        # حفظ طلب السحب
+        withdraw_ref = db.collection('withdrawal_requests').add(withdraw_data)
+        
+        # خصم المبلغ من الرصيد
+        user_ref.update({
+            'balance': firestore.Increment(-amount)
+        })
+        
+        # إرسال إشعار للمستخدم
+        try:
+            type_text = "عادي (6.5%)" if withdraw_type == 'normal' else "فوري (8%)"
+            user_message = f"""
+💸 تم استلام طلب السحب!
+
+📌 نوع السحب: {type_text}
+💰 المبلغ: {amount:.2f} ريال
+💵 الرسوم: {fee_amount:.2f} ريال
+✅ المبلغ الصافي: {net_amount:.2f} ريال
+
+📍 طريقة التحويل: {method_display}
+👤 الاسم: {full_name}
+
+⏰ وقت التحويل: 12-24 ساعة
+📞 للاستفسار راسلنا
+"""
+            bot.send_message(int(user_id), user_message, parse_mode='HTML')
+        except Exception as e:
+            logger.error(f"خطأ في إرسال إشعار السحب للمستخدم: {e}")
+        
+        # إرسال إشعار للأدمن
+        try:
+            admin_id = os.environ.get('ADMIN_TELEGRAM_ID', '6696829459')
+            
+            if method == 'wallet':
+                details = f"محفظة {withdraw_data['wallet_type']}: {withdraw_data['wallet_number']}"
+            else:
+                details = f"بنك {withdraw_data['bank_name']}\nIBAN: {withdraw_data['iban']}"
+            
+            admin_message = f"""
+🔔 طلب سحب جديد!
+
+👤 المستخدم: {user_data.get('name', 'غير معروف')}
+🆔 الآيدي: {user_id}
+📌 النوع: {type_text}
+
+💰 المبلغ: {amount:.2f} ريال
+💵 الرسوم: {fee_amount:.2f} ريال
+✅ الصافي: {net_amount:.2f} ريال
+
+📍 التحويل إلى:
+👤 {full_name}
+{details}
+"""
+            bot.send_message(int(admin_id), admin_message, parse_mode='HTML')
+        except Exception as e:
+            logger.error(f"خطأ في إرسال إشعار للأدمن: {e}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'تم إرسال طلب السحب بنجاح! سيتم التحويل خلال 12-24 ساعة.',
+            'net_amount': net_amount
+        })
+    
+    except Exception as e:
+        logger.error(f"خطأ في submit_withdraw: {e}")
+        return jsonify({'success': False, 'message': 'حدث خطأ في إرسال الطلب'}), 500

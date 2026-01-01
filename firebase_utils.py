@@ -71,7 +71,8 @@ def add_balance(user_id, amount, users_wallets=None, description='شحن رصي�
             db.collection('users').document(uid).set({
                 'balance': new_balance,
                 'telegram_id': uid,
-                'updated_at': firestore.SERVER_TIMESTAMP
+                'updated_at': firestore.SERVER_TIMESTAMP,
+                'last_charge_at': firestore.SERVER_TIMESTAMP  # تحديث وقت آخر شحن للسحب
             }, merge=True)
             print(f"✅ تم حفظ رصيد المستخدم {uid}: {new_balance} ريال في Firestore")
             

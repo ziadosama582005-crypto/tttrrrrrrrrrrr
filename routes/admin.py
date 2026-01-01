@@ -114,13 +114,20 @@ def add_balance(user_id, amount):
     """إضافة رصيد للمستخدم"""
     try:
         if db:
+            from google.cloud import firestore as fs
             user_ref = db.collection('users').document(str(user_id))
             user_doc = user_ref.get()
             if user_doc.exists:
                 current_balance = user_doc.to_dict().get('balance', 0)
-                user_ref.update({'balance': current_balance + amount})
+                user_ref.update({
+                    'balance': current_balance + amount,
+                    'last_charge_at': fs.SERVER_TIMESTAMP  # تحديث وقت آخر شحن للسحب
+                })
             else:
-                user_ref.set({'balance': amount})
+                user_ref.set({
+                    'balance': amount,
+                    'last_charge_at': fs.SERVER_TIMESTAMP
+                })
             return True
     except Exception as e:
         logger.error(f"Error adding balance: {e}")
