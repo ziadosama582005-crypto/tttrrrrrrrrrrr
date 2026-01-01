@@ -1499,14 +1499,7 @@
                     </div>
                     <div class="withdraw-form-group">
                         <label>نوع المحفظة</label>
-                        <select id="walletType">
-                            <option value="">اختر نوع المحفظة</option>
-                            <option value="stc_pay">STC Pay</option>
-                            <option value="urpay">URPay</option>
-                            <option value="alinma_pay">Alinma Pay</option>
-                            <option value="apple_pay">Apple Pay</option>
-                            <option value="other">أخرى</option>
-                        </select>
+                        <input type="text" id="walletType" placeholder="مثال: STC Pay, URPay, Alinma Pay...">
                     </div>
                     <div class="withdraw-form-group">
                         <label>رقم المحفظة</label>
@@ -1525,19 +1518,7 @@
                     </div>
                     <div class="withdraw-form-group">
                         <label>اسم البنك</label>
-                        <select id="bankName">
-                            <option value="">اختر البنك</option>
-                            <option value="الراجحي">مصرف الراجحي</option>
-                            <option value="الأهلي">البنك الأهلي السعودي</option>
-                            <option value="الإنماء">مصرف الإنماء</option>
-                            <option value="الرياض">بنك الرياض</option>
-                            <option value="البلاد">بنك البلاد</option>
-                            <option value="سامبا">بنك سامبا</option>
-                            <option value="الجزيرة">بنك الجزيرة</option>
-                            <option value="العربي">البنك العربي الوطني</option>
-                            <option value="الفرنسي">البنك السعودي الفرنسي</option>
-                            <option value="other">بنك آخر</option>
-                        </select>
+                        <input type="text" id="bankName" placeholder="مثال: الراجحي، الأهلي، الإنماء...">
                     </div>
                     <div class="withdraw-form-group">
                         <label>رقم الآيبان (IBAN)</label>
@@ -1635,7 +1616,7 @@
                 }
             } else {
                 data.full_name = document.getElementById('bankFullName').value.trim();
-                data.bank_name = document.getElementById('bankName').value;
+                data.bank_name = document.getElementById('bankName').value.trim();
                 data.iban = document.getElementById('bankIban').value.trim().toUpperCase();
                 
                 if (!data.full_name || !data.bank_name || !data.iban) {
