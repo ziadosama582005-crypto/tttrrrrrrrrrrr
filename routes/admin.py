@@ -434,6 +434,96 @@ def admin_invoices():
         return redirect('/dashboard')
     return render_template('admin_invoices.html')
 
+# ===================== API إحصائيات لوحة التحكم =====================
+
+@admin_bp.route('/api/admin/dashboard_stats')
+def api_dashboard_stats():
+    """جلب إحصائيات لوحة التحكم"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    
+    try:
+        stats = {
+            'products': 0,
+            'sold_products': 0,
+            'users': 0,
+            'orders': 0,
+            'categories': 0,
+            'pending_payments': 0,
+            'completed_payments': 0,
+            'total_revenue': 0,
+            'total_balance': 0,
+            'active_carts': 0
+        }
+        
+        if db:
+            # عدد المنتجات المتاحة
+            try:
+                available_products = list(db.collection('products').where('sold', '==', False).stream())
+                stats['products'] = len(available_products)
+            except:
+                pass
+            
+            # عدد المنتجات المباعة
+            try:
+                sold_products = list(db.collection('products').where('sold', '==', True).stream())
+                stats['sold_products'] = len(sold_products)
+            except:
+                pass
+            
+            # عدد المستخدمين
+            try:
+                users = list(db.collection('users').stream())
+                stats['users'] = len(users)
+                # حساب إجمالي الأرصدة
+                total_balance = sum([u.to_dict().get('balance', 0) for u in users])
+                stats['total_balance'] = total_balance
+            except:
+                pass
+            
+            # عدد الطلبات
+            try:
+                orders = list(db.collection('orders').stream())
+                stats['orders'] = len(orders)
+                # حساب إجمالي الإيرادات
+                total_revenue = sum([o.to_dict().get('price', 0) for o in orders])
+                stats['total_revenue'] = total_revenue
+            except:
+                pass
+            
+            # عدد الأقسام
+            try:
+                categories = list(db.collection('categories').stream())
+                stats['categories'] = len(categories)
+            except:
+                pass
+            
+            # طلبات الدفع المعلقة والمكتملة
+            try:
+                pending = list(db.collection('pending_payments').where('status', '==', 'pending').stream())
+                stats['pending_payments'] = len(pending)
+                
+                completed = list(db.collection('pending_payments').where('status', '==', 'completed').stream())
+                stats['completed_payments'] = len(completed)
+            except:
+                pass
+            
+            # السلات النشطة
+            try:
+                carts = list(db.collection('carts').stream())
+                stats['active_carts'] = len(carts)
+            except:
+                pass
+        
+        return jsonify({
+            'status': 'success',
+            'stats': stats
+        })
+        
+    except Exception as e:
+        print(f"❌ خطأ في جلب إحصائيات لوحة التحكم: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 # ===================== API الفواتير =====================
 
 @admin_bp.route('/api/admin/get_invoices')
