@@ -155,6 +155,13 @@ def wallet_pay():
         
         # تسجيل الحدث
         log_security_event('WALLET_CHARGE_REQUEST', user_id, f'المبلغ: {amount_int}, الطلب: {order_id}')
+        # تنسيق رقم الجوال
+        formatted_phone = phone.replace('+', '').replace(' ', '')
+        if formatted_phone.startswith('0'):
+            formatted_phone = '966' + formatted_phone[1:]
+        elif not formatted_phone.startswith('966'):
+            formatted_phone = '966' + formatted_phone
+        
         payload = {
             'action': 'SALE',
             'edfa_merchant_id': EDFAPAY_MERCHANT_ID,
@@ -170,7 +177,7 @@ def wallet_pay():
             'payer_city': 'Riyadh',
             'payer_zip': '12221',
             'payer_email': f'user{user_id}@telegram.com',
-            'payer_phone': '966500000000',
+            'payer_phone': formatted_phone,
             'payer_ip': '176.44.76.222',
             'term_url_3ds': f"{SITE_URL}/payment/success?order_id={order_id}",
             'auth': 'N',
@@ -201,6 +208,7 @@ def wallet_pay():
                 'amount': amount,
                 'order_id': order_id,
                 'phone': phone,
+                'payer_phone': formatted_phone,
                 'status': 'pending',
                 'created_at': time.time()
             }
@@ -212,6 +220,7 @@ def wallet_pay():
                     'amount': amount,
                     'order_id': order_id,
                     'phone': phone,
+                    'payer_phone': formatted_phone,
                     'status': 'pending',
                     'created_at': firestore.SERVER_TIMESTAMP
                 })
