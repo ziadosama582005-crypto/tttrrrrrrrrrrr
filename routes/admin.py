@@ -1010,14 +1010,22 @@ def api_get_products():
             
             # جلب جميع المنتجات وفرزها
             all_products = list(products_ref.stream())
+            logger.info(f"Found {len(all_products)} products")
+            
             for doc in all_products:
-                data = doc.to_dict()
-                data['id'] = doc.id
-                # المنتج يعتبر متاح إذا لم يكن sold أو sold = False
-                if data.get('sold', False):
-                    sold.append(data)
-                else:
-                    available.append(data)
+                try:
+                    data = doc.to_dict()
+                    data['id'] = doc.id
+                    # المنتج يعتبر متاح إذا لم يكن sold أو sold = False
+                    if data.get('sold', False):
+                        sold.append(data)
+                    else:
+                        available.append(data)
+                except Exception as doc_error:
+                    logger.error(f"Error processing product {doc.id}: {doc_error}")
+                    continue
+            
+            logger.info(f"Available: {len(available)}, Sold: {len(sold)}")
         
         return jsonify({
             'status': 'success',
@@ -1027,6 +1035,8 @@ def api_get_products():
         
     except Exception as e:
         logger.error(f"Error getting products: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
         return jsonify({'status': 'error', 'message': 'حدث خطأ، حاول لاحقاً'})
 
 @admin_bp.route('/api/admin/add_product_new', methods=['POST'])
