@@ -119,7 +119,7 @@ def profile():
         # التحقق من وجود الصورة
         profile_photo = user_data.get('profile_photo', '')
         
-        # حساب المبلغ المتاح للسحب العادي (المبالغ التي مرّ عليها 72 ساعة)
+        # حساب المبلغ المتاح للسحب العادي (المبالغ التي مرّ عليها 0.083 ساعة)
         normal_withdraw_amount = 0
         instant_withdraw_amount = user_data.get('balance', 0)
         hours_until_next_withdraw = 0
@@ -133,7 +133,7 @@ def profile():
             
             total_charges = 0
             available_charges = 0
-            next_available_hours = 72
+            next_available_hours = 0.083
             
             for charge_doc in charge_history:
                 charge = charge_doc.to_dict()
@@ -146,11 +146,11 @@ def profile():
                     charge_datetime = datetime.datetime.fromtimestamp(charge_time, datetime.timezone.utc)
                     hours_passed = (now - charge_datetime).total_seconds() / 3600
                     
-                    if hours_passed >= 72:
+                    if hours_passed >= 0.083:
                         available_charges += charge_amount
                     else:
                         # حساب أقرب وقت لتحرير مبلغ
-                        hours_left = 72 - hours_passed
+                        hours_left = 0.083 - hours_passed
                         if hours_left < next_available_hours:
                             next_available_hours = hours_left
             
@@ -166,7 +166,7 @@ def profile():
                 # لا توجد شحنات مسجلة = لا يمكن السحب العادي
                 normal_withdraw_amount = 0
             
-            hours_until_next_withdraw = int(next_available_hours) if next_available_hours < 72 else 0
+            hours_until_next_withdraw = int(next_available_hours) if next_available_hours < 0.083 else 0
             
         except Exception as e:
             logger.error(f"خطأ في حساب مبلغ السحب: {e}")
@@ -577,7 +577,7 @@ def submit_withdraw():
         # حساب الرسوم
         if withdraw_type == 'normal':
             fee_percent = 6.5
-            # التحقق من مرور 72 ساعة
+            # التحقق من مرور 0.083 ساعة
             import datetime
             last_charge = user_data.get('last_charge_at')
             if last_charge:
@@ -588,8 +588,8 @@ def submit_withdraw():
                     last_charge_time = last_charge
                 
                 hours_passed = (now - last_charge_time).total_seconds() / 3600
-                if hours_passed < 72:
-                    hours_left = int(72 - hours_passed)
+                if hours_passed < 0.083:
+                    hours_left = int(0.083 - hours_passed)
                     return jsonify({
                         'success': False, 
                         'message': f'يجب انتظار {hours_left} ساعة للسحب العادي. استخدم السحب الفوري.'
