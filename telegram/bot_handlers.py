@@ -6,6 +6,8 @@ import json
 import time
 import random
 import requests
+import hashlib
+import uuid
 from telebot import types
 from extensions import (
     bot, db, user_states, verification_codes,
@@ -24,14 +26,25 @@ from firebase_utils import (
     get_balance, add_balance, deduct_balance,
     get_categories, get_products, get_product_by_id,
     get_charge_key, use_charge_key, create_charge_key,
-    save_pending_payment, get_pending_payment
+    save_pending_payment, get_pending_payment,
+    get_all_products_for_store, get_all_charge_keys
 )
 
 from utils import generate_code
+import telebot
+
+# دالة توليد كود التحقق
+def generate_verification_code():
+    return str(random.randint(100000, 999999))
+
+# ثوابت الدفع
+EDFAPAY_API_URL = 'https://api.edfapay.com/payment/initiate'
 
 # متغيرات للتخزين المؤقت
 merchant_invoices = {}
 pending_payments = {}
+active_orders = {}
+transactions = {}
 
 # === دالة مساعدة لتسجيل الرسائل ===
 def log_message(message, handler_name):
