@@ -45,7 +45,7 @@ def profile():
     try:
         # التحقق من تسجيل الدخول
         if 'user_id' not in session or not session['user_id']:
-            return redirect(url_for('auth.login_page'))
+            return redirect(url_for('auth.login'))
         
         user_id = session['user_id']
         
@@ -54,7 +54,7 @@ def profile():
         user_doc = user_ref.get()
         
         if not user_doc.exists:
-            return redirect(url_for('auth.login_page'))
+            return redirect(url_for('auth.login'))
         
         user_data = user_doc.to_dict()
         
@@ -196,7 +196,7 @@ def profile():
     
     except Exception as e:
         logger.error(f"خطأ في صفحة الحساب: {e}")
-        return redirect(url_for('auth.login_page'))
+        return redirect(url_for('auth.login'))
 
 
 @profile_bp.route('/api/profile')
