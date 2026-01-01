@@ -130,23 +130,27 @@
         /* أزرار السحب */
         .withdrawal-buttons {
             display: flex;
+            flex-direction: row;
             gap: 10px;
             margin-top: 15px;
-            flex-wrap: wrap;
+            justify-content: center;
         }
         
         .withdraw-btn {
-            padding: 10px 20px;
+            padding: 10px 15px;
             border-radius: 10px;
             border: none;
             cursor: pointer;
             font-family: 'Tajawal', sans-serif;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             transition: all 0.3s;
+            flex: 1;
+            max-width: 160px;
+            justify-content: center;
         }
         
         .withdraw-btn.normal {
@@ -270,9 +274,22 @@
         
         .withdraw-summary-row:last-child {
             border-bottom: none;
+        }
+        
+        .withdraw-summary-row.highlight {
             font-weight: bold;
             font-size: 18px;
             color: #00b894;
+            padding-top: 12px;
+            margin-top: 5px;
+            border-top: 2px solid rgba(0, 184, 148, 0.3);
+        }
+        
+        .withdraw-amounts {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
         
         .withdraw-method-select {
@@ -948,27 +965,33 @@
                     <div class="withdrawal-buttons">
                         <button class="withdraw-btn normal" 
                                 onclick="openWithdrawModal('normal')"
-                                {% if balance <= 0 or not can_withdraw_normal %}disabled{% endif %}
-                                title="{% if balance <= 0 %}لا يوجد رصيد{% elif not can_withdraw_normal %}يجب انتظار 3 أيام من آخر شحن{% endif %}">
-                            🔄 سحب عادي
+                                {% if normal_withdraw_amount <= 0 %}disabled{% endif %}
+                                title="{% if normal_withdraw_amount <= 0 %}لا يوجد رصيد متاح للسحب العادي{% endif %}">
+                            🔄 عادي
                             <span class="fee-badge">6.5%</span>
                         </button>
                         <button class="withdraw-btn instant" 
                                 onclick="openWithdrawModal('instant')"
                                 {% if balance <= 0 %}disabled{% endif %}
                                 title="{% if balance <= 0 %}لا يوجد رصيد{% endif %}">
-                            ⚡ سحب فوري
+                            ⚡ فوري
                             <span class="fee-badge">8%</span>
                         </button>
                     </div>
                     
-                    {% if balance > 0 and not can_withdraw_normal %}
-                    <div class="withdraw-info">
-                        ⏳ السحب العادي متاح بعد: {{ hours_until_withdraw }} ساعة
-                    </div>
-                    {% elif balance > 0 and can_withdraw_normal %}
-                    <div class="withdraw-info success">
-                        ✅ يمكنك السحب العادي الآن (رسوم أقل 6.5%)
+                    {% if balance > 0 %}
+                    <div class="withdraw-amounts">
+                        {% if normal_withdraw_amount > 0 %}
+                        <div class="withdraw-info success">
+                            ✅ متاح للسحب العادي: {{ "%.2f"|format(normal_withdraw_amount) }} ر.س
+                        </div>
+                        {% endif %}
+                        {% if normal_withdraw_amount < balance %}
+                        <div class="withdraw-info">
+                            ⏳ قيد الانتظار: {{ "%.2f"|format(balance - normal_withdraw_amount) }} ر.س
+                            {% if hours_until_withdraw > 0 %}({{ hours_until_withdraw }} ساعة){% endif %}
+                        </div>
+                        {% endif %}
                     </div>
                     {% endif %}
                 </div>
@@ -1436,8 +1459,8 @@
                 <!-- ملخص السحب -->
                 <div class="withdraw-summary">
                     <div class="withdraw-summary-row">
-                        <span>الرصيد المتاح:</span>
-                        <span id="withdrawBalance">{{ "%.2f"|format(balance) }} ر.س</span>
+                        <span>المبلغ للسحب:</span>
+                        <span id="withdrawBalance">0 ر.س</span>
                     </div>
                     <div class="withdraw-summary-row">
                         <span>نوع السحب:</span>
@@ -1447,8 +1470,8 @@
                         <span>الرسوم (<span id="feePercent">0</span>%):</span>
                         <span id="withdrawFee">0 ر.س</span>
                     </div>
-                    <div class="withdraw-summary-row">
-                        <span>المبلغ بعد الخصم:</span>
+                    <div class="withdraw-summary-row highlight">
+                        <span>المبلغ الصافي:</span>
                         <span id="withdrawNet">0 ر.س</span>
                     </div>
                 </div>
@@ -1536,7 +1559,10 @@
         // متغيرات السحب
         let currentWithdrawType = '';
         let currentMethod = '';
+        let currentAmount = 0;
         const userBalance = parseFloat("{{ balance }}") || 0;
+        const normalAmount = parseFloat("{{ normal_withdraw_amount }}") || 0;
+        const instantAmount = parseFloat("{{ instant_withdraw_amount }}") || 0;
         
         function openWithdrawModal(type) {
             currentWithdrawType = type;
@@ -1547,12 +1573,15 @@
             const withdrawFee = document.getElementById('withdrawFee');
             const withdrawNet = document.getElementById('withdrawNet');
             
+            // المبلغ حسب نوع السحب
+            currentAmount = type === 'normal' ? normalAmount : instantAmount;
             const fee = type === 'normal' ? 6.5 : 8;
-            const feeAmount = userBalance * (fee / 100);
-            const netAmount = userBalance - feeAmount;
+            const feeAmount = currentAmount * (fee / 100);
+            const netAmount = currentAmount - feeAmount;
             
             title.textContent = type === 'normal' ? '🔄 سحب عادي' : '⚡ سحب فوري';
             typeSpan.textContent = type === 'normal' ? 'عادي (6.5%)' : 'فوري (8%)';
+            document.getElementById('withdrawBalance').textContent = currentAmount.toFixed(2) + ' ر.س';
             feePercent.textContent = fee;
             withdrawFee.textContent = feeAmount.toFixed(2) + ' ر.س';
             withdrawNet.textContent = netAmount.toFixed(2) + ' ر.س';
@@ -1590,7 +1619,7 @@
             let data = {
                 type: currentWithdrawType,
                 method: currentMethod,
-                amount: userBalance  // سحب كامل الرصيد
+                amount: currentAmount  // المبلغ حسب نوع السحب
             };
             
             if (currentMethod === 'wallet') {

@@ -119,31 +119,63 @@ def profile():
         # التحقق من وجود الصورة
         profile_photo = user_data.get('profile_photo', '')
         
-        # التحقق من إمكانية السحب العادي (3 أيام من آخر شحن)
-        can_withdraw_normal = False
-        hours_until_withdraw = 72
+        # حساب المبلغ المتاح للسحب العادي (المبالغ التي مرّ عليها 72 ساعة)
+        normal_withdraw_amount = 0
+        instant_withdraw_amount = user_data.get('balance', 0)
+        hours_until_next_withdraw = 0
         
         try:
-            last_charge = user_data.get('last_charge_at')
-            if last_charge:
-                import datetime
-                now = datetime.datetime.now(datetime.timezone.utc)
-                if hasattr(last_charge, 'timestamp'):
-                    last_charge_time = datetime.datetime.fromtimestamp(last_charge.timestamp(), datetime.timezone.utc)
-                else:
-                    last_charge_time = last_charge
+            import datetime
+            now = datetime.datetime.now(datetime.timezone.utc)
+            
+            # جلب سجل الشحنات للمستخدم
+            charge_history = db.collection('charge_history').where('user_id', '==', user_id).get()
+            
+            total_charges = 0
+            available_charges = 0
+            next_available_hours = 72
+            
+            for charge_doc in charge_history:
+                charge = charge_doc.to_dict()
+                charge_amount = float(charge.get('amount', 0))
+                total_charges += charge_amount
                 
-                hours_passed = (now - last_charge_time).total_seconds() / 3600
-                if hours_passed >= 72:
-                    can_withdraw_normal = True
-                else:
-                    hours_until_withdraw = int(72 - hours_passed)
+                # تحويل timestamp
+                charge_time = charge.get('timestamp', 0)
+                if charge_time:
+                    charge_datetime = datetime.datetime.fromtimestamp(charge_time, datetime.timezone.utc)
+                    hours_passed = (now - charge_datetime).total_seconds() / 3600
+                    
+                    if hours_passed >= 72:
+                        available_charges += charge_amount
+                    else:
+                        # حساب أقرب وقت لتحرير مبلغ
+                        hours_left = 72 - hours_passed
+                        if hours_left < next_available_hours:
+                            next_available_hours = hours_left
+            
+            # المبلغ المتاح للسحب العادي = الرصيد الحالي مع مراعاة نسبة الشحنات المتاحة
+            # لو إجمالي الشحنات أكبر من الرصيد (بسبب مشتريات)، نحسب النسبة
+            current_balance = user_data.get('balance', 0)
+            
+            if total_charges > 0:
+                # نسبة المبالغ المتاحة من إجمالي الشحنات
+                available_ratio = available_charges / total_charges
+                normal_withdraw_amount = min(current_balance * available_ratio, current_balance)
             else:
-                # لا يوجد شحن سابق، يمكن السحب
-                can_withdraw_normal = True
+                # لا توجد شحنات، كل الرصيد متاح
+                normal_withdraw_amount = current_balance
+            
+            hours_until_next_withdraw = int(next_available_hours) if next_available_hours < 72 else 0
+            
         except Exception as e:
-            logger.error(f"خطأ في حساب وقت السحب: {e}")
-            can_withdraw_normal = True  # السماح في حالة الخطأ
+            logger.error(f"خطأ في حساب مبلغ السحب: {e}")
+            # في حالة الخطأ، السماح بسحب كامل الرصيد
+            normal_withdraw_amount = user_data.get('balance', 0)
+        
+        # تقريب المبالغ
+        normal_withdraw_amount = round(normal_withdraw_amount, 2)
+        can_withdraw_normal = normal_withdraw_amount > 0
         
         return render_template('profile.html',
             user_name=user_data.get('name', 'المستخدم'),
@@ -157,7 +189,9 @@ def profile():
             totp_enabled=user_data.get('totp_enabled', False),
             # بيانات السحب
             can_withdraw_normal=can_withdraw_normal,
-            hours_until_withdraw=hours_until_withdraw
+            normal_withdraw_amount=normal_withdraw_amount,
+            instant_withdraw_amount=instant_withdraw_amount,
+            hours_until_withdraw=hours_until_next_withdraw
         )
     
     except Exception as e:
