@@ -163,8 +163,8 @@ def profile():
                 available_ratio = available_charges / total_charges
                 normal_withdraw_amount = min(current_balance * available_ratio, current_balance)
             else:
-                # لا توجد شحنات، كل الرصيد متاح
-                normal_withdraw_amount = current_balance
+                # لا توجد شحنات مسجلة = لا يمكن السحب العادي
+                normal_withdraw_amount = 0
             
             hours_until_next_withdraw = int(next_available_hours) if next_available_hours < 72 else 0
             

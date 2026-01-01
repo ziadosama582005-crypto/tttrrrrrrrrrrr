@@ -1453,6 +1453,21 @@ _محاولة اختراق واضحة!_
                 add_balance(user_id, pay_amount)
                 print(f"✅ تم إضافة {pay_amount} ريال للمستخدم {user_id}")
                 
+                # ✅ تسجيل في سجل الشحنات للسحب
+                try:
+                    db.collection('charge_history').add({
+                        'user_id': user_id,
+                        'amount': pay_amount,
+                        'method': 'edfapay',
+                        'order_id': order_id,
+                        'timestamp': time.time(),
+                        'date': datetime.now().strftime('%Y-%m-%d %H:%M'),
+                        'type': 'payment'
+                    })
+                    print(f"✅ تم تسجيل الشحنة في charge_history")
+                except Exception as e:
+                    print(f"⚠️ خطأ في تسجيل charge_history: {e}")
+                
                 # تحديث في الذاكرة
                 if order_id in pending_payments:
                     pending_payments[order_id]['status'] = 'completed'
@@ -1727,6 +1742,20 @@ def adfaly_webhook():
                 
                 # إضافة الرصيد
                 add_balance(user_id, pay_amount)
+                
+                # تسجيل في سجل الشحنات للسحب
+                try:
+                    db.collection('charge_history').add({
+                        'user_id': str(user_id),
+                        'amount': pay_amount,
+                        'method': 'edfapay',
+                        'order_id': invoice_id,
+                        'timestamp': time.time(),
+                        'date': datetime.now().strftime('%Y-%m-%d %H:%M'),
+                        'type': 'payment'
+                    })
+                except Exception as e:
+                    print(f"⚠️ خطأ في تسجيل charge_history: {e}")
                 
                 # تحديث حالة الطلب
                 if invoice_id in pending_payments:

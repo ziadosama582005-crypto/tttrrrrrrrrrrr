@@ -469,6 +469,23 @@ def add_funds(message):
         target_id = parts[1]
         amount = float(parts[2])
         add_balance(target_id, amount)
+        
+        # تسجيل في سجل الشحنات
+        try:
+            import time
+            from datetime import datetime
+            db.collection('charge_history').add({
+                'user_id': str(target_id),
+                'amount': amount,
+                'method': 'admin',
+                'order_id': '',
+                'timestamp': time.time(),
+                'date': datetime.now().strftime('%Y-%m-%d %H:%M'),
+                'type': 'admin_charge'
+            })
+        except:
+            pass
+        
         bot.reply_to(message, f"✅ تم إضافة {amount} ريال للمستخدم {target_id}")
         bot.send_message(target_id, f"🎉 تم شحن رصيدك بمبلغ {amount} ريال!")
     except:
