@@ -29,6 +29,10 @@ from firebase_utils import (
 
 from utils import generate_code
 
+# متغيرات للتخزين المؤقت
+merchant_invoices = {}
+pending_payments = {}
+
 # === دالة مساعدة لتسجيل الرسائل ===
 def log_message(message, handler_name):
     print("="*50)
