@@ -133,7 +133,7 @@ def profile():
             
             total_charges = 0
             available_charges = 0
-            next_available_hours = 0.083
+            next_available_minutes = 5  # 5 دقائق
             
             for charge_doc in charge_history:
                 charge = charge_doc.to_dict()
@@ -144,15 +144,15 @@ def profile():
                 charge_time = charge.get('timestamp', 0)
                 if charge_time:
                     charge_datetime = datetime.datetime.fromtimestamp(charge_time, datetime.timezone.utc)
-                    hours_passed = (now - charge_datetime).total_seconds() / 3600
+                    minutes_passed = (now - charge_datetime).total_seconds() / 60
                     
-                    if hours_passed >= 0.083:
+                    if minutes_passed >= 5:  # 5 دقائق
                         available_charges += charge_amount
                     else:
                         # حساب أقرب وقت لتحرير مبلغ
-                        hours_left = 0.083 - hours_passed
-                        if hours_left < next_available_hours:
-                            next_available_hours = hours_left
+                        minutes_left = 5 - minutes_passed
+                        if minutes_left < next_available_minutes:
+                            next_available_minutes = minutes_left
             
             # المبلغ المتاح للسحب العادي = الرصيد الحالي مع مراعاة نسبة الشحنات المتاحة
             # لو إجمالي الشحنات أكبر من الرصيد (بسبب مشتريات)، نحسب النسبة
@@ -163,10 +163,10 @@ def profile():
                 available_ratio = available_charges / total_charges
                 normal_withdraw_amount = min(current_balance * available_ratio, current_balance)
             else:
-                # لا توجد شحنات مسجلة = لا يمكن السحب العادي
-                normal_withdraw_amount = 0
+                # لا توجد شحنات مسجلة = كل الرصيد متاح (للاختبار)
+                normal_withdraw_amount = current_balance
             
-            hours_until_next_withdraw = int(next_available_hours) if next_available_hours < 0.083 else 0
+            hours_until_next_withdraw = int(next_available_minutes) if next_available_minutes < 5 else 0
             
         except Exception as e:
             logger.error(f"خطأ في حساب مبلغ السحب: {e}")
@@ -577,7 +577,7 @@ def submit_withdraw():
         # حساب الرسوم
         if withdraw_type == 'normal':
             fee_percent = 6.5
-            # التحقق من مرور 0.083 ساعة
+            # التحقق من مرور 5 دقائق (للاختبار)
             import datetime
             last_charge = user_data.get('last_charge_at')
             if last_charge:
@@ -587,12 +587,12 @@ def submit_withdraw():
                 else:
                     last_charge_time = last_charge
                 
-                hours_passed = (now - last_charge_time).total_seconds() / 3600
-                if hours_passed < 0.083:
-                    hours_left = int(0.083 - hours_passed)
+                minutes_passed = (now - last_charge_time).total_seconds() / 60
+                if minutes_passed < 5:  # 5 دقائق للاختبار
+                    minutes_left = int(5 - minutes_passed)
                     return jsonify({
                         'success': False, 
-                        'message': f'يجب انتظار {hours_left} ساعة للسحب العادي. استخدم السحب الفوري.'
+                        'message': f'يجب انتظار {minutes_left} دقيقة للسحب العادي. استخدم السحب الفوري.'
                     }), 400
         else:
             fee_percent = 8.0
