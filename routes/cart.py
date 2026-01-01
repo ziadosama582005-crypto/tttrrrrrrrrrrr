@@ -256,11 +256,12 @@ def api_cart_checkout():
             """callback لتنفيذ الشراء بشكل آمن"""
             # اقرأ بيانات المستخدم
             user_ref = db.collection('users').document(user_id)
-            user_snapshot = transaction.get(user_ref)
+            user_snapshots = list(transaction.get_all([user_ref]))
             
-            if not user_snapshot.exists:
+            if not user_snapshots or not user_snapshots[0].exists:
                 raise ValueError('المستخدم غير موجود')
             
+            user_snapshot = user_snapshots[0]
             user_data = user_snapshot.to_dict()
             balance = float(user_data.get('balance', 0))
             
@@ -328,9 +329,9 @@ def api_cart_checkout():
                 # تحديث إحصائيات
                 try:
                     stats_ref = db.collection('cart_stats').document(product_id)
-                    stats_snapshot = transaction.get(stats_ref)
-                    if stats_snapshot.exists:
-                        current_count = stats_snapshot.get('purchase_count', 0)
+                    stats_snapshots = list(transaction.get_all([stats_ref]))
+                    if stats_snapshots and stats_snapshots[0].exists:
+                        current_count = stats_snapshots[0].get('purchase_count') or 0
                         transaction.update(stats_ref, {'purchase_count': current_count + 1})
                 except:
                     pass
