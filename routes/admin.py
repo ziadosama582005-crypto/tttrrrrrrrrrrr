@@ -504,9 +504,22 @@ def api_dashboard_stats():
             try:
                 all_products = list(db.collection('products').stream())
                 stats['total_products'] = len(all_products)
-                available = [p for p in all_products if not p.to_dict().get('sold', False)]
-                stats['available_products'] = len(available)
-                stats['sold_products'] = len(all_products) - len(available)
+                
+                # نفس المنطق المستخدم في get_products
+                available_count = 0
+                sold_count = 0
+                for p in all_products:
+                    p_data = p.to_dict()
+                    is_sold = p_data.get('sold', False)
+                    logger.info(f"Dashboard - Product {p.id}: sold={is_sold}, type={type(is_sold)}")
+                    if is_sold:
+                        sold_count += 1
+                    else:
+                        available_count += 1
+                
+                stats['available_products'] = available_count
+                stats['sold_products'] = sold_count
+                logger.info(f"Dashboard stats: total={stats['total_products']}, available={available_count}, sold={sold_count}")
             except Exception as e:
                 logger.error(f"Error getting products: {e}")
             
