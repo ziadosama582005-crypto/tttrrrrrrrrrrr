@@ -201,15 +201,103 @@
         details.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto;"></div></div>';
         
         try {
+            // جلب بيانات العميل
             const res = await fetch(`/api/admin/get_customer_details?user_id=${userId}`);
             const data = await res.json();
+            
+            // جلب سجل الشحنات
+            const historyRes = await fetch(`/api/admin/get_user_history?user_id=${userId}`);
+            const historyData = await historyRes.json();
             
             if (data.status === 'success') {
                 const c = data.customer;
                 const name = c.name || c.username || c.first_name || 'بدون اسم';
                 
+                // سجل الشحنات
+                let chargesHtml = '<p style="color: var(--muted);">لا يوجد شحنات مسجلة</p>';
+                if (historyData.status === 'success' && historyData.data.charges && historyData.data.charges.length > 0) {
+                    chargesHtml = `
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>المبلغ</th>
+                                        <th>الطريقة</th>
+                                        <th>التاريخ</th>
+                                        <th>الحالة</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${historyData.data.charges.map(ch => {
+                                        const now = Date.now() / 1000;
+                                        const waitMinutes = 5; // 5 دقائق للاختبار
+                                        const passed = (now - ch.timestamp) / 60;
+                                        const isAvailable = passed >= waitMinutes;
+                                        const minutesLeft = Math.ceil(waitMinutes - passed);
+                                        
+                                        const methodName = {
+                                            'edfapay': '💳 بطاقة',
+                                            'key': '🔑 كود',
+                                            'admin': '👨‍💼 أدمن',
+                                            'charge': '🔑 كود'
+                                        }[ch.method] || ch.method;
+                                        
+                                        return `
+                                            <tr>
+                                                <td style="font-weight: 600; color: var(--success);">+${ch.amount} ر.س</td>
+                                                <td>${methodName}</td>
+                                                <td style="font-size: 12px;">${ch.date || '-'}</td>
+                                                <td>
+                                                    ${isAvailable 
+                                                        ? '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(0,184,148,0.2); color: var(--success);">✅ متاح للسحب</span>'
+                                                        : `<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(243,156,18,0.2); color: var(--warning);">⏳ ${minutesLeft} دقيقة</span>`
+                                                    }
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+                
+                // طلبات السحب
+                let withdrawalsHtml = '<p style="color: var(--muted);">لا يوجد طلبات سحب</p>';
+                if (historyData.status === 'success' && historyData.data.withdrawals && historyData.data.withdrawals.length > 0) {
+                    withdrawalsHtml = `
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>المبلغ</th>
+                                        <th>الصافي</th>
+                                        <th>الطريقة</th>
+                                        <th>الحالة</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${historyData.data.withdrawals.map(w => {
+                                        const statusColor = w.status === 'completed' ? 'var(--success)' : w.status === 'rejected' ? 'var(--danger)' : 'var(--warning)';
+                                        const statusText = w.status === 'completed' ? '✅ مكتمل' : w.status === 'rejected' ? '❌ مرفوض' : '⏳ قيد المراجعة';
+                                        return `
+                                            <tr>
+                                                <td>${w.amount} ر.س</td>
+                                                <td style="color: var(--success);">${w.net_amount} ر.س</td>
+                                                <td>${w.method === 'wallet' ? '📱 محفظة' : '🏦 بنك'}</td>
+                                                <td><span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: ${statusColor}22; color: ${statusColor};">${statusText}</span></td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+                
                 details.innerHTML = `
                     <h2 style="margin-bottom: 20px;">👤 ${name}</h2>
+                    <p style="color: var(--muted); margin-bottom: 20px;">ID: ${userId}</p>
                     
                     <div class="stats-grid" style="margin-bottom: 20px;">
                         <div class="stat-card">
@@ -218,15 +306,32 @@
                             <div class="label">الرصيد الحالي</div>
                         </div>
                         <div class="stat-card">
-                            <div class="icon">🛒</div>
-                            <div class="value">${c.orders_count || 0}</div>
-                            <div class="label">إجمالي الطلبات</div>
+                            <div class="icon">📥</div>
+                            <div class="value">${historyData.stats?.total_charged?.toFixed(2) || 0}</div>
+                            <div class="label">إجمالي الشحن</div>
                         </div>
                         <div class="stat-card">
-                            <div class="icon">💳</div>
-                            <div class="value">${(c.total_spent || 0).toFixed(2)}</div>
-                            <div class="label">إجمالي المشتريات</div>
+                            <div class="icon">🛒</div>
+                            <div class="value">${c.orders_count || 0}</div>
+                            <div class="label">الطلبات</div>
                         </div>
+                        <div class="stat-card">
+                            <div class="icon">💸</div>
+                            <div class="value">${historyData.stats?.total_withdrawals || 0}</div>
+                            <div class="label">طلبات السحب</div>
+                        </div>
+                    </div>
+                    
+                    <!-- سجل الشحنات -->
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="margin-bottom: 10px;">📥 سجل الشحنات (${historyData.data?.charges?.length || 0})</h3>
+                        ${chargesHtml}
+                    </div>
+                    
+                    <!-- طلبات السحب -->
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="margin-bottom: 10px;">💸 طلبات السحب (${historyData.data?.withdrawals?.length || 0})</h3>
+                        ${withdrawalsHtml}
                     </div>
                     
                     <!-- الطلبات -->
@@ -263,46 +368,12 @@
                             </div>
                         ` : '<p style="color: var(--muted);">لا يوجد طلبات</p>'}
                     </div>
-                    
-                    <!-- سجل الرصيد -->
-                    <div>
-                        <h3 style="margin-bottom: 10px;">💳 سجل الرصيد (${(c.balance_logs || []).length})</h3>
-                        ${c.balance_logs && c.balance_logs.length > 0 ? `
-                            <div class="table-container">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>النوع</th>
-                                            <th>المبلغ</th>
-                                            <th>الوصف</th>
-                                            <th>التاريخ</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${c.balance_logs.map(l => `
-                                            <tr>
-                                                <td>
-                                                    <span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: ${l.type === 'add' ? 'rgba(0,184,148,0.2)' : 'rgba(231,76,60,0.2)'}; color: ${l.type === 'add' ? 'var(--success)' : 'var(--danger)'};">
-                                                        ${l.type === 'add' ? '➕ إيداع' : '➖ خصم'}
-                                                    </span>
-                                                </td>
-                                                <td style="color: ${l.type === 'add' ? 'var(--success)' : 'var(--danger)'}; font-weight: 600;">
-                                                    ${l.type === 'add' ? '+' : '-'}${l.amount || 0} ر.س
-                                                </td>
-                                                <td style="font-size: 12px;">${l.description || '-'}</td>
-                                                <td style="font-size: 12px;">${l.created_at ? new Date(l.created_at).toLocaleDateString('ar-SA') : '-'}</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ` : '<p style="color: var(--muted);">لا يوجد سجلات</p>'}
-                    </div>
                 `;
             } else {
                 details.innerHTML = '<p style="color: var(--danger); text-align: center;">❌ حدث خطأ في جلب البيانات</p>';
             }
         } catch (e) {
+            console.error(e);
             details.innerHTML = '<p style="color: var(--danger); text-align: center;">❌ خطأ في الاتصال</p>';
         }
     }

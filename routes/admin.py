@@ -956,6 +956,105 @@ def api_get_balance_logs():
         traceback.print_exc()
         return jsonify({'status': 'error', 'message': str(e)})
 
+
+@admin_bp.route('/api/admin/get_user_history')
+def api_get_user_history():
+    """جلب سجل مستخدم معين (الشحنات والرصيد)"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'})
+    
+    user_id = request.args.get('user_id', '').strip()
+    if not user_id:
+        return jsonify({'status': 'error', 'message': 'يرجى إدخال معرف المستخدم'})
+    
+    try:
+        result = {
+            'user': None,
+            'charges': [],
+            'withdrawals': [],
+            'balance_logs': []
+        }
+        
+        if db:
+            # 1. بيانات المستخدم
+            user_doc = db.collection('users').document(str(user_id)).get()
+            if user_doc.exists:
+                user_data = user_doc.to_dict()
+                result['user'] = {
+                    'id': user_id,
+                    'name': user_data.get('name', 'غير معروف'),
+                    'balance': user_data.get('balance', 0),
+                    'last_charge_at': str(user_data.get('last_charge_at', ''))
+                }
+            else:
+                return jsonify({'status': 'error', 'message': 'المستخدم غير موجود'})
+            
+            # 2. سجل الشحنات
+            charges_ref = db.collection('charge_history').where('user_id', '==', str(user_id))
+            for doc in charges_ref.stream():
+                data = doc.to_dict()
+                result['charges'].append({
+                    'id': doc.id,
+                    'amount': data.get('amount', 0),
+                    'method': data.get('method', 'غير محدد'),
+                    'date': data.get('date', ''),
+                    'timestamp': data.get('timestamp', 0),
+                    'type': data.get('type', '')
+                })
+            
+            # ترتيب حسب الوقت (الأحدث أولاً)
+            result['charges'].sort(key=lambda x: x.get('timestamp', 0), reverse=True)
+            
+            # 3. طلبات السحب
+            try:
+                withdrawals_ref = db.collection('withdrawal_requests').where('user_id', '==', str(user_id))
+                for doc in withdrawals_ref.stream():
+                    data = doc.to_dict()
+                    result['withdrawals'].append({
+                        'id': doc.id,
+                        'amount': data.get('amount', 0),
+                        'net_amount': data.get('net_amount', 0),
+                        'fee_percent': data.get('fee_percent', 0),
+                        'method': data.get('method', ''),
+                        'status': data.get('status', 'pending'),
+                        'created_at': str(data.get('created_at', ''))
+                    })
+            except:
+                pass
+            
+            # 4. سجل الرصيد (آخر 50)
+            try:
+                logs_ref = db.collection('balance_logs').where('user_id', '==', str(user_id)).limit(50)
+                for doc in logs_ref.stream():
+                    data = doc.to_dict()
+                    result['balance_logs'].append({
+                        'amount': data.get('amount', 0),
+                        'operation_type': data.get('operation_type', ''),
+                        'description': data.get('description', ''),
+                        'old_balance': data.get('old_balance', 0),
+                        'new_balance': data.get('new_balance', 0),
+                        'created_at': str(data.get('created_at', ''))
+                    })
+            except:
+                pass
+        
+        return jsonify({
+            'status': 'success',
+            'data': result,
+            'stats': {
+                'total_charges': len(result['charges']),
+                'total_charged': sum([c['amount'] for c in result['charges']]),
+                'total_withdrawals': len(result['withdrawals'])
+            }
+        })
+        
+    except Exception as e:
+        print(f"❌ خطأ في جلب سجل المستخدم: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'status': 'error', 'message': str(e)})
+
+
 # ===================== API السلات النشطة (carts) =====================
 
 @admin_bp.route('/api/admin/get_carts')
