@@ -964,6 +964,19 @@ def handle_user_state_message(message):
             amount = key_data.get('amount', 0)
             add_balance(user_id, amount)
             
+            # ✅ تسجيل الشحنة في charge_history للتجميد
+            try:
+                db.collection('charge_history').add({
+                    'user_id': str(user_id),
+                    'amount': float(amount),
+                    'method': 'telegram_key',
+                    'key_code': key_code,
+                    'timestamp': firestore.SERVER_TIMESTAMP
+                })
+                print(f"✅ تم تسجيل شحنة التليجرام في charge_history: {amount} ريال للمستخدم {user_id}")
+            except Exception as e:
+                print(f"⚠️ خطأ في تسجيل charge_history: {e}")
+            
             # تحديث حالة المفتاح في Firebase
             use_charge_key(key_code, user_name)
             
@@ -972,6 +985,8 @@ def handle_user_state_message(message):
                 f"✅ *تم شحن رصيدك بنجاح!*\n\n"
                 f"💰 المبلغ المضاف: {amount} ريال\n"
                 f"💵 رصيدك الحالي: {get_balance(user_id)} ريال\n\n"
+                f"⏳ *ملاحظة:* المبلغ سيكون متاحاً للسحب العادي بعد 72 ساعة.\n"
+                f"⚡ يمكنك السحب الفوري الآن برسوم 8%.\n\n"
                 f"🎉 استمتع بالتسوق!",
                 parse_mode="Markdown"
             )
