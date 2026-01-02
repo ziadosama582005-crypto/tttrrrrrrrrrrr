@@ -1065,13 +1065,13 @@
                             ✅ متاح للسحب العادي: {{ "%.2f"|format(normal_withdraw_amount) }} ر.س
                         </div>
                         
-                        <!-- الرصيد المجمد -->
-                        {% set frozen_balance = balance - normal_withdraw_amount %}
+                        <!-- الرصيد المجمد - نستخدم المتغير من الـ backend مباشرة -->
                         {% if frozen_balance > 0 %}
                         <div class="withdraw-info frozen">
-                            ❄️ مجمد: {{ "%.2f"|format(frozen_balance) }} ر.س
-                            {% if minutes_until_withdraw > 0 %}
-                            <span class="time-left">(يتحرر بعد {{ minutes_until_withdraw }} دقيقة)</span>
+                            ❄️ <b>رصيد مجمد مؤقتاً:</b> {{ "%.2f"|format(frozen_balance) }} ر.س
+                            <br>
+                            {% if min_minutes_left > 0 %}
+                            <small>⏳ يصبح متاحاً للسحب العادي بعد: {{ min_minutes_left }} دقيقة</small>
                             {% endif %}
                         </div>
                         {% endif %}

@@ -129,63 +129,59 @@ def profile():
             now = datetime.datetime.now(datetime.timezone.utc)
             
             # ===== المعادلة الذهبية: المتاح = الرصيد الحالي - المجمد =====
-            # نقطة القطع (قبل 10 دقائق للاختبار، 72 ساعة للإنتاج)
+            # فترة التجميد (10 دقائق للاختبار، 72*60 للإنتاج)
             FREEZE_MINUTES = 10  # غيّرها إلى 72*60 للإنتاج
-            cutoff_time = now - datetime.timedelta(minutes=FREEZE_MINUTES)
             
             total_frozen_balance = 0.0
             min_minutes_left = 0
             recent_charges = []  # آخر 3 شحنات للعرض
             
-            # ⚡ تحسين الأداء: جلب الشحنات الحديثة فقط (خلال فترة التجميد)
+            # جلب شحنات المستخدم
             try:
-                recent_frozen_charges = db.collection('charge_history')\
+                all_user_charges = db.collection('charge_history')\
                     .where('user_id', '==', user_id)\
-                    .where('timestamp', '>', cutoff_time)\
                     .get()
             except Exception as query_error:
-                # إذا فشل الكويري المحسن، نستخدم الطريقة القديمة
-                print(f"⚠️ Query optimization failed, using fallback: {query_error}")
-                recent_frozen_charges = db.collection('charge_history')\
-                    .where('user_id', '==', user_id)\
-                    .get()
+                print(f"⚠️ Query failed: {query_error}")
+                all_user_charges = []
             
-            for charge_doc in recent_frozen_charges:
+            for charge_doc in all_user_charges:
                 charge = charge_doc.to_dict()
                 charge_amt = float(charge.get('amount', 0))
                 charge_ts = charge.get('timestamp')
                 
+                # --- تصحيح التعامل مع التوقيت ---
+                charge_dt = None
+                
                 if charge_ts:
-                    # تحويل timestamp - دعم جميع الأنواع
-                    try:
-                        if hasattr(charge_ts, 'timestamp'):
-                            # Firestore Timestamp object
-                            charge_dt = datetime.datetime.fromtimestamp(charge_ts.timestamp(), datetime.timezone.utc)
-                        elif hasattr(charge_ts, 'replace'):
-                            # datetime object - تأكد من أنه UTC
-                            if charge_ts.tzinfo is None:
-                                charge_dt = charge_ts.replace(tzinfo=datetime.timezone.utc)
-                            else:
-                                charge_dt = charge_ts
-                        elif isinstance(charge_ts, (int, float)):
-                            # Unix timestamp (number)
-                            charge_dt = datetime.datetime.fromtimestamp(charge_ts, datetime.timezone.utc)
-                        else:
-                            # نوع غير معروف - تخطي
-                            continue
-                        
-                        # حساب الوقت المتبقي
-                        minutes_passed = (now - charge_dt).total_seconds() / 60
-                        
-                        # إذا لم يمر الوقت المحدد = مجمد
-                        if minutes_passed < FREEZE_MINUTES:
-                            total_frozen_balance += charge_amt
-                            minutes_left = FREEZE_MINUTES - minutes_passed
-                            if minutes_left > min_minutes_left:
-                                min_minutes_left = minutes_left
-                    except Exception as ts_error:
-                        # في حالة خطأ في التحويل، نعتبره متاح
-                        print(f"خطأ في تحويل timestamp: {ts_error}")
+                    # التعامل مع أنواع التوقيت المختلفة من Firebase
+                    if hasattr(charge_ts, 'timestamp'):
+                        # DatetimeWithNanoseconds من Firebase
+                        charge_dt = datetime.datetime.fromtimestamp(charge_ts.timestamp(), datetime.timezone.utc)
+                    elif isinstance(charge_ts, datetime.datetime):
+                        # datetime عادي - نتأكد أنه UTC
+                        charge_dt = charge_ts.replace(tzinfo=datetime.timezone.utc) if charge_ts.tzinfo is None else charge_ts
+                    elif isinstance(charge_ts, (int, float)):
+                        # Unix timestamp (رقم)
+                        charge_dt = datetime.datetime.fromtimestamp(charge_ts, datetime.timezone.utc)
+                
+                # إذا لم يوجد وقت صالح، نعتبره "الآن" (مجمد)
+                if not charge_dt:
+                    charge_dt = now
+                
+                # حساب الفرق بالدقائق
+                time_diff = now - charge_dt
+                minutes_passed = time_diff.total_seconds() / 60
+                
+                # طباعة للمراقبة (يظهر في Terminal)
+                print(f"💰 Charge: {charge_amt} SAR, Mins Passed: {minutes_passed:.2f}")
+                
+                # شرط التجميد
+                if minutes_passed < FREEZE_MINUTES:
+                    total_frozen_balance += charge_amt
+                    minutes_left = FREEZE_MINUTES - minutes_passed
+                    if minutes_left > min_minutes_left:
+                        min_minutes_left = int(minutes_left)
             
             # جلب آخر 3 شحنات للعرض
             all_recent_charges = db.collection('charge_history')\
@@ -247,6 +243,7 @@ def profile():
                 normal_withdraw_amount = 0
             
             minutes_until_next = int(min_minutes_left) if min_minutes_left > 0 else 0
+            frozen_balance = total_frozen_balance
             
         except Exception as e:
             logger.error(f"خطأ في حساب مبلغ السحب: {e}")
@@ -254,6 +251,7 @@ def profile():
             normal_withdraw_amount = current_balance
             recent_charges = []
             minutes_until_next = 0
+            frozen_balance = 0
         
         # تقريب المبالغ
         normal_withdraw_amount = round(normal_withdraw_amount, 2)
@@ -273,6 +271,8 @@ def profile():
             can_withdraw_normal=can_withdraw_normal,
             normal_withdraw_amount=normal_withdraw_amount,
             instant_withdraw_amount=instant_withdraw_amount,
+            frozen_balance=frozen_balance,
+            min_minutes_left=minutes_until_next,
             minutes_until_withdraw=minutes_until_next,
             recent_charges=recent_charges
         )
@@ -667,55 +667,45 @@ def submit_withdraw():
             
             # فترة التجميد (10 دقائق للاختبار، 72*60 للإنتاج)
             FREEZE_MINUTES = 10
-            cutoff_time = now - datetime.timedelta(minutes=FREEZE_MINUTES)
             
             total_frozen_balance = 0.0
             min_minutes_left = 0
             
             try:
-                # ⚡ تحسين الأداء: جلب الشحنات الحديثة فقط
-                try:
-                    recent_frozen_charges = db.collection('charge_history')\
-                        .where('user_id', '==', user_id)\
-                        .where('timestamp', '>', cutoff_time)\
-                        .get()
-                except:
-                    # fallback للطريقة القديمة
-                    recent_frozen_charges = db.collection('charge_history')\
-                        .where('user_id', '==', user_id)\
-                        .get()
+                # جلب شحنات المستخدم
+                all_user_charges = db.collection('charge_history')\
+                    .where('user_id', '==', user_id)\
+                    .get()
                 
-                for charge_doc in recent_frozen_charges:
+                for charge_doc in all_user_charges:
                     charge = charge_doc.to_dict()
                     charge_amt = float(charge.get('amount', 0))
                     charge_ts = charge.get('timestamp')
                     
+                    # --- تصحيح التعامل مع التوقيت ---
+                    charge_dt = None
+                    
                     if charge_ts:
-                        try:
-                            # تحويل timestamp - دعم جميع الأنواع
-                            if hasattr(charge_ts, 'timestamp'):
-                                charge_dt = datetime.datetime.fromtimestamp(charge_ts.timestamp(), datetime.timezone.utc)
-                            elif hasattr(charge_ts, 'replace'):
-                                if charge_ts.tzinfo is None:
-                                    charge_dt = charge_ts.replace(tzinfo=datetime.timezone.utc)
-                                else:
-                                    charge_dt = charge_ts
-                            elif isinstance(charge_ts, (int, float)):
-                                charge_dt = datetime.datetime.fromtimestamp(charge_ts, datetime.timezone.utc)
-                            else:
-                                continue
-                            
-                            # حساب الوقت المتبقي
-                            minutes_passed = (now - charge_dt).total_seconds() / 60
-                            
-                            # إذا لم يمر الوقت المحدد = مجمد
-                            if minutes_passed < FREEZE_MINUTES:
-                                total_frozen_balance += charge_amt
-                                minutes_left = FREEZE_MINUTES - minutes_passed
-                                if minutes_left > min_minutes_left:
-                                    min_minutes_left = minutes_left
-                        except:
-                            pass
+                        if hasattr(charge_ts, 'timestamp'):
+                            charge_dt = datetime.datetime.fromtimestamp(charge_ts.timestamp(), datetime.timezone.utc)
+                        elif isinstance(charge_ts, datetime.datetime):
+                            charge_dt = charge_ts.replace(tzinfo=datetime.timezone.utc) if charge_ts.tzinfo is None else charge_ts
+                        elif isinstance(charge_ts, (int, float)):
+                            charge_dt = datetime.datetime.fromtimestamp(charge_ts, datetime.timezone.utc)
+                    
+                    if not charge_dt:
+                        charge_dt = now
+                    
+                    # حساب الفرق بالدقائق
+                    time_diff = now - charge_dt
+                    minutes_passed = time_diff.total_seconds() / 60
+                    
+                    # شرط التجميد
+                    if minutes_passed < FREEZE_MINUTES:
+                        total_frozen_balance += charge_amt
+                        minutes_left = FREEZE_MINUTES - minutes_passed
+                        if minutes_left > min_minutes_left:
+                            min_minutes_left = int(minutes_left)
             except Exception as e:
                 # في حالة الخطأ، نعتبر كل الرصيد متاح
                 total_frozen_balance = 0
