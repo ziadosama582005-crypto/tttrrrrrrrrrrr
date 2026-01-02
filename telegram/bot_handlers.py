@@ -1491,15 +1491,25 @@ def confirm_transaction(call):
 # معالج تنفيذ الطلبات اليدوية
 @bot.callback_query_handler(func=lambda call: call.data.startswith('claim_order_'))
 def claim_manual_order(call):
-    """معالج تنفيذ الطلب اليدوي من قبل الأدمن"""
+    """معالج تنفيذ الطلب اليدوي من قبل الأدمن أو المشرف"""
     order_id = call.data.replace('claim_order_', '')
     admin_id = call.from_user.id
     admin_name = call.from_user.first_name
     
     print(f"📋 محاولة استلام الطلب: {order_id} بواسطة: {admin_name} ({admin_id})")
     
-    # التحقق من أن المستخدم هو المالك
-    if admin_id != ADMIN_ID:
+    # التحقق من أن المستخدم هو المالك أو مشرف
+    is_owner = (admin_id == ADMIN_ID)
+    is_manager = False
+    
+    if not is_owner and db:
+        try:
+            admins = db.collection('admins').where('telegram_id', '==', str(admin_id)).get()
+            is_manager = len(list(admins)) > 0
+        except:
+            pass
+    
+    if not is_owner and not is_manager:
         return bot.answer_callback_query(call.id, "⛔ غير مصرح لك!", show_alert=True)
     
     try:
@@ -1568,7 +1578,7 @@ def claim_manual_order(call):
             try:
                 bot.send_message(
                     ADMIN_ID,
-                    f"📌 تم استلام طلب\n\n"
+                    f"📌 تم استلام طلب بواسطة مشرف\n\n"
                     f"🆔 رقم الطلب: #{order_id}\n"
                     f"📦 المنتج: {order.get('item_name')}\n"
                     f"👤 المشتري: {order.get('buyer_name')}\n"
@@ -1578,14 +1588,14 @@ def claim_manual_order(call):
             except:
                 pass
         
-        # إشعار المشتري
+        # إشعار المشتري باسم المشرف الذي استلم
         try:
             bot.send_message(
                 int(order.get('buyer_id')),
                 f"👨‍💼 تم استلام طلبك!\n\n"
                 f"🆔 رقم الطلب: #{order_id}\n"
                 f"📦 المنتج: {order.get('item_name')}\n"
-                f"✅ المسؤول: {admin_name}\n\n"
+                f"✅ المسؤول عن طلبك: {admin_name}\n\n"
                 f"⏳ جاري تنفيذ طلبك..."
             )
         except:
@@ -1616,8 +1626,11 @@ def complete_manual_order(call):
         
         order = order_doc.to_dict()
         
-        # التحقق من أن الأدمن هو من استلم الطلب
-        if order.get('claimed_by') != str(admin_id) and admin_id != ADMIN_ID:
+        # التحقق من أن الأدمن هو من استلم الطلب أو المالك
+        is_claimer = (order.get('claimed_by') == str(admin_id))
+        is_owner = (admin_id == ADMIN_ID)
+        
+        if not is_claimer and not is_owner:
             return bot.answer_callback_query(call.id, "⛔ هذا الطلب ليس مستلماً بواسطتك!", show_alert=True)
         
         if order.get('status') == 'completed':

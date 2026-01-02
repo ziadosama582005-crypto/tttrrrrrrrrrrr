@@ -101,6 +101,215 @@
             margin-bottom: 10px;
         }
         
+        .product-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            margin-bottom: 8px;
+        }
+        .product-badge.manual {
+            background: rgba(243, 156, 18, 0.2);
+            color: #f39c12;
+        }
+        .product-badge.instant {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+        }
+        
+        .product-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: 'Tajawal', sans-serif;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .product-btn:hover {
+            background: #5f3dc4;
+            transform: scale(1.05);
+        }
+        
+        .product-btn.manual-btn {
+            background: #f39c12;
+        }
+        .product-btn.manual-btn:hover {
+            background: #e67e22;
+        }
+        
+        /* الحالة الفارغة */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .empty-state h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #888;
+        }
+        
+        .empty-state p {
+            color: #555;
+            margin-bottom: 30px;
+        }
+        
+        .empty-state-btn {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-family: 'Tajawal', sans-serif;
+            transition: all 0.3s;
+        }
+        
+        .empty-state-btn:hover {
+            background: #5f3dc4;
+        }
+        
+        /* Modal للمتطلبات */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal-content {
+            background: #1a1a2e;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 450px;
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #f39c12;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 28px;
+            cursor: pointer;
+        }
+        .modal-body {
+            padding: 20px;
+        }
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: white;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 14px;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: #f39c12;
+        }
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .hint {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: 600;
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .btn-primary {
+            background: #f39c12;
+            color: white;
+        }
+        
+        /* التذييل */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #555;
+            border-top: 1px solid rgba(108, 92, 231, 0.2);
+            margin-top: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            .category-title {
+                font-size: 14px;
+                margin: 0 10px;
+            }
+            
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+            margin-bottom: 10px;
+        }
+        
         .product-btn {
             background: #6c5ce7;
             color: white;
@@ -197,11 +406,29 @@
                 <div class="product-content">
                     <div>
                         <div class="product-name">{{ item.item_name }}</div>
+                        {% if item.delivery_type == 'manual' %}
+                        <span class="product-badge manual">👨‍💼 تسليم يدوي</span>
+                        {% else %}
+                        <span class="product-badge instant">⚡ تسليم فوري</span>
+                        {% endif %}
                         <div class="product-price">{{ item.price|round(2) }} ر.س</div>
                     </div>
-                    <button class="product-btn" onclick="addToCart('{{ item.id }}', '{{ item.item_name }}')">
+                    {% if item.delivery_type == 'manual' %}
+                    <button class="product-btn manual-btn" 
+                            data-id="{{ item.id }}" 
+                            data-name="{{ item.item_name }}" 
+                            data-instructions="{{ item.buyer_instructions|default('أدخل المتطلبات المطلوبة', true) }}"
+                            onclick="openManualModalFromBtn(this)">
+                        📝 أدخل المتطلبات
+                    </button>
+                    {% else %}
+                    <button class="product-btn" 
+                            data-id="{{ item.id }}" 
+                            data-name="{{ item.item_name }}"
+                            onclick="addToCartFromBtn(this)">
                         🛒 أضف للسلة
                     </button>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}
@@ -271,19 +498,100 @@
         <p>© 2025 متجر رقمي. جميع الحقوق محفوظة</p>
     </div>
     
+    <!-- Modal للمنتجات اليدوية -->
+    <div class="modal-overlay" id="manualModal" onclick="closeManualModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>📝 أدخل متطلباتك</h3>
+                <button class="close-btn" onclick="closeManualModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>📦 المنتج:</label>
+                    <div id="modalProductName" style="color: #6c5ce7; font-weight: bold;"></div>
+                </div>
+                <div class="form-group">
+                    <label>📋 التعليمات:</label>
+                    <div id="modalInstructions" class="hint"></div>
+                </div>
+                <div class="form-group">
+                    <label>✏️ أدخل بياناتك / متطلباتك:</label>
+                    <textarea id="buyerDetails" class="form-control" placeholder="مثال: اسم المستخدم، الإيميل، الخ..."></textarea>
+                    <div class="hint">⚠️ تأكد من صحة البيانات قبل الإرسال</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeManualModal()">إلغاء</button>
+                <button class="btn btn-primary" onclick="confirmAddManual()">🛒 إضافة للسلة</button>
+            </div>
+        </div>
+    </div>
+    
     <script>
         // تعيين المتغيرات من Flask/Jinja2
         const currentUserIdValue = '{{ current_user_id }}';
         const currentUserId = currentUserIdValue ? parseInt(currentUserIdValue) : 0;
         
-        async function addToCart(productId, productName) {
+        // متغيرات للمنتج اليدوي الحالي
+        let currentManualProduct = { id: '', name: '' };
+        
+        // فتح Modal من الزر (باستخدام data attributes)
+        function openManualModalFromBtn(btn) {
+            const productId = btn.dataset.id;
+            const productName = btn.dataset.name;
+            const instructions = btn.dataset.instructions;
+            openManualModal(productId, productName, instructions);
+        }
+        
+        // إضافة للسلة من الزر
+        function addToCartFromBtn(btn) {
+            const productId = btn.dataset.id;
+            const productName = btn.dataset.name;
+            addToCart(productId, productName, '');
+        }
+        
+        // فتح Modal للمنتج اليدوي
+        function openManualModal(productId, productName, instructions) {
+            currentManualProduct = { id: productId, name: productName };
+            document.getElementById('modalProductName').textContent = productName;
+            document.getElementById('modalInstructions').textContent = instructions || 'أدخل المتطلبات المطلوبة للمنتج';
+            document.getElementById('buyerDetails').value = '';
+            document.getElementById('manualModal').classList.add('show');
+        }
+        
+        // إغلاق Modal
+        function closeManualModal(e) {
+            if (e && e.target !== e.currentTarget) return;
+            document.getElementById('manualModal').classList.remove('show');
+        }
+        
+        // تأكيد إضافة المنتج اليدوي
+        function confirmAddManual() {
+            const buyerDetails = document.getElementById('buyerDetails').value.trim();
+            
+            if (!buyerDetails) {
+                alert('❌ يجب إدخال المتطلبات المطلوبة!');
+                return;
+            }
+            
+            if (buyerDetails.length < 3) {
+                alert('❌ المتطلبات قصيرة جداً!');
+                return;
+            }
+            
+            addToCart(currentManualProduct.id, currentManualProduct.name, buyerDetails);
+            closeManualModal();
+        }
+        
+        async function addToCart(productId, productName, buyerDetails) {
             try {
                 const response = await fetch('/api/cart/add', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         user_id: currentUserId,
-                        product_id: productId
+                        product_id: productId,
+                        buyer_details: buyerDetails || ''
                     })
                 });
                 

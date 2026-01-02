@@ -2007,6 +2007,23 @@ def api_add_manager():
         if int(telegram_id) == ADMIN_ID:
             return jsonify({'status': 'error', 'message': 'لا يمكن إضافة المالك كمشرف'})
         
+        # محاولة جلب اسم المشرف من تليجرام إذا لم يُدخل اسم
+        fetched_name = name
+        telegram_username = None
+        if not name and BOT_ACTIVE and bot:
+            try:
+                chat_info = bot.get_chat(int(telegram_id))
+                fetched_name = chat_info.first_name or ''
+                if chat_info.last_name:
+                    fetched_name += ' ' + chat_info.last_name
+                telegram_username = chat_info.username
+            except Exception as e:
+                logger.warning(f"Could not fetch Telegram info for {telegram_id}: {e}")
+                fetched_name = f'مشرف {telegram_id[-4:]}'
+        
+        if not fetched_name:
+            fetched_name = f'مشرف {telegram_id[-4:]}'
+        
         if db:
             # التحقق من عدم وجود المشرف مسبقاً
             existing = db.collection('admins').where('telegram_id', '==', telegram_id).get()
@@ -2014,23 +2031,32 @@ def api_add_manager():
                 return jsonify({'status': 'error', 'message': 'هذا المشرف موجود مسبقاً'})
             
             # إضافة المشرف
-            db.collection('admins').add({
+            admin_data = {
                 'telegram_id': telegram_id,
-                'name': name or f'مشرف {telegram_id[-4:]}',
+                'name': fetched_name,
                 'note': note,
                 'added_at': firestore.SERVER_TIMESTAMP,
                 'added_by': str(ADMIN_ID)
-            })
+            }
+            if telegram_username:
+                admin_data['username'] = telegram_username
+            
+            db.collection('admins').add(admin_data)
             
             # إشعار المالك
             notify_owner(
                 f"✅ <b>تمت إضافة مشرف جديد</b>\n\n"
-                f"👨‍💼 <b>الاسم:</b> {name or 'غير محدد'}\n"
+                f"👨‍💼 <b>الاسم:</b> {fetched_name}\n"
                 f"🆔 <b>ID:</b> <code>{telegram_id}</code>\n"
+                f"📱 <b>Username:</b> @{telegram_username or 'غير متوفر'}\n"
                 f"📝 <b>ملاحظة:</b> {note or 'لا يوجد'}"
             )
             
-            return jsonify({'status': 'success', 'message': 'تمت إضافة المشرف'})
+            return jsonify({
+                'status': 'success', 
+                'message': f'تمت إضافة المشرف: {fetched_name}',
+                'admin_name': fetched_name
+            })
         
         return jsonify({'status': 'error', 'message': 'حدث خطأ'})
         

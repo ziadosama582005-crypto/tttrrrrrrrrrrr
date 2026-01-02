@@ -398,10 +398,21 @@ def api_cart_checkout():
             except Exception as e:
                 print(f"⚠️ فشل إرسال رسالة للمشتري: {e}")
             
-            # إشعار الأدمن للطلبات اليدوية
+            # إشعار الأدمن والمشرفين للطلبات اليدوية
             if manual_items and ADMIN_ID:
                 try:
                     import telebot
+                    
+                    # جلب قائمة المشرفين
+                    admin_ids = [ADMIN_ID]  # المالك أولاً
+                    try:
+                        admins_ref = db.collection('admins').stream()
+                        for admin_doc in admins_ref:
+                            admin_data = admin_doc.to_dict()
+                            admin_ids.append(int(admin_data['telegram_id']))
+                    except:
+                        pass
+                    
                     for item in manual_items:
                         claim_markup = telebot.types.InlineKeyboardMarkup()
                         claim_markup.add(telebot.types.InlineKeyboardButton(
@@ -409,18 +420,23 @@ def api_cart_checkout():
                             callback_data=f"claim_order_{item['order_id']}"
                         ))
                         
-                        admin_msg = f"🆕 طلب يدوي جديد من السلة!\n\n"
+                        # رسالة بدون بيانات المشتري - ستظهر فقط بعد الاستلام
+                        admin_msg = f"🆕 طلب يدوي جديد!\n\n"
                         admin_msg += f"🆔 رقم الطلب: #{item['order_id']}\n"
                         admin_msg += f"📦 المنتج: {item['name']}\n"
-                        admin_msg += f"👤 المشتري: {buyer_name} ({user_id})\n"
                         admin_msg += f"💰 السعر: {item['price']} ر.س\n"
-                        if item.get('buyer_details'):
-                            admin_msg += f"\n📝 معلومات المشتري:\n{item['buyer_details']}\n"
+                        admin_msg += f"\n🔒 بيانات المشتري ستظهر بعد الاستلام"
                         admin_msg += f"\n👇 اضغط لاستلام الطلب"
                         
-                        bot.send_message(ADMIN_ID, admin_msg, reply_markup=claim_markup)
+                        # إرسال لجميع المشرفين والمالك
+                        for admin_id in admin_ids:
+                            try:
+                                bot.send_message(admin_id, admin_msg, reply_markup=claim_markup)
+                            except Exception as e:
+                                print(f"⚠️ فشل إرسال لـ {admin_id}: {e}")
+                                
                 except Exception as e:
-                    print(f"⚠️ فشل إشعار الأدمن: {e}")
+                    print(f"⚠️ فشل إشعار الأدمنز: {e}")
             
             # إشعار عام للأدمن
             if ADMIN_ID:
