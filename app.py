@@ -1928,30 +1928,6 @@ def dashboard():
     # المستخدم مسجل دخول -> عرض لوحة التحكم الجديدة
     return render_template('admin_dashboard.html', active_page='dashboard')
 
-# API لشحن رصيد من لوحة التحكم (للأدمن فقط)
-@app.route('/api/add_balance', methods=['POST'])
-def api_add_balance():
-    # ===== التحقق من صلاحية الأدمن =====
-    if not session.get('is_admin'):
-        return {'status': 'error', 'message': 'غير مصرح!'}
-    
-    data = request.json
-    user_id = str(data.get('user_id'))
-    amount = float(data.get('amount'))
-    
-    if not user_id or amount <= 0:
-        return {'status': 'error', 'message': 'بيانات غير صحيحة'}
-    
-    add_balance(user_id, amount)
-    
-    # إشعار المستخدم
-    try:
-        bot.send_message(int(user_id), f"🎉 تم شحن رصيدك بمبلغ {amount} ريال!")
-    except:
-        pass
-    
-    return {'status': 'success'}
-
 # --- API لإضافة منتج (مصحح للحفظ في Firebase) ---
 @app.route('/api/add_product', methods=['POST'])
 def api_add_product():

@@ -11,6 +11,7 @@ import random
 import uuid
 import os
 import logging
+from notifications import notify_owner, notify_all_admins, is_admin_or_owner
 
 logger = logging.getLogger(__name__)
 
@@ -2096,55 +2097,6 @@ def api_delete_manager():
     except Exception as e:
         logger.error(f"Error deleting manager: {e}")
         return jsonify({'status': 'error', 'message': 'حدث خطأ'})
-
-
-def is_admin_or_owner(telegram_id):
-    """التحقق إذا كان المستخدم مالك أو مشرف"""
-    try:
-        # المالك الرئيسي
-        if int(telegram_id) == ADMIN_ID:
-            return True
-        
-        # التحقق من جدول المشرفين
-        if db:
-            admins = db.collection('admins').where('telegram_id', '==', str(telegram_id)).get()
-            return len(list(admins)) > 0
-        
-        return False
-    except:
-        return False
-
-
-def notify_owner(message, parse_mode='HTML'):
-    """إرسال إشعار للمالك"""
-    try:
-        if BOT_ACTIVE and bot and ADMIN_ID:
-            bot.send_message(ADMIN_ID, message, parse_mode=parse_mode)
-            return True
-    except Exception as e:
-        logger.error(f"Error notifying owner: {e}")
-    return False
-
-
-def notify_all_admins(message, parse_mode='HTML'):
-    """إرسال إشعار لجميع المشرفين والمالك"""
-    try:
-        # إشعار المالك أولاً
-        notify_owner(message, parse_mode)
-        
-        # إشعار بقية المشرفين
-        if db and BOT_ACTIVE and bot:
-            admins = db.collection('admins').stream()
-            for admin_doc in admins:
-                admin_data = admin_doc.to_dict()
-                try:
-                    bot.send_message(int(admin_data['telegram_id']), message, parse_mode=parse_mode)
-                except:
-                    pass
-        return True
-    except Exception as e:
-        logger.error(f"Error notifying admins: {e}")
-    return False
 
 
 # ===================== دالة التهيئة =====================
