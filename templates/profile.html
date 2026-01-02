@@ -197,6 +197,23 @@
             color: #00b894;
         }
         
+        .withdraw-info.frozen {
+            background: rgba(99, 179, 237, 0.1);
+            border-color: rgba(99, 179, 237, 0.3);
+            color: #63b3ed;
+        }
+        
+        .withdraw-info.frozen .time-left {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+        
+        .withdraw-info.instant-info {
+            background: rgba(156, 136, 255, 0.1);
+            border-color: rgba(156, 136, 255, 0.3);
+            color: #9c88ff;
+        }
+        
         /* آخر الشحنات */
         .recent-charges {
             margin-top: 15px;
@@ -1038,17 +1055,26 @@
                     
                     {% if balance > 0 %}
                     <div class="withdraw-amounts">
-                        {% if normal_withdraw_amount > 0 %}
+                        <!-- الرصيد المتاح للسحب العادي -->
                         <div class="withdraw-info success">
                             ✅ متاح للسحب العادي: {{ "%.2f"|format(normal_withdraw_amount) }} ر.س
                         </div>
-                        {% endif %}
-                        {% if normal_withdraw_amount < balance %}
-                        <div class="withdraw-info">
-                            ⏳ قيد الانتظار: {{ "%.2f"|format(balance - normal_withdraw_amount) }} ر.س
-                            {% if minutes_until_withdraw > 0 %}({{ minutes_until_withdraw }} دقيقة){% endif %}
+                        
+                        <!-- الرصيد المجمد -->
+                        {% set frozen_balance = balance - normal_withdraw_amount %}
+                        {% if frozen_balance > 0 %}
+                        <div class="withdraw-info frozen">
+                            ❄️ مجمد: {{ "%.2f"|format(frozen_balance) }} ر.س
+                            {% if minutes_until_withdraw > 0 %}
+                            <span class="time-left">(يتحرر بعد {{ minutes_until_withdraw }} دقيقة)</span>
+                            {% endif %}
                         </div>
                         {% endif %}
+                        
+                        <!-- الرصيد الكلي للسحب الفوري -->
+                        <div class="withdraw-info instant-info">
+                            ⚡ متاح للسحب الفوري: {{ "%.2f"|format(balance) }} ر.س
+                        </div>
                         
                         <!-- آخر 3 شحنات -->
                         {% if recent_charges %}
@@ -1061,7 +1087,7 @@
                                 {% if charge.is_available %}
                                 <span class="charge-status available">✅ متاح</span>
                                 {% else %}
-                                <span class="charge-status pending">⏳ {{ charge.minutes_left }} د</span>
+                                <span class="charge-status pending">❄️ {{ charge.minutes_left }} د</span>
                                 {% endif %}
                             </div>
                             {% endfor %}
