@@ -1530,8 +1530,7 @@ def claim_manual_order(call):
             return bot.answer_callback_query(call.id, "✅ تم تنفيذ هذا الطلب مسبقاً!", show_alert=True)
         
         if order.get('status') == 'claimed':
-            claimed_by = order.get('claimed_by_name', 'أدمن آخر')
-            return bot.answer_callback_query(call.id, f"⚠️ هذا الطلب مستلم من قبل {claimed_by}!", show_alert=True)
+            return bot.answer_callback_query(call.id, "⚠️ تم استلام هذا الطلب من مشرف آخر!", show_alert=True)
         
         # تحديث حالة الطلب إلى مستلم
         order_ref.update({
