@@ -136,13 +136,12 @@ def profile():
             min_minutes_left = 0
             recent_charges = []  # آخر 3 شحنات للعرض
             
-            # جلب الشحنات الحديثة فقط (آخر 10 دقائق) - هذه مجمدة
-            recent_frozen_charges = db.collection('charge_history')\
+            # جلب كل شحنات المستخدم من charge_history
+            all_user_charges = db.collection('charge_history')\
                 .where('user_id', '==', user_id)\
-                .where('timestamp', '>', cutoff_time)\
                 .get()
             
-            for charge_doc in recent_frozen_charges:
+            for charge_doc in all_user_charges:
                 charge = charge_doc.to_dict()
                 charge_amt = float(charge.get('amount', 0))
                 charge_ts = charge.get('timestamp')
@@ -156,16 +155,15 @@ def profile():
                     else:
                         charge_dt = charge_ts
                     
-                    # كل الشحنات الحديثة مجمدة
-                    total_frozen_balance += charge_amt
-                    
                     # حساب الوقت المتبقي
                     minutes_passed = (now - charge_dt).total_seconds() / 60
-                    minutes_left = 10 - minutes_passed
                     
-                    # نأخذ أكبر وقت انتظار
-                    if minutes_left > min_minutes_left:
-                        min_minutes_left = minutes_left
+                    # إذا لم يمر 10 دقائق = مجمد
+                    if minutes_passed < 10:
+                        total_frozen_balance += charge_amt
+                        minutes_left = 10 - minutes_passed
+                        if minutes_left > min_minutes_left:
+                            min_minutes_left = minutes_left
             
             # جلب آخر 3 شحنات للعرض
             all_recent_charges = db.collection('charge_history')\
@@ -222,7 +220,8 @@ def profile():
             
         except Exception as e:
             logger.error(f"خطأ في حساب مبلغ السحب: {e}")
-            normal_withdraw_amount = 0
+            # في حالة الخطأ، نعتبر كل الرصيد متاح (للتوافق مع الأرصدة القديمة)
+            normal_withdraw_amount = current_balance
             recent_charges = []
             minutes_until_next = 0
         
@@ -636,42 +635,41 @@ def submit_withdraw():
             import datetime
             now = datetime.datetime.now(datetime.timezone.utc)
             
-            # نقطة القطع (قبل 10 دقائق للاختبار)
-            cutoff_time = now - datetime.timedelta(minutes=10)
-            
             total_frozen_balance = 0.0
             min_minutes_left = 0
             
-            # جلب الشحنات الحديثة فقط (آخر 10 دقائق) - أسرع وأوفر
-            recent_charges = db.collection('charge_history')\
-                .where('user_id', '==', user_id)\
-                .where('timestamp', '>', cutoff_time)\
-                .get()
-            
-            for charge_doc in recent_charges:
-                charge = charge_doc.to_dict()
-                charge_amt = float(charge.get('amount', 0))
-                charge_ts = charge.get('timestamp')
+            try:
+                # جلب كل شحنات المستخدم من charge_history
+                all_user_charges = db.collection('charge_history')\
+                    .where('user_id', '==', user_id)\
+                    .get()
                 
-                if charge_ts:
-                    # تحويل timestamp
-                    if hasattr(charge_ts, 'timestamp'):
-                        charge_dt = datetime.datetime.fromtimestamp(charge_ts.timestamp(), datetime.timezone.utc)
-                    elif isinstance(charge_ts, (int, float)):
-                        charge_dt = datetime.datetime.fromtimestamp(charge_ts, datetime.timezone.utc)
-                    else:
-                        charge_dt = charge_ts
+                for charge_doc in all_user_charges:
+                    charge = charge_doc.to_dict()
+                    charge_amt = float(charge.get('amount', 0))
+                    charge_ts = charge.get('timestamp')
                     
-                    # بما أننا جلبنا الحديث فقط بالكويري، فكله مجمد
-                    total_frozen_balance += charge_amt
-                    
-                    # حساب الوقت المتبقي لهذه الشحنة (بالدقائق)
-                    minutes_passed = (now - charge_dt).total_seconds() / 60
-                    minutes_left = 10 - minutes_passed
-                    
-                    # نأخذ أكبر وقت انتظار (لأنه الذي يفك تجميد آخر مبلغ)
-                    if minutes_left > min_minutes_left:
-                        min_minutes_left = minutes_left
+                    if charge_ts:
+                        # تحويل timestamp
+                        if hasattr(charge_ts, 'timestamp'):
+                            charge_dt = datetime.datetime.fromtimestamp(charge_ts.timestamp(), datetime.timezone.utc)
+                        elif isinstance(charge_ts, (int, float)):
+                            charge_dt = datetime.datetime.fromtimestamp(charge_ts, datetime.timezone.utc)
+                        else:
+                            charge_dt = charge_ts
+                        
+                        # حساب الوقت المتبقي
+                        minutes_passed = (now - charge_dt).total_seconds() / 60
+                        
+                        # إذا لم يمر 10 دقائق = مجمد
+                        if minutes_passed < 10:
+                            total_frozen_balance += charge_amt
+                            minutes_left = 10 - minutes_passed
+                            if minutes_left > min_minutes_left:
+                                min_minutes_left = minutes_left
+            except Exception as e:
+                # في حالة الخطأ، نعتبر كل الرصيد متاح
+                total_frozen_balance = 0
             
             # المعادلة النهائية: المتاح = الرصيد الحالي - المجمد
             current_available_balance = balance - total_frozen_balance
