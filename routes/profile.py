@@ -119,74 +119,106 @@ def profile():
         # التحقق من وجود الصورة
         profile_photo = user_data.get('profile_photo', '')
         
-        # حساب المبلغ المتاح للسحب العادي (المبالغ التي مرّ عليها 0.083 ساعة)
+        # حساب المبلغ المتاح للسحب العادي باستخدام المعادلة الذهبية
         normal_withdraw_amount = 0
         instant_withdraw_amount = user_data.get('balance', 0)
-        hours_until_next_withdraw = 0
+        current_balance = user_data.get('balance', 0)
         
         try:
             import datetime
             now = datetime.datetime.now(datetime.timezone.utc)
             
-            # جلب سجل الشحنات للمستخدم
-            charge_history_docs = db.collection('charge_history').where('user_id', '==', user_id).order_by('timestamp', direction=firestore.Query.DESCENDING).limit(10).get()
+            # ===== المعادلة الذهبية: المتاح = الرصيد الحالي - المجمد =====
+            # نقطة القطع (قبل 10 دقائق للاختبار)
+            cutoff_time = now - datetime.timedelta(minutes=10)
             
-            total_charges = 0
-            available_charges = 0
-            next_available_minutes = 999  # قيمة كبيرة
+            total_frozen_balance = 0.0
+            min_minutes_left = 0
             recent_charges = []  # آخر 3 شحنات للعرض
             
-            for charge_doc in charge_history_docs:
+            # جلب الشحنات الحديثة فقط (آخر 10 دقائق) - هذه مجمدة
+            recent_frozen_charges = db.collection('charge_history')\
+                .where('user_id', '==', user_id)\
+                .where('timestamp', '>', cutoff_time)\
+                .get()
+            
+            for charge_doc in recent_frozen_charges:
+                charge = charge_doc.to_dict()
+                charge_amt = float(charge.get('amount', 0))
+                charge_ts = charge.get('timestamp')
+                
+                if charge_ts:
+                    # تحويل timestamp
+                    if hasattr(charge_ts, 'timestamp'):
+                        charge_dt = datetime.datetime.fromtimestamp(charge_ts.timestamp(), datetime.timezone.utc)
+                    elif isinstance(charge_ts, (int, float)):
+                        charge_dt = datetime.datetime.fromtimestamp(charge_ts, datetime.timezone.utc)
+                    else:
+                        charge_dt = charge_ts
+                    
+                    # كل الشحنات الحديثة مجمدة
+                    total_frozen_balance += charge_amt
+                    
+                    # حساب الوقت المتبقي
+                    minutes_passed = (now - charge_dt).total_seconds() / 60
+                    minutes_left = 10 - minutes_passed
+                    
+                    # نأخذ أكبر وقت انتظار
+                    if minutes_left > min_minutes_left:
+                        min_minutes_left = minutes_left
+            
+            # جلب آخر 3 شحنات للعرض
+            all_recent_charges = db.collection('charge_history')\
+                .where('user_id', '==', user_id)\
+                .order_by('timestamp', direction=firestore.Query.DESCENDING)\
+                .limit(3)\
+                .get()
+            
+            for charge_doc in all_recent_charges:
                 charge = charge_doc.to_dict()
                 charge_amount = float(charge.get('amount', 0))
-                total_charges += charge_amount
+                charge_ts = charge.get('timestamp')
                 
-                # تحويل timestamp
-                charge_time = charge.get('timestamp', 0)
-                if charge_time:
-                    charge_datetime = datetime.datetime.fromtimestamp(charge_time, datetime.timezone.utc)
-                    minutes_passed = (now - charge_datetime).total_seconds() / 60
-                    
-                    is_available = minutes_passed >= 5  # 5 دقائق للاختبار
-                    
-                    if is_available:
-                        available_charges += charge_amount
+                is_available = True
+                minutes_left_display = 0
+                
+                if charge_ts:
+                    if hasattr(charge_ts, 'timestamp'):
+                        charge_dt = datetime.datetime.fromtimestamp(charge_ts.timestamp(), datetime.timezone.utc)
+                    elif isinstance(charge_ts, (int, float)):
+                        charge_dt = datetime.datetime.fromtimestamp(charge_ts, datetime.timezone.utc)
                     else:
-                        # حساب أقرب وقت لتحرير مبلغ
-                        minutes_left = 5 - minutes_passed
-                        if minutes_left < next_available_minutes:
-                            next_available_minutes = minutes_left
+                        charge_dt = charge_ts
                     
-                    # إضافة لآخر 3 شحنات
-                    if len(recent_charges) < 3:
-                        method_names = {
-                            'key': 'كود شحن',
-                            'charge': 'كود شحن',
-                            'edfapay': 'بطاقة/فاتورة',
-                            'payment': 'بطاقة/فاتورة',
-                            'admin': 'من الإدارة',
-                            'admin_charge': 'من الإدارة'
-                        }
-                        recent_charges.append({
-                            'amount': charge_amount,
-                            'method': method_names.get(charge.get('method', ''), charge.get('type', 'شحن')),
-                            'is_available': is_available,
-                            'minutes_left': max(0, int(5 - minutes_passed)) if not is_available else 0,
-                            'date': charge.get('date', '')
-                        })
+                    minutes_passed = (now - charge_dt).total_seconds() / 60
+                    is_available = minutes_passed >= 10  # 10 دقائق للاختبار
+                    if not is_available:
+                        minutes_left_display = max(0, int(10 - minutes_passed))
+                
+                method_names = {
+                    'key': 'كود شحن',
+                    'charge': 'كود شحن',
+                    'edfapay': 'بطاقة/فاتورة',
+                    'payment': 'بطاقة/فاتورة',
+                    'admin': 'من الإدارة',
+                    'admin_charge': 'من الإدارة'
+                }
+                recent_charges.append({
+                    'amount': charge_amount,
+                    'method': method_names.get(charge.get('method', ''), charge.get('type', 'شحن')),
+                    'is_available': is_available,
+                    'minutes_left': minutes_left_display,
+                    'date': charge.get('date', '')
+                })
             
-            # المبلغ المتاح للسحب العادي
-            current_balance = user_data.get('balance', 0)
+            # المعادلة النهائية: المتاح = الرصيد الحالي - المجمد
+            normal_withdraw_amount = current_balance - total_frozen_balance
             
-            if total_charges > 0:
-                # نسبة المبالغ المتاحة من إجمالي الشحنات
-                available_ratio = available_charges / total_charges
-                normal_withdraw_amount = min(current_balance * available_ratio, current_balance)
-            else:
-                # لا توجد شحنات مسجلة = لا يمكن السحب العادي
+            # حماية: لا يمكن أن يكون المتاح بالسالب
+            if normal_withdraw_amount < 0:
                 normal_withdraw_amount = 0
             
-            minutes_until_next = int(next_available_minutes) if next_available_minutes < 999 else 0
+            minutes_until_next = int(min_minutes_left) if min_minutes_left > 0 else 0
             
         except Exception as e:
             logger.error(f"خطأ في حساب مبلغ السحب: {e}")
