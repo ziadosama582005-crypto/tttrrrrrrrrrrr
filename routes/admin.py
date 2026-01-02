@@ -989,7 +989,7 @@ def api_get_user_history():
             else:
                 return jsonify({'status': 'error', 'message': 'المستخدم غير موجود'})
             
-            # 2. سجل الشحنات
+            # 2. سجل الشحنات (نبحث بـ string و number)
             charges_ref = db.collection('charge_history').where('user_id', '==', str(user_id))
             for doc in charges_ref.stream():
                 data = doc.to_dict()
@@ -1001,6 +1001,53 @@ def api_get_user_history():
                     'timestamp': data.get('timestamp', 0),
                     'type': data.get('type', '')
                 })
+            
+            # البحث أيضاً بـ number إذا لم نجد
+            if len(result['charges']) == 0:
+                try:
+                    charges_ref2 = db.collection('charge_history').where('user_id', '==', int(user_id))
+                    for doc in charges_ref2.stream():
+                        data = doc.to_dict()
+                        result['charges'].append({
+                            'id': doc.id,
+                            'amount': data.get('amount', 0),
+                            'method': data.get('method', 'غير محدد'),
+                            'date': data.get('date', ''),
+                            'timestamp': data.get('timestamp', 0),
+                            'type': data.get('type', '')
+                        })
+                except:
+                    pass
+            
+            # 2.1 جلب الشحنات من pending_payments المكتملة (للشحنات القديمة)
+            try:
+                payments_ref = db.collection('pending_payments').where('user_id', '==', str(user_id)).where('status', '==', 'completed')
+                for doc in payments_ref.stream():
+                    data = doc.to_dict()
+                    # تحقق أنها غير مضافة مسبقاً
+                    if not any(c.get('id') == doc.id for c in result['charges']):
+                        completed_at = data.get('completed_at')
+                        timestamp = 0
+                        date_str = ''
+                        if completed_at:
+                            if hasattr(completed_at, 'timestamp'):
+                                timestamp = completed_at.timestamp()
+                            try:
+                                from datetime import datetime
+                                date_str = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M') if timestamp else ''
+                            except:
+                                pass
+                        
+                        result['charges'].append({
+                            'id': doc.id,
+                            'amount': data.get('amount', 0),
+                            'method': 'edfapay',
+                            'date': date_str,
+                            'timestamp': timestamp,
+                            'type': 'payment'
+                        })
+            except Exception as e:
+                print(f"خطأ في جلب pending_payments: {e}")
             
             # ترتيب حسب الوقت (الأحدث أولاً)
             result['charges'].sort(key=lambda x: x.get('timestamp', 0), reverse=True)
