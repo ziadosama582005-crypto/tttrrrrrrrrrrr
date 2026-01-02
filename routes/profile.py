@@ -599,23 +599,65 @@ def submit_withdraw():
         # حساب الرسوم
         if withdraw_type == 'normal':
             fee_percent = 6.5
-            # التحقق من مرور 5 دقائق (للاختبار)
+            
+            # ===== المعادلة الذهبية: المتاح = الرصيد الحالي - المجمد =====
             import datetime
-            last_charge = user_data.get('last_charge_at')
-            if last_charge:
-                now = datetime.datetime.now(datetime.timezone.utc)
-                if hasattr(last_charge, 'timestamp'):
-                    last_charge_time = datetime.datetime.fromtimestamp(last_charge.timestamp(), datetime.timezone.utc)
-                else:
-                    last_charge_time = last_charge
+            now = datetime.datetime.now(datetime.timezone.utc)
+            
+            # نقطة القطع (قبل 10 دقائق للاختبار)
+            cutoff_time = now - datetime.timedelta(minutes=10)
+            
+            total_frozen_balance = 0.0
+            min_minutes_left = 0
+            
+            # جلب الشحنات الحديثة فقط (آخر 10 دقائق) - أسرع وأوفر
+            recent_charges = db.collection('charge_history')\
+                .where('user_id', '==', user_id)\
+                .where('timestamp', '>', cutoff_time)\
+                .get()
+            
+            for charge_doc in recent_charges:
+                charge = charge_doc.to_dict()
+                charge_amt = float(charge.get('amount', 0))
+                charge_ts = charge.get('timestamp')
                 
-                minutes_passed = (now - last_charge_time).total_seconds() / 60
-                if minutes_passed < 5:  # 5 دقائق للاختبار
-                    minutes_left = int(5 - minutes_passed)
-                    return jsonify({
-                        'success': False, 
-                        'message': f'يجب انتظار {minutes_left} دقيقة للسحب العادي. استخدم السحب الفوري.'
-                    }), 400
+                if charge_ts:
+                    # تحويل timestamp
+                    if hasattr(charge_ts, 'timestamp'):
+                        charge_dt = datetime.datetime.fromtimestamp(charge_ts.timestamp(), datetime.timezone.utc)
+                    elif isinstance(charge_ts, (int, float)):
+                        charge_dt = datetime.datetime.fromtimestamp(charge_ts, datetime.timezone.utc)
+                    else:
+                        charge_dt = charge_ts
+                    
+                    # بما أننا جلبنا الحديث فقط بالكويري، فكله مجمد
+                    total_frozen_balance += charge_amt
+                    
+                    # حساب الوقت المتبقي لهذه الشحنة (بالدقائق)
+                    minutes_passed = (now - charge_dt).total_seconds() / 60
+                    minutes_left = 10 - minutes_passed
+                    
+                    # نأخذ أكبر وقت انتظار (لأنه الذي يفك تجميد آخر مبلغ)
+                    if minutes_left > min_minutes_left:
+                        min_minutes_left = minutes_left
+            
+            # المعادلة النهائية: المتاح = الرصيد الحالي - المجمد
+            current_available_balance = balance - total_frozen_balance
+            
+            # حماية: لا يمكن أن يكون المتاح بالسالب
+            if current_available_balance < 0:
+                current_available_balance = 0
+            
+            # التحقق: هل المبلغ المطلوب سحبه متاح؟
+            if amount > current_available_balance:
+                # تحويل الوقت المتبقي لصيغة مقروءة
+                time_left_str = f'{int(min_minutes_left)} دقيقة'
+                
+                return jsonify({
+                    'success': False, 
+                    'message': f'رصيدك المتاح للسحب العادي هو {current_available_balance:.2f} ريال فقط. المبلغ المتبقي ({total_frozen_balance:.2f}) سيكون متاحاً بعد {time_left_str}.',
+                    'available_for_normal': current_available_balance
+                }), 400
         else:
             fee_percent = 8.0
         
