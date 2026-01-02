@@ -147,23 +147,36 @@ def profile():
                 charge_ts = charge.get('timestamp')
                 
                 if charge_ts:
-                    # تحويل timestamp
-                    if hasattr(charge_ts, 'timestamp'):
-                        charge_dt = datetime.datetime.fromtimestamp(charge_ts.timestamp(), datetime.timezone.utc)
-                    elif isinstance(charge_ts, (int, float)):
-                        charge_dt = datetime.datetime.fromtimestamp(charge_ts, datetime.timezone.utc)
-                    else:
-                        charge_dt = charge_ts
-                    
-                    # حساب الوقت المتبقي
-                    minutes_passed = (now - charge_dt).total_seconds() / 60
-                    
-                    # إذا لم يمر 10 دقائق = مجمد
-                    if minutes_passed < 10:
-                        total_frozen_balance += charge_amt
-                        minutes_left = 10 - minutes_passed
-                        if minutes_left > min_minutes_left:
-                            min_minutes_left = minutes_left
+                    # تحويل timestamp - دعم جميع الأنواع
+                    try:
+                        if hasattr(charge_ts, 'timestamp'):
+                            # Firestore Timestamp object
+                            charge_dt = datetime.datetime.fromtimestamp(charge_ts.timestamp(), datetime.timezone.utc)
+                        elif hasattr(charge_ts, 'replace'):
+                            # datetime object - تأكد من أنه UTC
+                            if charge_ts.tzinfo is None:
+                                charge_dt = charge_ts.replace(tzinfo=datetime.timezone.utc)
+                            else:
+                                charge_dt = charge_ts
+                        elif isinstance(charge_ts, (int, float)):
+                            # Unix timestamp (number)
+                            charge_dt = datetime.datetime.fromtimestamp(charge_ts, datetime.timezone.utc)
+                        else:
+                            # نوع غير معروف - تخطي
+                            continue
+                        
+                        # حساب الوقت المتبقي
+                        minutes_passed = (now - charge_dt).total_seconds() / 60
+                        
+                        # إذا لم يمر 10 دقائق = مجمد
+                        if minutes_passed < 10:
+                            total_frozen_balance += charge_amt
+                            minutes_left = 10 - minutes_passed
+                            if minutes_left > min_minutes_left:
+                                min_minutes_left = minutes_left
+                    except Exception as ts_error:
+                        # في حالة خطأ في التحويل، نعتبره متاح
+                        print(f"خطأ في تحويل timestamp: {ts_error}")
             
             # جلب آخر 3 شحنات للعرض
             all_recent_charges = db.collection('charge_history')\
@@ -181,17 +194,25 @@ def profile():
                 minutes_left_display = 0
                 
                 if charge_ts:
-                    if hasattr(charge_ts, 'timestamp'):
-                        charge_dt = datetime.datetime.fromtimestamp(charge_ts.timestamp(), datetime.timezone.utc)
-                    elif isinstance(charge_ts, (int, float)):
-                        charge_dt = datetime.datetime.fromtimestamp(charge_ts, datetime.timezone.utc)
-                    else:
-                        charge_dt = charge_ts
-                    
-                    minutes_passed = (now - charge_dt).total_seconds() / 60
-                    is_available = minutes_passed >= 10  # 10 دقائق للاختبار
-                    if not is_available:
-                        minutes_left_display = max(0, int(10 - minutes_passed))
+                    try:
+                        if hasattr(charge_ts, 'timestamp'):
+                            charge_dt = datetime.datetime.fromtimestamp(charge_ts.timestamp(), datetime.timezone.utc)
+                        elif hasattr(charge_ts, 'replace'):
+                            if charge_ts.tzinfo is None:
+                                charge_dt = charge_ts.replace(tzinfo=datetime.timezone.utc)
+                            else:
+                                charge_dt = charge_ts
+                        elif isinstance(charge_ts, (int, float)):
+                            charge_dt = datetime.datetime.fromtimestamp(charge_ts, datetime.timezone.utc)
+                        else:
+                            charge_dt = now  # افتراضي
+                        
+                        minutes_passed = (now - charge_dt).total_seconds() / 60
+                        is_available = minutes_passed >= 10  # 10 دقائق للاختبار
+                        if not is_available:
+                            minutes_left_display = max(0, int(10 - minutes_passed))
+                    except:
+                        is_available = True
                 
                 method_names = {
                     'key': 'كود شحن',
@@ -650,23 +671,31 @@ def submit_withdraw():
                     charge_ts = charge.get('timestamp')
                     
                     if charge_ts:
-                        # تحويل timestamp
-                        if hasattr(charge_ts, 'timestamp'):
-                            charge_dt = datetime.datetime.fromtimestamp(charge_ts.timestamp(), datetime.timezone.utc)
-                        elif isinstance(charge_ts, (int, float)):
-                            charge_dt = datetime.datetime.fromtimestamp(charge_ts, datetime.timezone.utc)
-                        else:
-                            charge_dt = charge_ts
-                        
-                        # حساب الوقت المتبقي
-                        minutes_passed = (now - charge_dt).total_seconds() / 60
-                        
-                        # إذا لم يمر 10 دقائق = مجمد
-                        if minutes_passed < 10:
-                            total_frozen_balance += charge_amt
-                            minutes_left = 10 - minutes_passed
-                            if minutes_left > min_minutes_left:
-                                min_minutes_left = minutes_left
+                        try:
+                            # تحويل timestamp - دعم جميع الأنواع
+                            if hasattr(charge_ts, 'timestamp'):
+                                charge_dt = datetime.datetime.fromtimestamp(charge_ts.timestamp(), datetime.timezone.utc)
+                            elif hasattr(charge_ts, 'replace'):
+                                if charge_ts.tzinfo is None:
+                                    charge_dt = charge_ts.replace(tzinfo=datetime.timezone.utc)
+                                else:
+                                    charge_dt = charge_ts
+                            elif isinstance(charge_ts, (int, float)):
+                                charge_dt = datetime.datetime.fromtimestamp(charge_ts, datetime.timezone.utc)
+                            else:
+                                continue
+                            
+                            # حساب الوقت المتبقي
+                            minutes_passed = (now - charge_dt).total_seconds() / 60
+                            
+                            # إذا لم يمر 10 دقائق = مجمد
+                            if minutes_passed < 10:
+                                total_frozen_balance += charge_amt
+                                minutes_left = 10 - minutes_passed
+                                if minutes_left > min_minutes_left:
+                                    min_minutes_left = minutes_left
+                        except:
+                            pass
             except Exception as e:
                 # في حالة الخطأ، نعتبر كل الرصيد متاح
                 total_frozen_balance = 0

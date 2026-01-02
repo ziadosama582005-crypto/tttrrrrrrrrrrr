@@ -985,14 +985,17 @@ def charge_balance_api():
     if db:
         try:
             from datetime import datetime
+            import time as time_module
             db.collection('charge_history').add({
                 'user_id': user_id,
                 'amount': amount,
                 'key_code': key_code,
+                'method': 'key',
                 'date': datetime.now().strftime('%Y-%m-%d %H:%M'),
-                'timestamp': time.time(),
+                'timestamp': firestore.SERVER_TIMESTAMP,
                 'type': 'charge'
             })
+            print(f"✅ تم تسجيل شحنة الكود في charge_history: {amount} ريال للمستخدم {user_id}")
         except Exception as e:
             print(f"خطأ في حفظ سجل الشحن: {e}")
     
