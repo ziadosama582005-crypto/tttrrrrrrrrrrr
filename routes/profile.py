@@ -129,13 +129,14 @@ def profile():
             now = datetime.datetime.now(datetime.timezone.utc)
             
             # جلب سجل الشحنات للمستخدم
-            charge_history = db.collection('charge_history').where('user_id', '==', user_id).get()
+            charge_history_docs = db.collection('charge_history').where('user_id', '==', user_id).order_by('timestamp', direction=firestore.Query.DESCENDING).limit(10).get()
             
             total_charges = 0
             available_charges = 0
-            next_available_minutes = 5  # 5 دقائق
+            next_available_minutes = 999  # قيمة كبيرة
+            recent_charges = []  # آخر 3 شحنات للعرض
             
-            for charge_doc in charge_history:
+            for charge_doc in charge_history_docs:
                 charge = charge_doc.to_dict()
                 charge_amount = float(charge.get('amount', 0))
                 total_charges += charge_amount
@@ -146,16 +147,35 @@ def profile():
                     charge_datetime = datetime.datetime.fromtimestamp(charge_time, datetime.timezone.utc)
                     minutes_passed = (now - charge_datetime).total_seconds() / 60
                     
-                    if minutes_passed >= 5:  # 5 دقائق
+                    is_available = minutes_passed >= 5  # 5 دقائق للاختبار
+                    
+                    if is_available:
                         available_charges += charge_amount
                     else:
                         # حساب أقرب وقت لتحرير مبلغ
                         minutes_left = 5 - minutes_passed
                         if minutes_left < next_available_minutes:
                             next_available_minutes = minutes_left
+                    
+                    # إضافة لآخر 3 شحنات
+                    if len(recent_charges) < 3:
+                        method_names = {
+                            'key': 'كود شحن',
+                            'charge': 'كود شحن',
+                            'edfapay': 'بطاقة/فاتورة',
+                            'payment': 'بطاقة/فاتورة',
+                            'admin': 'من الإدارة',
+                            'admin_charge': 'من الإدارة'
+                        }
+                        recent_charges.append({
+                            'amount': charge_amount,
+                            'method': method_names.get(charge.get('method', ''), charge.get('type', 'شحن')),
+                            'is_available': is_available,
+                            'minutes_left': max(0, int(5 - minutes_passed)) if not is_available else 0,
+                            'date': charge.get('date', '')
+                        })
             
-            # المبلغ المتاح للسحب العادي = الرصيد الحالي مع مراعاة نسبة الشحنات المتاحة
-            # لو إجمالي الشحنات أكبر من الرصيد (بسبب مشتريات)، نحسب النسبة
+            # المبلغ المتاح للسحب العادي
             current_balance = user_data.get('balance', 0)
             
             if total_charges > 0:
@@ -163,15 +183,16 @@ def profile():
                 available_ratio = available_charges / total_charges
                 normal_withdraw_amount = min(current_balance * available_ratio, current_balance)
             else:
-                # لا توجد شحنات مسجلة = كل الرصيد متاح (للاختبار)
-                normal_withdraw_amount = current_balance
+                # لا توجد شحنات مسجلة = لا يمكن السحب العادي
+                normal_withdraw_amount = 0
             
-            hours_until_next_withdraw = int(next_available_minutes) if next_available_minutes < 5 else 0
+            minutes_until_next = int(next_available_minutes) if next_available_minutes < 999 else 0
             
         except Exception as e:
             logger.error(f"خطأ في حساب مبلغ السحب: {e}")
-            # في حالة الخطأ، السماح بسحب كامل الرصيد
-            normal_withdraw_amount = user_data.get('balance', 0)
+            normal_withdraw_amount = 0
+            recent_charges = []
+            minutes_until_next = 0
         
         # تقريب المبالغ
         normal_withdraw_amount = round(normal_withdraw_amount, 2)
@@ -191,7 +212,8 @@ def profile():
             can_withdraw_normal=can_withdraw_normal,
             normal_withdraw_amount=normal_withdraw_amount,
             instant_withdraw_amount=instant_withdraw_amount,
-            hours_until_withdraw=hours_until_next_withdraw
+            minutes_until_withdraw=minutes_until_next,
+            recent_charges=recent_charges
         )
     
     except Exception as e:

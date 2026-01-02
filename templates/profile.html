@@ -197,6 +197,63 @@
             color: #00b894;
         }
         
+        /* آخر الشحنات */
+        .recent-charges {
+            margin-top: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 12px;
+        }
+        
+        .charges-title {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .charge-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            margin-bottom: 6px;
+            font-size: 12px;
+        }
+        
+        .charge-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .charge-amount {
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .charge-method {
+            color: #888;
+            font-size: 11px;
+        }
+        
+        .charge-status {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .charge-status.available {
+            background: rgba(0, 184, 148, 0.2);
+            color: #00b894;
+        }
+        
+        .charge-status.pending {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+        
         /* Modal السحب */
         .withdraw-modal {
             display: none;
@@ -989,7 +1046,25 @@
                         {% if normal_withdraw_amount < balance %}
                         <div class="withdraw-info">
                             ⏳ قيد الانتظار: {{ "%.2f"|format(balance - normal_withdraw_amount) }} ر.س
-                            {% if hours_until_withdraw > 0 %}({{ hours_until_withdraw }} ساعة){% endif %}
+                            {% if minutes_until_withdraw > 0 %}({{ minutes_until_withdraw }} دقيقة){% endif %}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- آخر 3 شحنات -->
+                        {% if recent_charges %}
+                        <div class="recent-charges">
+                            <div class="charges-title">📋 آخر الشحنات:</div>
+                            {% for charge in recent_charges %}
+                            <div class="charge-item {% if charge.is_available %}available{% else %}pending{% endif %}">
+                                <span class="charge-amount">{{ "%.2f"|format(charge.amount) }} ر.س</span>
+                                <span class="charge-method">{{ charge.method }}</span>
+                                {% if charge.is_available %}
+                                <span class="charge-status available">✅ متاح</span>
+                                {% else %}
+                                <span class="charge-status pending">⏳ {{ charge.minutes_left }} د</span>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
                         </div>
                         {% endif %}
                     </div>
