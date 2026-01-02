@@ -129,19 +129,28 @@ def profile():
             now = datetime.datetime.now(datetime.timezone.utc)
             
             # ===== المعادلة الذهبية: المتاح = الرصيد الحالي - المجمد =====
-            # نقطة القطع (قبل 10 دقائق للاختبار)
-            cutoff_time = now - datetime.timedelta(minutes=10)
+            # نقطة القطع (قبل 10 دقائق للاختبار، 72 ساعة للإنتاج)
+            FREEZE_MINUTES = 10  # غيّرها إلى 72*60 للإنتاج
+            cutoff_time = now - datetime.timedelta(minutes=FREEZE_MINUTES)
             
             total_frozen_balance = 0.0
             min_minutes_left = 0
             recent_charges = []  # آخر 3 شحنات للعرض
             
-            # جلب كل شحنات المستخدم من charge_history
-            all_user_charges = db.collection('charge_history')\
-                .where('user_id', '==', user_id)\
-                .get()
+            # ⚡ تحسين الأداء: جلب الشحنات الحديثة فقط (خلال فترة التجميد)
+            try:
+                recent_frozen_charges = db.collection('charge_history')\
+                    .where('user_id', '==', user_id)\
+                    .where('timestamp', '>', cutoff_time)\
+                    .get()
+            except Exception as query_error:
+                # إذا فشل الكويري المحسن، نستخدم الطريقة القديمة
+                print(f"⚠️ Query optimization failed, using fallback: {query_error}")
+                recent_frozen_charges = db.collection('charge_history')\
+                    .where('user_id', '==', user_id)\
+                    .get()
             
-            for charge_doc in all_user_charges:
+            for charge_doc in recent_frozen_charges:
                 charge = charge_doc.to_dict()
                 charge_amt = float(charge.get('amount', 0))
                 charge_ts = charge.get('timestamp')
@@ -168,10 +177,10 @@ def profile():
                         # حساب الوقت المتبقي
                         minutes_passed = (now - charge_dt).total_seconds() / 60
                         
-                        # إذا لم يمر 10 دقائق = مجمد
-                        if minutes_passed < 10:
+                        # إذا لم يمر الوقت المحدد = مجمد
+                        if minutes_passed < FREEZE_MINUTES:
                             total_frozen_balance += charge_amt
-                            minutes_left = 10 - minutes_passed
+                            minutes_left = FREEZE_MINUTES - minutes_passed
                             if minutes_left > min_minutes_left:
                                 min_minutes_left = minutes_left
                     except Exception as ts_error:
@@ -656,16 +665,27 @@ def submit_withdraw():
             import datetime
             now = datetime.datetime.now(datetime.timezone.utc)
             
+            # فترة التجميد (10 دقائق للاختبار، 72*60 للإنتاج)
+            FREEZE_MINUTES = 10
+            cutoff_time = now - datetime.timedelta(minutes=FREEZE_MINUTES)
+            
             total_frozen_balance = 0.0
             min_minutes_left = 0
             
             try:
-                # جلب كل شحنات المستخدم من charge_history
-                all_user_charges = db.collection('charge_history')\
-                    .where('user_id', '==', user_id)\
-                    .get()
+                # ⚡ تحسين الأداء: جلب الشحنات الحديثة فقط
+                try:
+                    recent_frozen_charges = db.collection('charge_history')\
+                        .where('user_id', '==', user_id)\
+                        .where('timestamp', '>', cutoff_time)\
+                        .get()
+                except:
+                    # fallback للطريقة القديمة
+                    recent_frozen_charges = db.collection('charge_history')\
+                        .where('user_id', '==', user_id)\
+                        .get()
                 
-                for charge_doc in all_user_charges:
+                for charge_doc in recent_frozen_charges:
                     charge = charge_doc.to_dict()
                     charge_amt = float(charge.get('amount', 0))
                     charge_ts = charge.get('timestamp')
@@ -688,10 +708,10 @@ def submit_withdraw():
                             # حساب الوقت المتبقي
                             minutes_passed = (now - charge_dt).total_seconds() / 60
                             
-                            # إذا لم يمر 10 دقائق = مجمد
-                            if minutes_passed < 10:
+                            # إذا لم يمر الوقت المحدد = مجمد
+                            if minutes_passed < FREEZE_MINUTES:
                                 total_frozen_balance += charge_amt
-                                minutes_left = 10 - minutes_passed
+                                minutes_left = FREEZE_MINUTES - minutes_passed
                                 if minutes_left > min_minutes_left:
                                     min_minutes_left = minutes_left
                         except:
