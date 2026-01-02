@@ -183,12 +183,19 @@ def profile():
                     if minutes_left > min_minutes_left:
                         min_minutes_left = int(minutes_left)
             
-            # جلب آخر 3 شحنات للعرض
-            all_recent_charges = db.collection('charge_history')\
-                .where('user_id', '==', user_id)\
-                .order_by('timestamp', direction=firestore.Query.DESCENDING)\
-                .limit(3)\
-                .get()
+            # جلب آخر 3 شحنات للعرض (بدون order_by لتجنب مشكلة الـ Index)
+            try:
+                all_recent_charges = db.collection('charge_history')\
+                    .where('user_id', '==', user_id)\
+                    .order_by('timestamp', direction=firestore.Query.DESCENDING)\
+                    .limit(3)\
+                    .get()
+            except:
+                # fallback بدون order_by
+                all_recent_charges = db.collection('charge_history')\
+                    .where('user_id', '==', user_id)\
+                    .limit(3)\
+                    .get()
             
             for charge_doc in all_recent_charges:
                 charge = charge_doc.to_dict()
