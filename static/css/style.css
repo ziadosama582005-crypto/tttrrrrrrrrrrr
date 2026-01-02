@@ -1,0 +1,189 @@
+/* ========================================
+   الأنماط المشتركة للموقع
+   ======================================== */
+
+:root {
+    --primary: #6c5ce7;
+    --primary-light: #a29bfe;
+    --bg-color: #0f0f1a;
+    --bg-secondary: #1a1a2e;
+    --card-bg: #1a1a2e;
+    --text-color: #ffffff;
+    --text-muted: #888888;
+    --green: #00b894;
+    --red: #e74c3c;
+    --gold: #f1c40f;
+    --border-color: rgba(108, 92, 231, 0.3);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: 'Tajawal', sans-serif;
+    background: linear-gradient(135deg, var(--bg-color) 0%, var(--bg-secondary) 100%);
+    color: var(--text-color);
+    min-height: 100vh;
+    padding-top: 60px; /* مساحة للهيدر الثابت */
+    padding-bottom: 20px;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* ========== الحاويات ========== */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.container-sm {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.container-md {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.main-content {
+    min-height: calc(100vh - 80px);
+}
+
+/* ========== البطاقات ========== */
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+/* ========== الأزرار ========== */
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(108, 92, 231, 0.4);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--green), #55efc4);
+    color: white;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--red), #ff7675);
+    color: white;
+}
+
+/* ========== التوست ========== */
+.toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--card-bg);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    opacity: 0;
+    transition: all 0.3s;
+    border-left: 4px solid var(--green);
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast.error {
+    border-left-color: var(--red);
+}
+
+.toast.success {
+    border-left-color: var(--green);
+}
+
+/* ========== حالة فارغة ========== */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-state .icon {
+    font-size: 60px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-state .text {
+    color: var(--text-muted);
+    font-size: 16px;
+}
+
+/* ========== العناوين ========== */
+.section-title {
+    font-size: 20px;
+    margin: 25px 0 15px;
+    color: var(--primary);
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+/* ========== حقول الإدخال ========== */
+.form-control {
+    width: 100%;
+    padding: 12px 15px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    color: white;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+/* ========== موبايل ========== */
+@media (max-width: 768px) {
+    body {
+        padding-top: 55px;
+    }
+    
+    .container, .container-sm, .container-md {
+        padding: 15px;
+    }
+}

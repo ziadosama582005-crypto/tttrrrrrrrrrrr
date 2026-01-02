@@ -2,7 +2,7 @@
 
 {% block title %}{{ category.name }} - المتجر الرقمي{% endblock %}
 
-{% block styles %}
+{% block extra_css %}
 <style>
     body {
         padding-top: 70px;
@@ -432,7 +432,7 @@
     </div>
 {% endblock %}
 
-{% block scripts %}
+{% block extra_js %}
 <script>
     // تعيين المتغيرات من Flask/Jinja2
     const currentUserIdValue = '{{ current_user_id }}';
