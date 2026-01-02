@@ -1,0 +1,202 @@
+# -*- coding: utf-8 -*-
+"""
+نظام إشعارات المالك والمشرفين
+يُستخدم لإرسال إشعارات تلقائية بجميع العمليات المهمة
+"""
+
+import logging
+from extensions import bot, BOT_ACTIVE, ADMIN_ID, db
+
+logger = logging.getLogger(__name__)
+
+
+def notify_owner(message, parse_mode='HTML'):
+    """
+    إرسال إشعار للمالك الرئيسي
+    
+    Args:
+        message: نص الرسالة (يدعم HTML)
+        parse_mode: نوع التنسيق (HTML أو Markdown)
+    
+    Returns:
+        bool: True إذا تم الإرسال بنجاح
+    """
+    try:
+        if BOT_ACTIVE and bot and ADMIN_ID:
+            bot.send_message(ADMIN_ID, message, parse_mode=parse_mode)
+            print(f"📨 تم إرسال إشعار للمالك")
+            return True
+    except Exception as e:
+        logger.error(f"Error notifying owner: {e}")
+        print(f"❌ خطأ في إشعار المالك: {e}")
+    return False
+
+
+def notify_all_admins(message, parse_mode='HTML'):
+    """
+    إرسال إشعار لجميع المشرفين والمالك
+    
+    Args:
+        message: نص الرسالة
+        parse_mode: نوع التنسيق
+    
+    Returns:
+        int: عدد المشرفين الذين تم إشعارهم
+    """
+    notified = 0
+    
+    try:
+        # إشعار المالك أولاً
+        if notify_owner(message, parse_mode):
+            notified += 1
+        
+        # إشعار بقية المشرفين
+        if db and BOT_ACTIVE and bot:
+            admins = db.collection('admins').stream()
+            for admin_doc in admins:
+                admin_data = admin_doc.to_dict()
+                try:
+                    bot.send_message(int(admin_data['telegram_id']), message, parse_mode=parse_mode)
+                    notified += 1
+                except Exception as e:
+                    logger.error(f"Failed to notify admin {admin_data.get('telegram_id')}: {e}")
+        
+        return notified
+    except Exception as e:
+        logger.error(f"Error notifying admins: {e}")
+    return notified
+
+
+def is_admin_or_owner(telegram_id):
+    """
+    التحقق إذا كان المستخدم مالك أو مشرف
+    
+    Args:
+        telegram_id: معرف التليجرام
+    
+    Returns:
+        bool: True إذا كان مشرف أو مالك
+    """
+    try:
+        # المالك الرئيسي
+        if int(telegram_id) == ADMIN_ID:
+            return True
+        
+        # التحقق من جدول المشرفين
+        if db:
+            admins = db.collection('admins').where('telegram_id', '==', str(telegram_id)).get()
+            return len(list(admins)) > 0
+        
+        return False
+    except:
+        return False
+
+
+# ===================== إشعارات محددة =====================
+
+def notify_new_charge(user_id, amount, method='edfapay', username=None):
+    """إشعار بشحن رصيد جديد"""
+    method_names = {
+        'edfapay': '💳 EdfaPay',
+        'key': '🔑 كود شحن',
+        'admin': '👨‍💼 من الإدارة',
+        'telegram_key': '🔑 كود تليجرام'
+    }
+    
+    message = (
+        f"💰 <b>شحن رصيد جديد!</b>\n\n"
+        f"👤 <b>المستخدم:</b> {username or user_id}\n"
+        f"🆔 <b>ID:</b> <code>{user_id}</code>\n"
+        f"💵 <b>المبلغ:</b> {amount} ر.س\n"
+        f"📍 <b>الطريقة:</b> {method_names.get(method, method)}"
+    )
+    return notify_owner(message)
+
+
+def notify_withdrawal_request(user_id, amount, withdrawal_type, fee, net_amount, username=None):
+    """إشعار بطلب سحب جديد"""
+    type_names = {
+        'normal': '⏳ سحب عادي (6.5%)',
+        'instant': '⚡ سحب فوري (8%)'
+    }
+    
+    message = (
+        f"🏦 <b>طلب سحب جديد!</b>\n\n"
+        f"👤 <b>المستخدم:</b> {username or user_id}\n"
+        f"🆔 <b>ID:</b> <code>{user_id}</code>\n"
+        f"💵 <b>المبلغ:</b> {amount} ر.س\n"
+        f"📍 <b>النوع:</b> {type_names.get(withdrawal_type, withdrawal_type)}\n"
+        f"💸 <b>الرسوم:</b> {fee:.2f} ر.س\n"
+        f"✅ <b>صافي المبلغ:</b> {net_amount:.2f} ر.س"
+    )
+    return notify_owner(message)
+
+
+def notify_new_purchase(user_id, product_name, price, username=None):
+    """إشعار بعملية شراء جديدة"""
+    message = (
+        f"🛒 <b>عملية شراء جديدة!</b>\n\n"
+        f"👤 <b>المشتري:</b> {username or user_id}\n"
+        f"🆔 <b>ID:</b> <code>{user_id}</code>\n"
+        f"📦 <b>المنتج:</b> {product_name}\n"
+        f"💰 <b>السعر:</b> {price} ر.س"
+    )
+    return notify_owner(message)
+
+
+def notify_new_order(order_id, user_id, product_name, price, username=None):
+    """إشعار بطلب جديد (سلة)"""
+    message = (
+        f"📋 <b>طلب جديد!</b>\n\n"
+        f"📄 <b>رقم الطلب:</b> <code>{order_id}</code>\n"
+        f"👤 <b>العميل:</b> {username or user_id}\n"
+        f"🆔 <b>ID:</b> <code>{user_id}</code>\n"
+        f"📦 <b>المنتج:</b> {product_name}\n"
+        f"💰 <b>المبلغ:</b> {price} ر.س"
+    )
+    return notify_owner(message)
+
+
+def notify_new_user(user_id, username=None, first_name=None):
+    """إشعار بتسجيل مستخدم جديد"""
+    message = (
+        f"👋 <b>مستخدم جديد!</b>\n\n"
+        f"👤 <b>الاسم:</b> {first_name or 'غير محدد'}\n"
+        f"📱 <b>Username:</b> @{username or 'غير محدد'}\n"
+        f"🆔 <b>ID:</b> <code>{user_id}</code>"
+    )
+    return notify_owner(message)
+
+
+def notify_admin_login(ip_address):
+    """إشعار بتسجيل دخول الأدمن"""
+    import time
+    message = (
+        f"🔐 <b>تسجيل دخول للوحة التحكم</b>\n\n"
+        f"🌐 <b>IP:</b> <code>{ip_address}</code>\n"
+        f"⏰ <b>الوقت:</b> {time.strftime('%Y-%m-%d %H:%M:%S')}"
+    )
+    return notify_owner(message)
+
+
+def notify_product_added(product_name, price, category):
+    """إشعار بإضافة منتج جديد"""
+    message = (
+        f"📦 <b>منتج جديد!</b>\n\n"
+        f"📝 <b>الاسم:</b> {product_name}\n"
+        f"💰 <b>السعر:</b> {price} ر.س\n"
+        f"📁 <b>القسم:</b> {category}"
+    )
+    return notify_owner(message)
+
+
+def notify_product_sold(product_name, price, buyer_id, buyer_name=None):
+    """إشعار ببيع منتج"""
+    message = (
+        f"💵 <b>تم بيع منتج!</b>\n\n"
+        f"📦 <b>المنتج:</b> {product_name}\n"
+        f"💰 <b>السعر:</b> {price} ر.س\n"
+        f"👤 <b>المشتري:</b> {buyer_name or buyer_id}\n"
+        f"🆔 <b>ID:</b> <code>{buyer_id}</code>"
+    )
+    return notify_owner(message)

@@ -1944,6 +1944,183 @@ def api_delete_charge_key():
         return jsonify({'status': 'error', 'message': 'حدث خطأ'})
 
 
+# ===================== إدارة المشرفين =====================
+
+@admin_bp.route('/admin/managers')
+def admin_managers_page():
+    """صفحة إدارة المشرفين"""
+    if not session.get('is_admin'):
+        return redirect('/dashboard')
+    
+    return render_template('admin_managers.html', active_page='managers', owner_id=ADMIN_ID)
+
+
+@admin_bp.route('/api/admin/managers/list')
+def api_list_managers():
+    """جلب قائمة المشرفين"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    
+    try:
+        admins = []
+        if db:
+            admins_ref = db.collection('admins').stream()
+            for doc in admins_ref:
+                admin_data = doc.to_dict()
+                admin_data['id'] = doc.id
+                
+                # تحويل التاريخ
+                if admin_data.get('added_at'):
+                    admin_data['added_at'] = admin_data['added_at'].isoformat() if hasattr(admin_data['added_at'], 'isoformat') else str(admin_data['added_at'])
+                
+                admins.append(admin_data)
+        
+        return jsonify({
+            'status': 'success',
+            'admins': admins
+        })
+        
+    except Exception as e:
+        logger.error(f"Error listing managers: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+
+
+@admin_bp.route('/api/admin/managers/add', methods=['POST'])
+def api_add_manager():
+    """إضافة مشرف جديد"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    
+    try:
+        data = request.json
+        telegram_id = data.get('telegram_id', '').strip()
+        name = data.get('name', '').strip()
+        note = data.get('note', '').strip()
+        
+        if not telegram_id:
+            return jsonify({'status': 'error', 'message': 'أدخل Telegram ID'})
+        
+        if not telegram_id.isdigit():
+            return jsonify({'status': 'error', 'message': 'ID يجب أن يكون أرقام فقط'})
+        
+        # التحقق من أن الـ ID ليس المالك
+        if int(telegram_id) == ADMIN_ID:
+            return jsonify({'status': 'error', 'message': 'لا يمكن إضافة المالك كمشرف'})
+        
+        if db:
+            # التحقق من عدم وجود المشرف مسبقاً
+            existing = db.collection('admins').where('telegram_id', '==', telegram_id).get()
+            if list(existing):
+                return jsonify({'status': 'error', 'message': 'هذا المشرف موجود مسبقاً'})
+            
+            # إضافة المشرف
+            db.collection('admins').add({
+                'telegram_id': telegram_id,
+                'name': name or f'مشرف {telegram_id[-4:]}',
+                'note': note,
+                'added_at': firestore.SERVER_TIMESTAMP,
+                'added_by': str(ADMIN_ID)
+            })
+            
+            # إشعار المالك
+            notify_owner(
+                f"✅ <b>تمت إضافة مشرف جديد</b>\n\n"
+                f"👨‍💼 <b>الاسم:</b> {name or 'غير محدد'}\n"
+                f"🆔 <b>ID:</b> <code>{telegram_id}</code>\n"
+                f"📝 <b>ملاحظة:</b> {note or 'لا يوجد'}"
+            )
+            
+            return jsonify({'status': 'success', 'message': 'تمت إضافة المشرف'})
+        
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+        
+    except Exception as e:
+        logger.error(f"Error adding manager: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+
+
+@admin_bp.route('/api/admin/managers/delete', methods=['POST'])
+def api_delete_manager():
+    """حذف مشرف"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    
+    try:
+        data = request.json
+        admin_id = data.get('admin_id')
+        
+        if not admin_id or not db:
+            return jsonify({'status': 'error', 'message': 'بيانات ناقصة'})
+        
+        # جلب بيانات المشرف قبل الحذف للإشعار
+        admin_doc = db.collection('admins').document(admin_id).get()
+        admin_info = admin_doc.to_dict() if admin_doc.exists else {}
+        
+        db.collection('admins').document(admin_id).delete()
+        
+        # إشعار المالك
+        notify_owner(
+            f"🗑️ <b>تم حذف مشرف</b>\n\n"
+            f"👨‍💼 <b>الاسم:</b> {admin_info.get('name', 'غير محدد')}\n"
+            f"🆔 <b>ID:</b> <code>{admin_info.get('telegram_id', '-')}</code>"
+        )
+        
+        return jsonify({'status': 'success', 'message': 'تم الحذف'})
+        
+    except Exception as e:
+        logger.error(f"Error deleting manager: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+
+
+def is_admin_or_owner(telegram_id):
+    """التحقق إذا كان المستخدم مالك أو مشرف"""
+    try:
+        # المالك الرئيسي
+        if int(telegram_id) == ADMIN_ID:
+            return True
+        
+        # التحقق من جدول المشرفين
+        if db:
+            admins = db.collection('admins').where('telegram_id', '==', str(telegram_id)).get()
+            return len(list(admins)) > 0
+        
+        return False
+    except:
+        return False
+
+
+def notify_owner(message, parse_mode='HTML'):
+    """إرسال إشعار للمالك"""
+    try:
+        if BOT_ACTIVE and bot and ADMIN_ID:
+            bot.send_message(ADMIN_ID, message, parse_mode=parse_mode)
+            return True
+    except Exception as e:
+        logger.error(f"Error notifying owner: {e}")
+    return False
+
+
+def notify_all_admins(message, parse_mode='HTML'):
+    """إرسال إشعار لجميع المشرفين والمالك"""
+    try:
+        # إشعار المالك أولاً
+        notify_owner(message, parse_mode)
+        
+        # إشعار بقية المشرفين
+        if db and BOT_ACTIVE and bot:
+            admins = db.collection('admins').stream()
+            for admin_doc in admins:
+                admin_data = admin_doc.to_dict()
+                try:
+                    bot.send_message(int(admin_data['telegram_id']), message, parse_mode=parse_mode)
+                except:
+                    pass
+        return True
+    except Exception as e:
+        logger.error(f"Error notifying admins: {e}")
+    return False
+
+
 # ===================== دالة التهيئة =====================
 
 def init_admin(app_db, app_bot, admin_id, app_limiter=None, bot_active=False):

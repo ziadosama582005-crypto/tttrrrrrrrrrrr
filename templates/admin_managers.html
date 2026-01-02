@@ -1,0 +1,428 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}إدارة المشرفين - لوحة التحكم{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    <h1>👥 إدارة المشرفين</h1>
+    <div class="top-bar-actions">
+        <button class="btn btn-primary" onclick="openAddModal()">
+            ➕ إضافة مشرف
+        </button>
+    </div>
+</div>
+
+<!-- إحصائيات -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="icon">👑</div>
+        <div class="value">1</div>
+        <div class="label">المالك (أنت)</div>
+    </div>
+    <div class="stat-card">
+        <div class="icon">👨‍💼</div>
+        <div class="value" id="adminsCount">0</div>
+        <div class="label">المشرفين</div>
+    </div>
+</div>
+
+<!-- المالك -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">👑 المالك الرئيسي</span>
+    </div>
+    <div class="owner-info">
+        <div class="owner-badge">
+            <span class="crown">👑</span>
+            <div class="owner-details">
+                <strong>أنت المالك</strong>
+                <small>ID: {{ owner_id }}</small>
+            </div>
+        </div>
+        <div class="owner-note">
+            ⚠️ المالك لا يمكن حذفه ويملك جميع الصلاحيات
+        </div>
+    </div>
+</div>
+
+<!-- قائمة المشرفين -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">👨‍💼 المشرفين</span>
+        <button class="btn btn-sm btn-secondary" onclick="loadAdmins()">🔄 تحديث</button>
+    </div>
+    <div id="adminsList">
+        <div class="loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal إضافة مشرف -->
+<div class="modal-overlay" id="addModal" onclick="closeAddModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3>➕ إضافة مشرف جديد</h3>
+            <button class="close-btn" onclick="closeAddModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>🆔 Telegram ID</label>
+                <input type="text" id="newAdminId" placeholder="أدخل ID التليجرام" class="form-control">
+                <small class="hint">يمكن للمستخدم معرفة الـ ID من خلال @userinfobot</small>
+            </div>
+            <div class="form-group">
+                <label>📝 اسم المشرف (اختياري)</label>
+                <input type="text" id="newAdminName" placeholder="مثال: أحمد" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>📋 ملاحظات (اختياري)</label>
+                <textarea id="newAdminNote" placeholder="ملاحظات حول هذا المشرف..." class="form-control"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeAddModal()">إلغاء</button>
+            <button class="btn btn-primary" onclick="addAdmin()">➕ إضافة</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .owner-info {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 165, 0, 0.1));
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        border-radius: 12px;
+        padding: 20px;
+    }
+    .owner-badge {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 10px;
+    }
+    .owner-badge .crown {
+        font-size: 40px;
+    }
+    .owner-details strong {
+        display: block;
+        font-size: 16px;
+        color: #ffd700;
+    }
+    .owner-details small {
+        color: rgba(255, 255, 255, 0.6);
+    }
+    .owner-note {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.7);
+        padding: 10px;
+        background: rgba(0,0,0,0.2);
+        border-radius: 8px;
+    }
+    
+    .admin-card {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(108, 92, 231, 0.2);
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s;
+    }
+    .admin-card:hover {
+        border-color: var(--primary);
+        background: rgba(108, 92, 231, 0.1);
+    }
+    .admin-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .admin-avatar {
+        width: 50px;
+        height: 50px;
+        background: var(--primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+    .admin-details h4 {
+        margin: 0 0 5px;
+        font-size: 15px;
+    }
+    .admin-details small {
+        color: var(--muted);
+        font-size: 12px;
+    }
+    .admin-meta {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+    .admin-meta .date {
+        font-size: 12px;
+        color: var(--muted);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: var(--muted);
+    }
+    .empty-state .icon {
+        font-size: 50px;
+        margin-bottom: 15px;
+    }
+    
+    /* Modal */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.7);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal-overlay.show {
+        display: flex;
+    }
+    .modal-content {
+        background: var(--card);
+        border-radius: 16px;
+        width: 90%;
+        max-width: 450px;
+        border: 1px solid rgba(108, 92, 231, 0.3);
+        animation: modalIn 0.3s ease;
+    }
+    @keyframes modalIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9) translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .modal-header h3 {
+        margin: 0;
+        font-size: 18px;
+    }
+    .close-btn {
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-size: 28px;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+    }
+    .modal-body {
+        padding: 20px;
+    }
+    .modal-footer {
+        padding: 15px 20px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 10px;
+        color: white;
+        font-family: 'Tajawal', sans-serif;
+        font-size: 14px;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+    .form-control::placeholder {
+        color: rgba(255,255,255,0.4);
+    }
+    textarea.form-control {
+        min-height: 80px;
+        resize: vertical;
+    }
+    .hint {
+        display: block;
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 11px;
+    }
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let admins = [];
+    
+    // تحميل المشرفين
+    async function loadAdmins() {
+        const container = document.getElementById('adminsList');
+        container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+        
+        try {
+            const res = await fetch('/api/admin/managers/list');
+            const data = await res.json();
+            
+            if (data.status === 'success') {
+                admins = data.admins || [];
+                document.getElementById('adminsCount').textContent = admins.length;
+                renderAdmins();
+            } else {
+                container.innerHTML = '<div class="empty-state"><div class="icon">❌</div><p>حدث خطأ في التحميل</p></div>';
+            }
+        } catch (e) {
+            container.innerHTML = '<div class="empty-state"><div class="icon">❌</div><p>حدث خطأ في الاتصال</p></div>';
+        }
+    }
+    
+    // عرض المشرفين
+    function renderAdmins() {
+        const container = document.getElementById('adminsList');
+        
+        if (admins.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">👥</div>
+                    <p>لا يوجد مشرفين حالياً</p>
+                    <small>اضغط على "إضافة مشرف" لإضافة أول مشرف</small>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        admins.forEach(admin => {
+            const date = admin.added_at ? new Date(admin.added_at).toLocaleDateString('ar-SA') : '-';
+            html += `
+                <div class="admin-card">
+                    <div class="admin-info">
+                        <div class="admin-avatar">👨‍💼</div>
+                        <div class="admin-details">
+                            <h4>${admin.name || 'مشرف'}</h4>
+                            <small>🆔 ${admin.telegram_id}</small>
+                            ${admin.note ? `<br><small>📝 ${admin.note}</small>` : ''}
+                        </div>
+                    </div>
+                    <div class="admin-meta">
+                        <span class="date">📅 ${date}</span>
+                        <button class="btn btn-sm btn-danger" onclick="deleteAdmin('${admin.id}', '${admin.name || admin.telegram_id}')">
+                            🗑️ حذف
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+    
+    // فتح Modal الإضافة
+    function openAddModal() {
+        document.getElementById('addModal').classList.add('show');
+        document.getElementById('newAdminId').focus();
+    }
+    
+    // إغلاق Modal
+    function closeAddModal(e) {
+        if (e && e.target !== e.currentTarget) return;
+        document.getElementById('addModal').classList.remove('show');
+        document.getElementById('newAdminId').value = '';
+        document.getElementById('newAdminName').value = '';
+        document.getElementById('newAdminNote').value = '';
+    }
+    
+    // إضافة مشرف
+    async function addAdmin() {
+        const telegramId = document.getElementById('newAdminId').value.trim();
+        const name = document.getElementById('newAdminName').value.trim();
+        const note = document.getElementById('newAdminNote').value.trim();
+        
+        if (!telegramId) {
+            showToast('أدخل Telegram ID', 'error');
+            return;
+        }
+        
+        if (!/^\d+$/.test(telegramId)) {
+            showToast('ID يجب أن يكون أرقام فقط', 'error');
+            return;
+        }
+        
+        try {
+            const res = await fetch('/api/admin/managers/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ telegram_id: telegramId, name, note })
+            });
+            
+            const data = await res.json();
+            
+            if (data.status === 'success') {
+                showToast('✅ تمت إضافة المشرف بنجاح', 'success');
+                closeAddModal();
+                loadAdmins();
+            } else {
+                showToast(data.message || 'حدث خطأ', 'error');
+            }
+        } catch (e) {
+            showToast('حدث خطأ في الاتصال', 'error');
+        }
+    }
+    
+    // حذف مشرف
+    async function deleteAdmin(id, name) {
+        if (!confirm(`هل تريد حذف المشرف "${name}"؟`)) return;
+        
+        try {
+            const res = await fetch('/api/admin/managers/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ admin_id: id })
+            });
+            
+            const data = await res.json();
+            
+            if (data.status === 'success') {
+                showToast('✅ تم حذف المشرف', 'success');
+                loadAdmins();
+            } else {
+                showToast(data.message || 'حدث خطأ', 'error');
+            }
+        } catch (e) {
+            showToast('حدث خطأ في الاتصال', 'error');
+        }
+    }
+    
+    // تحميل عند فتح الصفحة
+    document.addEventListener('DOMContentLoaded', loadAdmins);
+</script>
+{% endblock %}

@@ -50,6 +50,13 @@ from payment import (
 )
 from utils import sanitize, regenerate_session, generate_code, validate_phone
 
+# استيراد نظام الإشعارات
+from notifications import (
+    notify_owner, notify_all_admins, notify_new_charge,
+    notify_withdrawal_request, notify_new_purchase, notify_new_order,
+    notify_new_user, notify_product_sold
+)
+
 # استيراد أدوات التشفير
 try:
     from encryption_utils import encrypt_data, decrypt_data
@@ -996,6 +1003,9 @@ def charge_balance_api():
                 'type': 'charge'
             })
             print(f"✅ تم تسجيل شحنة الكود في charge_history: {amount} ريال للمستخدم {user_id}")
+            
+            # إشعار المالك بالشحن
+            notify_new_charge(user_id, amount, method='key')
         except Exception as e:
             print(f"خطأ في حفظ سجل الشحن: {e}")
     
@@ -1457,6 +1467,9 @@ _محاولة اختراق واضحة!_
                 add_balance(user_id, pay_amount)
                 print(f"✅ تم إضافة {pay_amount} ريال للمستخدم {user_id}")
                 
+                # ✅ إشعار المالك بالشحن
+                notify_new_charge(user_id, pay_amount, method='edfapay')
+                
                 # ✅ تسجيل في سجل الشحنات للسحب
                 try:
                     db.collection('charge_history').add({
@@ -1746,6 +1759,9 @@ def adfaly_webhook():
                 
                 # إضافة الرصيد
                 add_balance(user_id, pay_amount)
+                
+                # إشعار المالك بالشحن
+                notify_new_charge(user_id, pay_amount, method='edfapay')
                 
                 # تسجيل في سجل الشحنات للسحب
                 try:

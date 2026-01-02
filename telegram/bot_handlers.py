@@ -33,6 +33,13 @@ from firebase_utils import (
 from utils import generate_code
 import telebot
 
+# استيراد نظام الإشعارات
+try:
+    from notifications import notify_new_charge, notify_owner
+except ImportError:
+    notify_new_charge = lambda *args, **kwargs: None
+    notify_owner = lambda *args, **kwargs: None
+
 # دالة توليد كود التحقق
 def generate_verification_code():
     return str(random.randint(100000, 999999))
@@ -974,6 +981,9 @@ def handle_user_state_message(message):
                     'timestamp': firestore.SERVER_TIMESTAMP
                 })
                 print(f"✅ تم تسجيل شحنة التليجرام في charge_history: {amount} ريال للمستخدم {user_id}")
+                
+                # إشعار المالك بالشحن
+                notify_new_charge(user_id, amount, method='telegram_key', username=user_name)
             except Exception as e:
                 print(f"⚠️ خطأ في تسجيل charge_history: {e}")
             

@@ -31,6 +31,13 @@ except ImportError:
     TOTP_AVAILABLE = False
     print("⚠️ pyotp أو qrcode غير متوفرة - 2FA لن تعمل")
 
+# استيراد نظام الإشعارات
+try:
+    from notifications import notify_withdrawal_request, notify_owner
+except ImportError:
+    notify_withdrawal_request = lambda *args, **kwargs: None
+    notify_owner = lambda *args, **kwargs: None
+
 profile_bp = Blueprint('profile', __name__)
 
 # تخزين مؤقت لأكواد التحقق من الإيميل
