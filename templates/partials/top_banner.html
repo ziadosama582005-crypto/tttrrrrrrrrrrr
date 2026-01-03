@@ -289,13 +289,12 @@
 
 <!-- الهيدر الرئيسي -->
 <header class="main-header">
-    <!-- يمين: البحث وحسابي -->
-    <div class="header-right">
-        <button class="header-btn" onclick="openSearch()" title="بحث">
-            🔍
-        </button>
-        <button class="header-btn account-btn" id="headerAccountBtn" onclick="handleAccountClick()" title="حسابي">
-            <span id="headerAccountIcon">👤</span> <span id="headerAccountText">حسابي</span>
+    <!-- يسار الشاشة: القائمة -->
+    <div class="header-left">
+        <button class="header-btn menu-btn" onclick="openSideMenu()" title="القائمة">
+            <span></span>
+            <span></span>
+            <span></span>
         </button>
     </div>
     
@@ -306,12 +305,13 @@
         </a>
     </div>
     
-    <!-- يسار: القائمة -->
-    <div class="header-left">
-        <button class="header-btn menu-btn" onclick="openSideMenu()" title="القائمة">
-            <span></span>
-            <span></span>
-            <span></span>
+    <!-- يمين الشاشة: حسابي والبحث -->
+    <div class="header-right">
+        <button class="header-btn account-btn" id="headerAccountBtn" onclick="handleAccountClick()" title="حسابي">
+            <span id="headerAccountIcon">👤</span> <span id="headerAccountText">حسابي</span>
+        </button>
+        <button class="header-btn" onclick="openSearch()" title="بحث">
+            🔍
         </button>
     </div>
 </header>
