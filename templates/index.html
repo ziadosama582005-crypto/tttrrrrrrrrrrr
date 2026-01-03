@@ -1751,14 +1751,149 @@
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
         }
         
-        /* تعديل padding للـ body لتجنب التداخل مع زر القائمة */
+        /* إخفاء زر القائمة العائم القديم */
+        .menu-toggle-btn {
+            display: none !important;
+        }
+        
+        /* الهيدر الرئيسي */
+        .main-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-bottom: 1px solid rgba(108, 92, 231, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            z-index: 999;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .header-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .header-logo {
+            font-size: 22px;
+            font-weight: bold;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        
+        .header-btn {
+            background: rgba(108, 92, 231, 0.2);
+            border: 1px solid rgba(108, 92, 231, 0.4);
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 18px;
+        }
+        
+        .header-btn:hover {
+            background: rgba(108, 92, 231, 0.4);
+            border-color: #6c5ce7;
+            transform: scale(1.05);
+        }
+        
+        .header-btn.account-btn {
+            width: auto;
+            padding: 0 12px;
+            gap: 6px;
+            font-size: 14px;
+        }
+        
+        .header-btn.menu-btn {
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .header-btn.menu-btn span {
+            width: 18px;
+            height: 2px;
+            background: #fff;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+        
+        @media (max-width: 480px) {
+            .header-btn.account-btn {
+                padding: 0;
+                width: 40px;
+                font-size: 18px;
+            }
+            
+            .header-btn.account-btn span:last-child {
+                display: none;
+            }
+            
+            .header-logo {
+                font-size: 18px;
+            }
+        }
+        
+        /* تعديل padding للـ body لتجنب التداخل مع الهيدر */
         body {
             padding-top: 70px !important;
         }
     </style>
 </head>
 <body>
-    <!-- زر فتح القائمة الجانبية -->
+    <!-- الهيدر الرئيسي -->
+    <header class="main-header">
+        <!-- يمين الشاشة: البحث وحسابي -->
+        <div class="header-right">
+            <button class="header-btn" onclick="openSearchOverlay()" title="بحث">
+                🔍
+            </button>
+            <button class="header-btn account-btn" onclick="handleAccountClick()" title="حسابي">
+                <span>👤</span> <span>حسابي</span>
+            </button>
+        </div>
+        
+        <!-- وسط: الشعار -->
+        <div class="header-center">
+            <a href="/" class="header-logo">
+                🛒 المتجر
+            </a>
+        </div>
+        
+        <!-- يسار الشاشة: القائمة -->
+        <div class="header-left">
+            <button class="header-btn menu-btn" onclick="toggleSidebar()" title="القائمة">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+    
+    <!-- زر فتح القائمة الجانبية (مخفي) -->
     <button class="menu-toggle-btn" onclick="toggleSidebar()">☰</button>
     
     <!-- الخلفية المظللة -->
@@ -2234,6 +2369,39 @@
             } catch(error) {
                 alert('❌ حدث خطأ في الاتصال');
             }
+        }
+        
+        // ========== دوال الهيدر ==========
+        function openSearchOverlay() {
+            // البحث - يمكن تخصيصه لاحقاً
+            const searchTerm = prompt('🔍 ابحث عن منتج:');
+            if(searchTerm && searchTerm.trim()) {
+                // البحث في المنتجات
+                const products = document.querySelectorAll('.product-card');
+                let found = false;
+                products.forEach(card => {
+                    const name = card.querySelector('.product-name')?.textContent?.toLowerCase() || '';
+                    if(name.includes(searchTerm.toLowerCase())) {
+                        card.scrollIntoView({behavior: 'smooth', block: 'center'});
+                        card.style.boxShadow = '0 0 20px #6c5ce7';
+                        setTimeout(() => card.style.boxShadow = '', 2000);
+                        found = true;
+                    }
+                });
+                if(!found) {
+                    alert('❌ لم يتم العثور على منتج بهذا الاسم');
+                }
+            }
+        }
+        
+        function handleAccountClick() {
+            // إذا كان المستخدم غير مسجل دخول
+            if(!isTelegramWebApp && (!currentUserId || currentUserId == 0)) {
+                showLoginModal();
+                return;
+            }
+            // إذا كان مسجل دخول، انتقل لصفحة الملف الشخصي
+            window.location.href = '/profile';
         }
         
         // ========== دوال القائمة الجانبية ==========
