@@ -630,9 +630,16 @@
             countdownInterval = null;
         }
         document.getElementById('timerBar').style.display = 'block';
+        
+        // التأكد من أن التاريخ UTC - إضافة Z إذا لم يكن موجوداً
+        let utcExpiry = expiresAt;
+        if (!expiresAt.endsWith('Z') && !expiresAt.includes('+')) {
+            utcExpiry = expiresAt + 'Z';
+        }
+        
         function updateTimer() {
             const now = new Date().getTime();
-            const expiry = new Date(expiresAt).getTime();
+            const expiry = new Date(utcExpiry).getTime();
             const diff = expiry - now;
             if (diff <= 0) {
                 document.getElementById('timerCountdown').textContent = 'انتهت!';
