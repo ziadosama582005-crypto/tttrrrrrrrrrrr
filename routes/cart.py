@@ -34,7 +34,8 @@ def init_cart(app_bot, admin_id, app_limiter):
 @cart_bp.route('/cart')
 def cart_page():
     """صفحة سلة التسوق"""
-    user_id = session.get('user_id')
+    # دعم user_id من session أو query param
+    user_id = session.get('user_id') or request.args.get('user_id')
     if not user_id:
         return redirect('/')
     
