@@ -1845,8 +1845,8 @@
         @media (max-width: 480px) {
             .header-btn.account-btn {
                 padding: 6;
-                width: 49px;
-                font-size: 30px;
+                width: 30px;
+                font-size: 0px;
             }
             
             .header-btn.account-btn span:last-child {
@@ -1870,17 +1870,17 @@
         <!-- يمين الشاشة: البحث وحسابي -->
         <div class="header-right">
             <button class="header-btn" onclick="openSearchOverlay()" title="بحث">
-                🔍
+                بحث
             </button>
             <button class="header-btn account-btn" onclick="handleAccountClick()" title="حسابي">
-                <span>👤</span> <span>حسابي</span>
+                <span>حسابي</span>
             </button>
         </div>
         
         <!-- وسط: الشعار -->
         <div class="header-center">
             <a href="/" class="header-logo">
-                🛒 المتجر
+                المتجر
             </a>
         </div>
         
@@ -1907,28 +1907,25 @@
             <button class="sidebar-close" onclick="closeSidebar()">✕</button>
             {% if profile_photo %}
             <img src="{{ profile_photo }}" class="sidebar-avatar-img" alt="صورة البروفايل" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-            <div class="sidebar-avatar" style="display: none;">👤</div>
+            <div class="sidebar-avatar" style="display: none;"></div>
             {% else %}
-            <div class="sidebar-avatar">👤</div>
+            <div class="sidebar-avatar"></div>
             {% endif %}
             <div class="sidebar-user-name" id="sidebarUserName">{{ user_name }}</div>
             <div class="sidebar-user-id">ID: <span id="sidebarUserId">{{ current_user_id }}</span></div>
-            <div class="sidebar-balance">💰 <span id="sidebarBalance">{{ balance }}</span> ريال</div>
+            <div class="sidebar-balance"><span id="sidebarBalance">{{ balance }}</span> ريال</div>
         </div>
         
         <!-- روابط سريعة -->
         <div class="sidebar-section">
             <div class="sidebar-section-title">القائمة الرئيسية</div>
             <div class="sidebar-menu-item active" onclick="scrollToSection('top'); closeSidebar();">
-                <span class="sidebar-menu-icon">🏠</span>
                 <span class="sidebar-menu-text">الرئيسية</span>
             </div>
             <div class="sidebar-menu-item" onclick="scrollToSection('market'); closeSidebar();">
-                <span class="sidebar-menu-icon">🛒</span>
                 <span class="sidebar-menu-text">السوق</span>
             </div>
             <div class="sidebar-menu-item" onclick="window.location.href='/my_purchases';">
-                <span class="sidebar-menu-icon">📦</span>
                 <span class="sidebar-menu-text">مشترياتي</span>
                 {% if my_purchases %}<span class="sidebar-menu-badge">{{ my_purchases|length }}</span>{% endif %}
             </div>
@@ -1940,11 +1937,9 @@
         <div class="sidebar-section">
             <div class="sidebar-section-title">المساعدة</div>
             <div class="sidebar-menu-item" onclick="window.open('https://wa.me/966504104956', '_blank');">
-                <span class="sidebar-menu-icon">📞</span>
                 <span class="sidebar-menu-text">تواصل معنا</span>
             </div>
             <div class="sidebar-menu-item" onclick="window.open('https://t.me/awedjabot', '_blank');">
-                <span class="sidebar-menu-icon">🤖</span>
                 <span class="sidebar-menu-text">البوت</span>
             </div>
         </div>
@@ -1972,19 +1967,19 @@
     <!-- تبويبات فوق الفئات -->
     <div style="display: flex !important; gap: 8px !important; overflow-x: auto !important; padding: 15px 0 !important; margin-bottom: 15px !important; background: rgba(108, 92, 231, 0.1) !important; border-radius: 12px !important;">
         <button class="tab-filter-btn active" onclick="filterCategoryByDelivery('all')" style="padding: 10px 16px; background: linear-gradient(135deg, #6c5ce7, #a29bfe); border: none; border-radius: 20px; color: white; font-weight: bold; white-space: nowrap; cursor: pointer;">
-            ⭐ الكل
+             الكل
         </button>
         <button class="tab-filter-btn" onclick="filterCategoryByDelivery('instant')" style="padding: 10px 16px; background: rgba(108, 92, 231, 0.2); border: 1px solid rgba(108, 92, 231, 0.4); border-radius: 20px; color: #aaa; white-space: nowrap; cursor: pointer;">
-            ⚡ فوري
+             فوري
         </button>
         <button class="tab-filter-btn" onclick="filterCategoryByDelivery('manual')" style="padding: 10px 16px; background: rgba(108, 92, 231, 0.2); border: 1px solid rgba(108, 92, 231, 0.4); border-radius: 20px; color: #aaa; white-space: nowrap; cursor: pointer;">
             👨‍💼 يدوي
         </button>
         <button class="tab-filter-btn" onclick="sortCategories('popular')" style="padding: 10px 16px; background: rgba(108, 92, 231, 0.2); border: 1px solid rgba(108, 92, 231, 0.4); border-radius: 20px; color: #aaa; white-space: nowrap; cursor: pointer;">
-            🔥 الأكثر شهرة
+             الأكثر شهرة
         </button>
         <button class="tab-filter-btn" onclick="sortCategories('newest')" style="padding: 10px 16px; background: rgba(108, 92, 231, 0.2); border: 1px solid rgba(108, 92, 231, 0.4); border-radius: 20px; color: #aaa; white-space: nowrap; cursor: pointer;">
-            ✨ الأحدث
+             الأحدث
         </button>
     </div>
 
@@ -2015,7 +2010,7 @@
     <div class="login-modal" id="loginModal">
         <div class="login-modal-content">
             <span class="close-modal" onclick="closeLoginModal()">✕</span>
-            <div class="modal-logo">🏪</div>
+            <div class="modal-logo"></div>
             <h2 class="modal-title">تسجيل الدخول</h2>
             <p class="modal-text">أدخل معرف تيليجرام الخاص بك والكود الذي ستحصل عليه من البوت</p>
             
@@ -2033,27 +2028,27 @@
     </div>
 
     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-        <h3 style="margin: 0;">🛒 السوق</h3>
+        <h3 style="margin: 0;">السوق</h3>
         <span id="categoryFilter" style="color: #6c5ce7; font-size: 14px; font-weight: bold;"></span>
     </div>
     <!-- نافذة التأكيد -->
     <div id="buyModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>🛒 تأكيد الشراء</h2>
+                <h2>تأكيد الشراء</h2>
             </div>
             <div class="modal-body">
                 <div class="modal-product-info">
                     <div class="modal-info-row">
-                        <span class="modal-info-label">📦 المنتج:</span>
+                        <span class="modal-info-label">المنتج:</span>
                         <span class="modal-info-value" id="modalProductName"></span>
                     </div>
                     <div class="modal-info-row">
-                        <span class="modal-info-label">🏷️ الفئة:</span>
+                        <span class="modal-info-label"> الفئة:</span>
                         <span class="modal-info-value" id="modalProductCategory"></span>
                     </div>
                     <div class="modal-info-row">
-                        <span class="modal-info-label">💰 السعر:</span>
+                        <span class="modal-info-label">السعر:</span>
                         <span class="modal-info-value modal-price" id="modalProductPrice"></span>
                     </div>
                 </div>
@@ -2063,14 +2058,14 @@
                 <div id="buyerInputSection" style="display: none; margin-top: 15px;">
                     <div style="background: rgba(243, 156, 18, 0.1); border: 1px solid rgba(243, 156, 18, 0.3); border-radius: 10px; padding: 15px;">
                         <label style="color: #f39c12; font-weight: bold; display: block; margin-bottom: 10px;">
-                            📝 <span id="buyerInstructionsLabel">أدخل المعلومات المطلوبة:</span>
+                             <span id="buyerInstructionsLabel">أدخل المعلومات المطلوبة:</span>
                         </label>
                         <textarea id="buyerInputDetails" placeholder="اكتب هنا..." style="width: 100%; min-height: 80px; padding: 12px; border: 1px solid rgba(243, 156, 18, 0.5); border-radius: 8px; background: rgba(0,0,0,0.2); color: #fff; font-size: 14px; resize: vertical;"></textarea>
                     </div>
                 </div>
                 
                 <div id="deliveryTypeNote" style="text-align: center; color: #00b894; font-size: 14px; margin-top: 15px;">
-                    ⚡ سيتم تسليم الحساب فوراً بعد الشراء
+                     سيتم تسليم الحساب فوراً بعد الشراء
                 </div>
             </div>
             <div class="modal-footer">
@@ -2084,10 +2079,10 @@
     <div id="successModal" class="modal">
         <div class="modal-content success-modal">
             <div class="modal-header" style="background: linear-gradient(135deg, #00b894, #00cec9);">
-                <h2>✅ تم الشراء بنجاح!</h2>
+                <h2> تم الشراء بنجاح!</h2>
             </div>
             <div class="modal-body">
-                <div class="success-icon" style="font-size: 60px; margin: 15px 0;">🎉</div>
+                <div class="success-icon" style="font-size: 60px; margin: 15px 0;"></div>
                 <div class="success-message" style="font-size: 18px; font-weight: bold; margin-bottom: 15px;">
                     تهانينا! تم شراء المنتج بنجاح
                 </div>
@@ -2096,16 +2091,16 @@
                     <span id="successOrderId" style="color: #fff; font-weight: bold; margin-right: 8px;">#---</span>
                 </div>
                 <div id="purchaseDataContainer" style="display: none; background: linear-gradient(135deg, #1a1a2e, #16213e); border: 2px solid #00b894; border-radius: 15px; padding: 20px; margin: 15px 0; text-align: right;">
-                    <div style="color: #00b894; font-weight: bold; margin-bottom: 12px; font-size: 16px;">🔐 بيانات الاشتراك:</div>
+                    <div style="color: #00b894; font-weight: bold; margin-bottom: 12px; font-size: 16px;"> بيانات الاشتراك:</div>
                     <div id="purchaseHiddenData" style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; font-family: 'Courier New', monospace; white-space: pre-wrap; word-break: break-all; color: #55efc4; font-size: 14px; border: 1px dashed #00b894;"></div>
-                    <button onclick="copyPurchaseData()" style="margin-top: 12px; padding: 10px 25px; background: linear-gradient(135deg, #00b894, #00cec9); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.3s;">📋 نسخ البيانات</button>
+                    <button onclick="copyPurchaseData()" style="margin-top: 12px; padding: 10px 25px; background: linear-gradient(135deg, #00b894, #00cec9); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.3s;">نسخ البيانات</button>
                 </div>
                 <div id="botMessageNote" class="success-note" style="padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 13px; background: rgba(0,184,148,0.1); border: 1px solid rgba(0,184,148,0.3);">
-                    📱 تحقق أيضاً من رسائل البوت
+                    تحقق أيضاً من رسائل البوت
                 </div>
                 <div style="background: rgba(108, 92, 231, 0.1); border-radius: 10px; padding: 12px; margin-top: 15px; border: 1px solid rgba(108, 92, 231, 0.3);">
                     <a href="/my_purchases" style="color: #a29bfe; text-decoration: none; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                        📦 عرض جميع مشترياتي
+                        عرض جميع مشترياتي
                     </a>
                 </div>
             </div>
@@ -2119,7 +2114,7 @@
     <div id="warningModal" class="modal">
         <div class="modal-content warning-modal">
             <div class="modal-header">
-                <h2>⚠️ رصيد غير كافٍ</h2>
+                <h2> رصيد غير كافٍ</h2>
             </div>
             <div class="modal-body">
                 <div class="warning-icon">�</div>
@@ -2137,13 +2132,13 @@
                     </div>
                 </div>
                 <div class="warning-actions">
-                    <h4>💡 كيفية الشحن</h4>
+                    <h4> كيفية الشحن</h4>
                     <div class="action-item">
-                        <div class="action-icon">👤</div>
+                        <div class="action-icon"></div>
                         <div>التواصل مع الإدارة لشحن الرصيد</div>
                     </div>
                     <div class="action-item">
-                        <div class="action-icon">🔑</div>
+                        <div class="action-icon"></div>
                         <div>استخدام مفتاح شحن عبر الأمر /شحن</div>
                     </div>
                 </div>
@@ -2164,7 +2159,7 @@
                 {% if item.get('image_url') %}
                 <img src="{{ item.image_url }}" alt="{{ item.item_name }}">
                 {% else %}
-                🎁
+                
                 {% endif %}
             </div>
             {% if item.get('category') %}
@@ -2175,18 +2170,18 @@
                 <span class="product-category">{{ item.category }}</span>
                 {% endif %}
                 <div class="product-name">{{ item.item_name }}</div>
-                <div class="product-seller">🏪 {{ item.seller_name }}</div>
+                <div class="product-seller"> {{ item.seller_name }}</div>
                 {% if item.get('sold') and item.get('buyer_name') %}
-                <div class="sold-info">🎉 تم شراءه بواسطة: {{ item.buyer_name }}</div>
+                <div class="sold-info"> تم شراءه بواسطة: {{ item.buyer_name }}</div>
                 {% endif %}
                 <div class="product-footer">
                     <div class="product-price">{{ item.price }} ريال</div>
                     {% if item.get('sold') %}
                         <button class="product-buy-btn" disabled style="opacity: 0.5; cursor: not-allowed;">مباع 🚫</button>
                     {% elif item.seller_id|string != current_user_id|string %}
-                        <button class="product-buy-btn" onclick='buyItem("{{ item.id }}", {{ item.price }}, "{{ item.item_name|replace('"', '\\"') }}", "{{ item.get('category', '')|replace('"', '\\"') }}", {{ item.get('details', '')|tojson }})'>شراء 🛒</button>
+                        <button class="product-buy-btn" onclick='buyItem("{{ item.id }}", {{ item.price }}, "{{ item.item_name|replace('"', '\\"') }}", "{{ item.get('category', '')|replace('"', '\\"') }}", {{ item.get('details', '')|tojson }})'>شراء</button>
                     {% else %}
-                        <div class="my-product-badge">منتجك ⭐</div>
+                        <div class="my-product-badge">منتجك </div>
                     {% endif %}
                 </div>
             </div>
@@ -2198,7 +2193,7 @@
     {% if sold_items %}
     <div id="soldSection" style="margin-top: 30px;">
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-            <h3 style="margin: 0; color: #e74c3c;">✅ المنتجات المباعة</h3>
+            <h3 style="margin: 0; color: #e74c3c;"> المنتجات المباعة</h3>
             <span style="background: #e74c3c; color: white; padding: 3px 10px; border-radius: 15px; font-size: 12px;">{{ sold_items|length }}</span>
             <span id="soldCategoryFilter" style="color: #e74c3c; font-size: 14px; font-weight: bold;"></span>
         </div>
@@ -2211,7 +2206,7 @@
                     {% if item.get('image_url') %}
                     <img src="{{ item.image_url }}" alt="{{ item.item_name }}" style="filter: grayscale(50%);">
                     {% else %}
-                    🎁
+                    
                     {% endif %}
                 </div>
                 {% if item.get('category') %}
@@ -2222,9 +2217,9 @@
                     <span class="product-category" style="background: rgba(231, 76, 60, 0.2); color: #e74c3c;">{{ item.category }}</span>
                     {% endif %}
                     <div class="product-name">{{ item.item_name }}</div>
-                    <div class="product-seller">🏪 {{ item.seller_name }}</div>
+                    <div class="product-seller"> {{ item.seller_name }}</div>
                     {% if item.get('buyer_name') %}
-                    <div class="sold-info">🎉 تم شراءه بواسطة: {{ item.buyer_name }}</div>
+                    <div class="sold-info"> تم شراءه بواسطة: {{ item.buyer_name }}</div>
                     {% endif %}
                     <div class="product-footer">
                         <div class="product-price" style="color: #e74c3c; text-decoration: line-through;">{{ item.price }} ريال</div>
@@ -2336,13 +2331,13 @@
         // دالة نسخ للحافظة (للأزرار)
         function copyToClipboard(amount) {
             // يمكنك تغيير هذا لاحقاً لفتح رابط الدفع
-            alert('💰 شراء رصيد ' + amount + ' ريال - سيتم إضافة الرابط قريباً');
+            alert('شراء رصيد ' + amount + ' ريال - سيتم إضافة الرابط قريباً');
         }
         
         async function submitChargeCode() {
             const code = document.getElementById('chargeCodeInput').value.trim();
             if(!code) {
-                alert('❌ الرجاء إدخال كود الشحن');
+                alert(' الرجاء إدخال كود الشحن');
                 return;
             }
             
@@ -2358,24 +2353,24 @@
                 
                 const result = await response.json();
                 if(result.success) {
-                    alert('✅ ' + result.message);
+                    alert(' ' + result.message);
                     userBalance = result.new_balance;
                     document.getElementById('balance').textContent = userBalance;
                     document.getElementById('sidebarBalance').textContent = userBalance;
                     updateNavBalance(userBalance);
                     document.getElementById('chargeCodeInput').value = '';
                 } else {
-                    alert('❌ ' + result.message);
+                    alert(' ' + result.message);
                 }
             } catch(error) {
-                alert('❌ حدث خطأ في الاتصال');
+                alert(' حدث خطأ في الاتصال');
             }
         }
         
         // ========== دوال الهيدر ==========
         function openSearchOverlay() {
             // البحث - يمكن تخصيصه لاحقاً
-            const searchTerm = prompt('🔍 ابحث عن منتج:');
+            const searchTerm = prompt('ابحث عن منتج:');
             if(searchTerm && searchTerm.trim()) {
                 // البحث في المنتجات
                 const products = document.querySelectorAll('.product-card');
@@ -2390,7 +2385,7 @@
                     }
                 });
                 if(!found) {
-                    alert('❌ لم يتم العثور على منتج بهذا الاسم');
+                    alert(' لم يتم العثور على منتج بهذا الاسم');
                 }
             }
         }
@@ -2525,7 +2520,7 @@
         
         // دالة لعرض مساعدة الحصول على الكود
         function showCodeHelp() {
-            alert('للحصول على كود التحقق:\\n\\n1️⃣ افتح البوت في تيليجرام\\n2️⃣ أرسل الأمر /code\\n3️⃣ انسخ الكود المكون من 6 أرقام\\n4️⃣ الصقه في الحقل أعلاه');
+            alert('للحصول على كود التحقق:\\n\\n افتح البوت في تيليجرام\\n أرسل الأمر /code\\n انسخ الكود المكون من 6 أرقام\\n الصقه في الحقل أعلاه');
         }
         
         // دالة لتسجيل الخروج
@@ -2574,10 +2569,10 @@
                                     <span class="order-status ${statusClass}">${statusText}</span>
                                 </div>
                                 <div class="order-info">
-                                    <div>📦 <strong>المنتج:</strong> ${order.item_name}</div>
-                                    <div>💰 <strong>السعر:</strong> ${order.price} ريال</div>
+                                    <div><strong>المنتج:</strong> ${order.item_name}</div>
+                                    <div><strong>السعر:</strong> ${order.price} ريال</div>
                                     ${order.game_id ? `<div>🎮 <strong>معرف اللعبة:</strong> ${order.game_id}</div>` : ''}
-                                    ${order.game_name ? `<div>👤 <strong>اسم اللعبة:</strong> ${order.game_name}</div>` : ''}
+                                    ${order.game_name ? `<div><strong>اسم اللعبة:</strong> ${order.game_name}</div>` : ''}
                                     ${order.admin_name ? `<div>👨‍💼 <strong>المشرف:</strong> ${order.admin_name}</div>` : ''}
                                 </div>
                             </div>
@@ -2588,7 +2583,7 @@
                     ordersList.innerHTML = '<p style="text-align:center; color:#888;">📭 لا توجد طلبات حتى الآن</p>';
                 }
             } catch(error) {
-                ordersList.innerHTML = '<p style="text-align:center; color:#e74c3c;">❌ حدث خطأ في تحميل الطلبات</p>';
+                ordersList.innerHTML = '<p style="text-align:center; color:#e74c3c;"> حدث خطأ في تحميل الطلبات</p>';
             }
         }
         
@@ -2666,7 +2661,7 @@
                 // جعل الزر الحالي نشطاً (استخدام event بشكل آمن)
                 if(event && event.target) {
                     event.target.classList.add('active');
-                    console.log('✅ تم تحديث الزر النشط');
+                    console.log(' تم تحديث الزر النشط');
                 }
                 
                 // تصفية وعرض الأقسام
@@ -2674,7 +2669,7 @@
                 
                 if(type === 'all') {
                     // عرض جميع الأقسام
-                    console.log('📋 عرض جميع الأقسام:', allCategories.length);
+                    console.log('عرض جميع الأقسام:', allCategories.length);
                     renderAllCategories();
                 } else {
                     // تصفية حسب نوع التسليم
@@ -2683,19 +2678,19 @@
                         return catDelivery === type;
                     });
                     
-                    console.log('🎯 الأقسام المصفاة (' + type + '):', filtered.length);
+                    console.log(' الأقسام المصفاة (' + type + '):', filtered.length);
                     // إعادة رسم الأقسام المصفاة
                     renderCategoriesGrid(filtered);
                 }
             } catch(error) {
-                console.error('❌ خطأ في تصفية الأقسام:', error);
+                console.error(' خطأ في تصفية الأقسام:', error);
             }
         }
         
         // دالة ترتيب الأقسام
         function sortCategories(sortBy) {
             try {
-                console.log('🔄 ترتيب الأقسام حسب:', sortBy);
+                console.log(' ترتيب الأقسام حسب:', sortBy);
                 
                 // تحديث الأزرار النشطة
                 document.querySelectorAll('.tab-filter-btn').forEach(btn => {
@@ -2705,7 +2700,7 @@
                 // جعل الزر الحالي نشطاً (استخدام event بشكل آمن)
                 if(event && event.target) {
                     event.target.classList.add('active');
-                    console.log('✅ تم تحديث الزر النشط');
+                    console.log(' تم تحديث الزر النشط');
                 }
                 
                 const container = document.getElementById('categoriesContainer');
@@ -2718,18 +2713,18 @@
                         const bCount = allItems.filter(i => i.category === b.name).length;
                         return bCount - aCount;
                     });
-                    console.log('🔥 تم الترتيب حسب الشهرة');
+                    console.log(' تم الترتيب حسب الشهرة');
                 } else if(sortBy === 'newest') {
                     // ترتيب حسب آخر تحديث (إذا كان موجود)
                     sorted.sort((a, b) => {
                         return (b.order || 0) - (a.order || 0);
                     });
-                    console.log('✨ تم الترتيب حسب الأحدث');
+                    console.log(' تم الترتيب حسب الأحدث');
                 }
                 
                 renderCategoriesGrid(sorted);
             } catch(error) {
-                console.error('❌ خطأ في ترتيب الأقسام:', error);
+                console.error(' خطأ في ترتيب الأقسام:', error);
             }
         }
         
@@ -2769,9 +2764,9 @@
                     catCard.onclick = () => filterCategory(cat.name);
                     container.appendChild(catCard);
                 });
-                console.log('✅ تم رسم جميع الأقسام');
+                console.log(' تم رسم جميع الأقسام');
             } catch(error) {
-                console.error('❌ خطأ في رسم الأقسام:', error);
+                console.error(' خطأ في رسم الأقسام:', error);
             }
         }
         
@@ -2843,7 +2838,7 @@
                     const isMyProduct = item.seller_id == currentUserId;
                     const isSold = item.sold === true;
                     const deliveryType = item.delivery_type || 'instant';
-                    const deliveryBadge = deliveryType === 'manual' ? '<span class="delivery-badge manual">👨‍💼 يدوي</span>' : '<span class="delivery-badge instant">⚡ فوري</span>';
+                    const deliveryBadge = deliveryType === 'manual' ? '<span class="delivery-badge manual">👨‍💼 يدوي</span>' : '<span class="delivery-badge instant"> فوري</span>';
                     
                     // تجهيز البيانات للأزرار
                     const safeItemName = (item.item_name || '').replace(/'/g, "\\\\'").replace(/"/g, '\\\\"');
@@ -2853,20 +2848,20 @@
                         <div class="product-card ${isSold ? 'sold-product' : ''}" data-product-id="${item.id}">
                             ${isSold ? '<div class="sold-ribbon">مباع ✓</div>' : ''}
                             <div class="product-image" ${!isSold && !isMyProduct ? `onclick="showProductDetails('${item.id}')"` : ''}>
-                                ${item.image_url ? `<img src="${item.image_url}" alt="${item.item_name}">` : '🎁'}
+                                ${item.image_url ? `<img src="${item.image_url}" alt="${item.item_name}">` : ''}
                                 ${deliveryBadge}
                             </div>
                             ${item.category ? `<div class="product-badge">${item.category}</div>` : ''}
                             <div class="product-info">
                                 <div class="product-name" ${!isSold && !isMyProduct ? `onclick="showProductDetails('${item.id}')"` : ''}>${item.item_name}</div>
-                                <div class="product-seller">🏪 ${item.seller_name}</div>
+                                <div class="product-seller"> ${item.seller_name}</div>
                                 <div class="product-price-row">
                                     <div class="product-price">${item.price} ريال</div>
                                     ${isSold ? 
                                         `<button class="btn-sold" disabled>مباع</button>` :
                                         (!isMyProduct ? 
-                                            `<button class="btn-add-cart" data-id="${item.id}" data-name="${safeItemName}" data-delivery="${deliveryType}" data-instructions="${buyerInstr}">🛒 أضف</button>` : 
-                                            `<span class="my-product-badge">منتجك ⭐</span>`)
+                                            `<button class="btn-add-cart" data-id="${item.id}" data-name="${safeItemName}" data-delivery="${deliveryType}" data-instructions="${buyerInstr}">أضف</button>` : 
+                                            `<span class="my-product-badge">منتجك </span>`)
                                     }
                                 </div>
                             </div>
@@ -2971,7 +2966,7 @@
                 buyerInputDetails.value = '';
                 
                 deliveryTypeNote.style.color = '#00b894';
-                deliveryTypeNote.innerHTML = '⚡ تسليم فوري - ستحصل على البيانات مباشرة';
+                deliveryTypeNote.innerHTML = ' تسليم فوري - ستحصل على البيانات مباشرة';
             }
             
             document.getElementById('buyModal').style.display = 'block';
@@ -2990,7 +2985,7 @@
             if(currentPurchaseData.deliveryType === 'manual') {
                 const buyerDetails = document.getElementById('buyerInputDetails').value.trim();
                 if(!buyerDetails) {
-                    alert('❌ الرجاء إدخال المعلومات المطلوبة');
+                    alert(' الرجاء إدخال المعلومات المطلوبة');
                     return;
                 }
                 currentPurchaseData.buyerDetails = buyerDetails;
@@ -3033,21 +3028,21 @@
                     // إظهار رسالة نجاح حسب نوع التسليم
                     let successMsg = '';
                     if(data.delivery_type === 'manual') {
-                        successMsg = '✅ تم تسجيل طلبك بنجاح! 📋\\n\\nرقم الطلب: ' + (data.order_id || '---') + '\\n\\n👨‍💼 سيتم تنفيذ طلبك بواسطة المشرف قريباً\\n\\nستصلك رسالة عند اكتمال التنفيذ';
+                        successMsg = ' تم تسجيل طلبك بنجاح! \\n\\nرقم الطلب: ' + (data.order_id || '---') + '\\n\\n👨‍💼 سيتم تنفيذ طلبك بواسطة المشرف قريباً\\n\\nستصلك رسالة عند اكتمال التنفيذ';
                     } else {
-                        successMsg = '✅ تم الشراء بنجاح! 🎉\\n\\nرقم الطلب: ' + (data.order_id || '---') + '\\n\\nستجد البيانات في صفحة مشترياتي وأيضاً في رسائل البوت';
+                        successMsg = ' تم الشراء بنجاح! \\n\\nرقم الطلب: ' + (data.order_id || '---') + '\\n\\nستجد البيانات في صفحة مشترياتي وأيضاً في رسائل البوت';
                     }
                     alert(successMsg);
                     location.reload();
                 } else {
                     closeModal();
-                    alert('❌ ' + (data.message || 'حدث خطأ غير معروف'));
+                    alert(' ' + (data.message || 'حدث خطأ غير معروف'));
                 }
             }).catch(err => {
                 confirmBtn.textContent = originalText;
                 confirmBtn.disabled = false;
                 closeModal();
-                alert('❌ حدث خطأ: ' + err.message);
+                alert(' حدث خطأ: ' + err.message);
                 console.error('Purchase error:', err);
             });
         }
@@ -3071,11 +3066,11 @@
                 lastPurchaseData = hiddenData;
                 
                 if(messageSent) {
-                    botNote.innerHTML = '✅ تم إرسال البيانات أيضاً للبوت';
+                    botNote.innerHTML = ' تم إرسال البيانات أيضاً للبوت';
                     botNote.style.color = '#00b894';
                     botNote.style.background = 'rgba(0,184,148,0.15)';
                 } else {
-                    botNote.innerHTML = '⚠️ لم يتم إرسال البيانات للبوت (ابدأ محادثة مع البوت أولاً)';
+                    botNote.innerHTML = ' لم يتم إرسال البيانات للبوت (ابدأ محادثة مع البوت أولاً)';
                     botNote.style.color = '#fdcb6e';
                     botNote.style.background = 'rgba(253,203,110,0.15)';
                 }
@@ -3085,12 +3080,12 @@
             
             // إظهار النافذة
             document.getElementById('successModal').style.display = 'block';
-            console.log('✅ Success modal displayed');
+            console.log(' Success modal displayed');
         }
         
         function copyPurchaseData() {
             navigator.clipboard.writeText(lastPurchaseData).then(() => {
-                alert('✅ تم نسخ البيانات!');
+                alert(' تم نسخ البيانات!');
             }).catch(() => {
                 // fallback للأجهزة القديمة
                 const textArea = document.createElement('textarea');
@@ -3099,7 +3094,7 @@
                 textArea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textArea);
-                alert('✅ تم نسخ البيانات!');
+                alert(' تم نسخ البيانات!');
             });
         }
 
@@ -3142,20 +3137,20 @@
         // تحميل قائمة التبويبات المتاحة
         async function loadDynamicTabs() {
             try {
-                console.log('🔄 جاري تحميل التبويبات الديناميكية...');
+                console.log(' جاري تحميل التبويبات الديناميكية...');
                 const response = await fetch('/api/tabs/list');
                 
                 if (!response.ok) {
-                    console.error('❌ خطأ في الاتصال:', response.status);
+                    console.error(' خطأ في الاتصال:', response.status);
                     return;
                 }
                 
                 const data = await response.json();
-                console.log('📊 البيانات المستلمة:', data);
+                console.log(' البيانات المستلمة:', data);
                 
                 if (data.status === 'success' && data.tabs && data.tabs.length > 0) {
                     allDynamicTabs = data.tabs;
-                    console.log('✅ تم تحميل التبويبات:', allDynamicTabs);
+                    console.log(' تم تحميل التبويبات:', allDynamicTabs);
                     
                     // إظهار قسم التبويبات
                     const section = document.getElementById('dynamicTabsSection');
@@ -3180,12 +3175,12 @@
                         await switchDynamicTab(allDynamicTabs[0]);
                     }
                 } else {
-                    console.log('⚠️ لا توجد تبويبات ديناميكية أو Firebase غير متصل');
-                    document.getElementById('dynamicTabsSection').innerHTML = '<div style="text-align: center; padding: 20px; color: #888;">⚠️ لا توجد تبويبات متاحة حالياً</div>';
+                    console.log(' لا توجد تبويبات ديناميكية أو Firebase غير متصل');
+                    document.getElementById('dynamicTabsSection').innerHTML = '<div style="text-align: center; padding: 20px; color: #888;"> لا توجد تبويبات متاحة حالياً</div>';
                 }
             } catch (error) {
-                console.error('❌ خطأ في تحميل التبويبات:', error);
-                document.getElementById('dynamicTabsSection').innerHTML = '<div style="text-align: center; padding: 20px; color: #e74c3c;">❌ خطأ في تحميل التبويبات</div>';
+                console.error(' خطأ في تحميل التبويبات:', error);
+                document.getElementById('dynamicTabsSection').innerHTML = '<div style="text-align: center; padding: 20px; color: #e74c3c;"> خطأ في تحميل التبويبات</div>';
             }
         }
         
@@ -3193,7 +3188,7 @@
         function renderDynamicTabs() {
             const container = document.getElementById('dynamicTabsContainer');
             if (!container) {
-                console.error('❌ لم يتم العثور على dynamicTabsContainer');
+                console.error(' لم يتم العثور على dynamicTabsContainer');
                 return;
             }
             
@@ -3233,7 +3228,7 @@
                 // إظهار رسالة التحميل
                 const contentContainer = document.getElementById('dynamicContentContainer');
                 if (!contentContainer) {
-                    console.error('❌ لم يتم العثور على dynamicContentContainer');
+                    console.error(' لم يتم العثور على dynamicContentContainer');
                     return;
                 }
                 contentContainer.innerHTML = '<div class="tab-loading">⏳ جاري التحميل...</div>';
@@ -3244,24 +3239,24 @@
                 
                 const response = await fetch(url);
                 if (!response.ok) {
-                    console.error('❌ خطأ في الاتصال:', response.status);
-                    contentContainer.innerHTML = '<div class="tab-error">❌ خطأ في الاتصال</div>';
+                    console.error(' خطأ في الاتصال:', response.status);
+                    contentContainer.innerHTML = '<div class="tab-error"> خطأ في الاتصال</div>';
                     return;
                 }
                 
                 const data = await response.json();
-                console.log('📊 البيانات المستلمة من tab:', data);
+                console.log(' البيانات المستلمة من tab:', data);
                 
                 if (data.status === 'success') {
                     renderTabData(tabName, data.data);
                 } else {
-                    contentContainer.innerHTML = '<div class="tab-error">❌ ' + (data.message || 'خطأ في تحميل البيانات') + '</div>';
+                    contentContainer.innerHTML = '<div class="tab-error"> ' + (data.message || 'خطأ في تحميل البيانات') + '</div>';
                 }
             } catch (error) {
-                console.error('❌ خطأ في تبديل التبويب:', error);
+                console.error(' خطأ في تبديل التبويب:', error);
                 const contentContainer = document.getElementById('dynamicContentContainer');
                 if (contentContainer) {
-                    contentContainer.innerHTML = '<div class="tab-error">❌ حدث خطأ في الاتصال</div>';
+                    contentContainer.innerHTML = '<div class="tab-error"> حدث خطأ في الاتصال</div>';
                 }
             }
         }
@@ -3270,7 +3265,7 @@
         function renderTabData(tabName, items) {
             const contentContainer = document.getElementById('dynamicContentContainer');
             if (!contentContainer) {
-                console.error('❌ لم يتم العثور على contentContainer');
+                console.error(' لم يتم العثور على contentContainer');
                 return;
             }
             
@@ -3288,7 +3283,7 @@
                 const itemName = item.name || item.title || item.id || 'عنصر بدون اسم';
                 const itemDesc = item.description || item.desc || '';
                 const itemPrice = item.price || '';
-                const itemImage = item.image || item.icon || '📦';
+                const itemImage = item.image || item.icon || '';
                 
                 // إنشاء بطاقة
                 html += `
@@ -3299,7 +3294,7 @@
                         <div style="flex: 1;">
                             <div style="font-weight: bold; color: #fff;">${escapeHtml(itemName)}</div>
                             ${itemDesc ? `<div style="font-size: 12px; color: #aaa; margin-top: 4px;">${escapeHtml(itemDesc)}</div>` : ''}
-                            ${itemPrice ? `<div style="font-size: 12px; color: #a29bfe; margin-top: 4px;">💰 ${escapeHtml(String(itemPrice))}</div>` : ''}
+                            ${itemPrice ? `<div style="font-size: 12px; color: #a29bfe; margin-top: 4px;"> ${escapeHtml(String(itemPrice))}</div>` : ''}
                         </div>
                     </div>
                 `;
@@ -3432,7 +3427,7 @@
                 return;
             }
             
-            const deliveryText = product.delivery_type === 'manual' ? 'تسليم يدوي 🤝' : 'تسليم فوري ⚡';
+            const deliveryText = product.delivery_type === 'manual' ? 'تسليم يدوي 🤝' : 'تسليم فوري ';
             const safeItemName = (product.item_name || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
             const buyerInstr = product.buyer_instructions ? product.buyer_instructions.replace(/'/g, "\\'").replace(/"/g, '\\"') : '';
             
@@ -3440,7 +3435,7 @@
                 <div class="product-detail-modal">
                     <div class="pdm-header">
                         <div class="pdm-image">
-                            ${product.image_url ? `<img src="${product.image_url}" alt="${product.item_name}">` : '🎁'}
+                            ${product.image_url ? `<img src="${product.image_url}" alt="${product.item_name}">` : ''}
                         </div>
                         <div class="pdm-title">${product.item_name}</div>
                         ${product.category ? `<div class="pdm-category">${product.category}</div>` : ''}
@@ -3453,7 +3448,7 @@
                         </div>
                         <div class="pdm-row">
                             <span class="pdm-label">البائع:</span>
-                            <span class="pdm-value">🏪 ${product.seller_name || 'غير معروف'}</span>
+                            <span class="pdm-value"> ${product.seller_name || 'غير معروف'}</span>
                         </div>
                         <div class="pdm-row">
                             <span class="pdm-label">نوع التسليم:</span>
@@ -3475,7 +3470,7 @@
                     
                     <div class="pdm-actions">
                         <button class="pdm-btn close" onclick="closeProductDetailModal()">إغلاق</button>
-                        <button class="pdm-btn cart" id="pdmAddCartBtn" data-id="${product.id}" data-name="${safeItemName}" data-delivery="${product.delivery_type || 'instant'}" data-instructions="${buyerInstr}">أضف للسلة 🛒</button>
+                        <button class="pdm-btn cart" id="pdmAddCartBtn" data-id="${product.id}" data-name="${safeItemName}" data-delivery="${product.delivery_type || 'instant'}" data-instructions="${buyerInstr}">أضف للسلة </button>
                     </div>
                 </div>
             `;
@@ -3541,14 +3536,14 @@
                 modal.innerHTML = `
                     <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;">
                         <div style="background:#1a1a2e;border-radius:20px;padding:25px;max-width:400px;width:100%;text-align:center;">
-                            <div style="font-size:40px;margin-bottom:15px;">📝</div>
+                            <div style="font-size:40px;margin-bottom:15px;"></div>
                             <div style="font-size:18px;font-weight:bold;margin-bottom:10px;">معلومات مطلوبة</div>
                             <div style="color:#888;margin-bottom:15px;" id="cartProductName"></div>
                             <div style="background:rgba(241,196,15,0.1);border:1px solid rgba(241,196,15,0.3);border-radius:10px;padding:12px;margin-bottom:15px;color:#f1c40f;font-size:14px;" id="cartInstructionsLabel"></div>
                             <textarea id="cartBuyerDetails" placeholder="أدخل المعلومات المطلوبة..." style="width:100%;padding:15px;border:2px solid rgba(255,255,255,0.1);border-radius:12px;background:rgba(255,255,255,0.05);color:#fff;font-size:16px;font-family:'Tajawal',sans-serif;resize:none;height:100px;margin-bottom:15px;"></textarea>
                             <div style="display:flex;gap:10px;">
-                                <button onclick="submitCartWithDetails()" style="flex:1;padding:14px;background:linear-gradient(135deg,#00b894,#00cec9);border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:bold;cursor:pointer;font-family:'Tajawal',sans-serif;">✅ إضافة للسلة</button>
-                                <button onclick="closeCartInputModal()" style="flex:1;padding:14px;background:rgba(255,255,255,0.1);border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:bold;cursor:pointer;font-family:'Tajawal',sans-serif;">❌ إلغاء</button>
+                                <button onclick="submitCartWithDetails()" style="flex:1;padding:14px;background:linear-gradient(135deg,#00b894,#00cec9);border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:bold;cursor:pointer;font-family:'Tajawal',sans-serif;"> إضافة للسلة</button>
+                                <button onclick="closeCartInputModal()" style="flex:1;padding:14px;background:rgba(255,255,255,0.1);border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:bold;cursor:pointer;font-family:'Tajawal',sans-serif;"> إلغاء</button>
                             </div>
                         </div>
                     </div>
@@ -3571,7 +3566,7 @@
         function submitCartWithDetails() {
             const details = document.getElementById('cartBuyerDetails').value.trim();
             if(!details) {
-                alert('❌ الرجاء إدخال المعلومات المطلوبة');
+                alert(' الرجاء إدخال المعلومات المطلوبة');
                 return;
             }
             
@@ -3598,13 +3593,13 @@
                     // تحديث عداد السلة
                     updateCartBadge(data.cart_count);
                     // إظهار رسالة نجاح
-                    showCartToast('✅ تمت إضافة "' + productName + '" للسلة');
+                    showCartToast(' تمت إضافة "' + productName + '" للسلة');
                 } else {
-                    alert('❌ ' + (data.message || 'حدث خطأ'));
+                    alert(' ' + (data.message || 'حدث خطأ'));
                 }
             } catch(error) {
                 console.error('Cart error:', error);
-                alert('❌ حدث خطأ في الاتصال');
+                alert(' حدث خطأ في الاتصال');
             }
         }
         
@@ -3652,31 +3647,31 @@
     <!-- شريط الملاحة السفلي العائم -->
     <div class="floating-bottom-nav">
         <div class="floating-nav-item active" data-action="home">
-            <div class="floating-nav-icon">🏠</div>
+            <div class="floating-nav-icon"></div>
             <div class="floating-nav-label">الرئيسية</div>
         </div>
         <div class="floating-nav-item" data-action="cart">
             <span class="nav-badge {% if cart_count == 0 %}hidden{% endif %}" id="cartBadge">{{ cart_count }}</span>
-            <div class="floating-nav-icon">🛒</div>
+            <div class="floating-nav-icon"></div>
             <div class="floating-nav-label">السلة</div>
         </div>
         <div class="floating-nav-item" data-action="orders">
             <span class="nav-badge hidden" id="ordersBadge">0</span>
-            <div class="floating-nav-icon">📦</div>
+            <div class="floating-nav-icon"></div>
             <div class="floating-nav-label">طلباتي</div>
         </div>
         <div class="floating-nav-item" data-action="charge">
-            <div class="floating-nav-icon">💳</div>
+            <div class="floating-nav-icon"></div>
             <div class="floating-nav-label">شحن</div>
         </div>
         <div class="floating-nav-item" data-action="account">
-            <div class="floating-nav-icon">👤</div>
+            <div class="floating-nav-icon"></div>
             <div class="floating-nav-label">حسابي</div>
             <div class="nav-balance" id="navBalance">{{ balance }} ر.س</div>
         </div>
     </div>
     
-    <!-- 🛡️ حماية من الفحص -->
+    <!--  حماية من الفحص -->
     <script>
         // تعطيل الزر الأيمن
         document.addEventListener('contextmenu', function(e) {

@@ -185,21 +185,21 @@
 
 {% block content %}
 <div class="top-bar">
-    <h1>📊 الفواتير والمعاملات</h1>
+    <h1> الفواتير والمعاملات</h1>
     <div class="top-bar-actions">
-        <button class="btn btn-secondary btn-sm" onclick="loadData()">🔄 تحديث</button>
+        <button class="btn btn-secondary btn-sm" onclick="loadData()"> تحديث</button>
     </div>
 </div>
 
 <!-- الإحصائيات -->
 <div class="stats-grid-mini">
     <div class="stat-mini success">
-        <div class="icon">💰</div>
+        <div class="icon"></div>
         <div class="value" id="totalRevenue">0</div>
         <div class="label">إجمالي الإيرادات</div>
     </div>
     <div class="stat-mini">
-        <div class="icon">✅</div>
+        <div class="icon"></div>
         <div class="value" id="completedPayments">0</div>
         <div class="label">مدفوعات مكتملة</div>
     </div>
@@ -209,17 +209,17 @@
         <div class="label">مدفوعات معلقة</div>
     </div>
     <div class="stat-mini">
-        <div class="icon">🛒</div>
+        <div class="icon"></div>
         <div class="value" id="totalOrders">0</div>
         <div class="label">إجمالي الطلبات</div>
     </div>
     <div class="stat-mini">
-        <div class="icon">📦</div>
+        <div class="icon"></div>
         <div class="value" id="soldProducts">0</div>
         <div class="label">منتجات مباعة</div>
     </div>
     <div class="stat-mini success">
-        <div class="icon">🏷️</div>
+        <div class="icon"></div>
         <div class="value" id="availableProducts">0</div>
         <div class="label">متاحة للبيع</div>
     </div>
@@ -227,19 +227,19 @@
 
 <!-- التبويبات -->
 <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('payments')">💳 طلبات الدفع</button>
-    <button class="tab-btn" onclick="switchTab('invoices')">🧾 فواتير التجار</button>
+    <button class="tab-btn active" onclick="switchTab('payments')"> طلبات الدفع</button>
+    <button class="tab-btn" onclick="switchTab('invoices')"> فواتير التجار</button>
     <button class="tab-btn" onclick="switchTab('charges')">🔋 سجل الشحن</button>
-    <button class="tab-btn" onclick="switchTab('orders')">🛒 المشتريات</button>
-    <button class="tab-btn" onclick="switchTab('sold')">📦 المباعة</button>
-    <button class="tab-btn" onclick="switchTab('available')">🏷️ المتاحة</button>
+    <button class="tab-btn" onclick="switchTab('orders')"> المشتريات</button>
+    <button class="tab-btn" onclick="switchTab('sold')"> المباعة</button>
+    <button class="tab-btn" onclick="switchTab('available')"> المتاحة</button>
 </div>
 
 <!-- طلبات الدفع -->
 <div class="tab-content active" id="payments-tab">
     <div class="table-wrapper">
         <div class="table-header">
-            <div class="table-title">💳 طلبات الدفع</div>
+            <div class="table-title"> طلبات الدفع</div>
             <input type="text" class="search-box" placeholder="بحث..." onkeyup="filterTable('paymentsTable', this.value)">
         </div>
         <div class="table-container">
@@ -267,7 +267,7 @@
 <div class="tab-content" id="invoices-tab">
     <div class="table-wrapper">
         <div class="table-header">
-            <div class="table-title">🧾 فواتير التجار</div>
+            <div class="table-title"> فواتير التجار</div>
             <input type="text" class="search-box" placeholder="بحث..." onkeyup="filterTable('invoicesTable', this.value)">
         </div>
         <div class="table-container">
@@ -320,7 +320,7 @@
 <div class="tab-content" id="orders-tab">
     <div class="table-wrapper">
         <div class="table-header">
-            <div class="table-title">🛒 المشتريات</div>
+            <div class="table-title"> المشتريات</div>
             <input type="text" class="search-box" placeholder="بحث..." onkeyup="filterTable('ordersTable', this.value)">
         </div>
         <div class="table-container">
@@ -348,7 +348,7 @@
 <div class="tab-content" id="sold-tab">
     <div class="table-wrapper">
         <div class="table-header">
-            <div class="table-title">📦 المنتجات المباعة</div>
+            <div class="table-title"> المنتجات المباعة</div>
             <input type="text" class="search-box" placeholder="بحث..." onkeyup="filterTable('soldTable', this.value)">
         </div>
         <div class="table-container">
@@ -374,7 +374,7 @@
 <div class="tab-content" id="available-tab">
     <div class="table-wrapper">
         <div class="table-header">
-            <div class="table-title">🏷️ المنتجات المتاحة للبيع</div>
+            <div class="table-title"> المنتجات المتاحة للبيع</div>
             <input type="text" class="search-box" placeholder="بحث..." onkeyup="filterTable('availableTable', this.value)">
         </div>
         <div class="table-container">
@@ -458,7 +458,7 @@
                 <td><span class="type-badge ${p.is_merchant_invoice ? 'invoice' : 'charge'}">${p.type || ''}</span></td>
                 <td><span class="status ${p.status || ''}">${getStatusText(p.status)}</span></td>
                 <td style="font-size:12px;">${formatDate(p.created_at)}</td>
-                <td><button class="details-btn" onclick='showPaymentDetails(${JSON.stringify(p)})'>👁️</button></td>
+                <td><button class="details-btn" onclick='showPaymentDetails(${JSON.stringify(p)})'></button></td>
             </tr>
         `).join('');
     }
@@ -476,7 +476,7 @@
                 <td class="amount">${(inv.amount || 0).toLocaleString()} ر.س</td>
                 <td><span class="status ${inv.status || ''}">${getStatusText(inv.status)}</span></td>
                 <td style="font-size:12px;">${formatDate(inv.created_at)}</td>
-                <td><button class="details-btn" onclick='showInvoiceDetails(${JSON.stringify(inv)})'>👁️</button></td>
+                <td><button class="details-btn" onclick='showInvoiceDetails(${JSON.stringify(inv)})'></button></td>
             </tr>
         `).join('');
     }
@@ -512,7 +512,7 @@
                 <td>${o.buyer_name || ''}<br><small style="color:var(--muted)">${o.buyer_id || ''}</small></td>
                 <td>${o.seller_name || ''}</td>
                 <td style="font-size:12px;">${formatDate(o.created_at)}</td>
-                <td><button class="details-btn" onclick='showOrderDetails(${JSON.stringify(o)})'>👁️</button></td>
+                <td><button class="details-btn" onclick='showOrderDetails(${JSON.stringify(o)})'></button></td>
             </tr>
         `).join('');
     }
@@ -546,7 +546,7 @@
                 <td class="amount">${(p.price || 0).toLocaleString()} ر.س</td>
                 <td>${p.category || '-'}</td>
                 <td>${p.seller_name || 'المتجر'}</td>
-                <td>${p.delivery_type === 'instant' ? '⚡ فوري' : '📦 يدوي'}</td>
+                <td>${p.delivery_type === 'instant' ? ' فوري' : ' يدوي'}</td>
             </tr>
         `).join('');
     }
@@ -559,7 +559,7 @@
     }
     
     function showPaymentDetails(payment) {
-        document.getElementById('modalTitle').textContent = '💳 تفاصيل طلب الدفع';
+        document.getElementById('modalTitle').textContent = ' تفاصيل طلب الدفع';
         document.getElementById('modalBody').innerHTML = `
             <div class="detail-row"><span class="detail-label">رقم الطلب:</span><span class="detail-value">${payment.order_id || ''}</span></div>
             <div class="detail-row"><span class="detail-label">المستخدم:</span><span class="detail-value">${payment.user_name || ''} (${payment.user_id || ''})</span></div>
@@ -574,7 +574,7 @@
     }
     
     function showInvoiceDetails(invoice) {
-        document.getElementById('modalTitle').textContent = '🧾 تفاصيل فاتورة التاجر';
+        document.getElementById('modalTitle').textContent = ' تفاصيل فاتورة التاجر';
         document.getElementById('modalBody').innerHTML = `
             <div class="detail-row"><span class="detail-label">رقم الفاتورة:</span><span class="detail-value">${invoice.id || ''}</span></div>
             <div class="detail-row"><span class="detail-label">التاجر:</span><span class="detail-value">${invoice.merchant_name || ''} (${invoice.merchant_id || ''})</span></div>
@@ -587,14 +587,14 @@
     }
     
     function showOrderDetails(order) {
-        document.getElementById('modalTitle').textContent = '🛒 تفاصيل الطلب';
+        document.getElementById('modalTitle').textContent = ' تفاصيل الطلب';
         document.getElementById('modalBody').innerHTML = `
             <div class="detail-row"><span class="detail-label">رقم الطلب:</span><span class="detail-value">#${order.order_id || ''}</span></div>
             <div class="detail-row"><span class="detail-label">المنتج:</span><span class="detail-value">${order.item_name || ''}</span></div>
             <div class="detail-row"><span class="detail-label">السعر:</span><span class="detail-value amount">${(order.price || 0).toLocaleString()} ر.س</span></div>
             <div class="detail-row"><span class="detail-label">المشتري:</span><span class="detail-value">${order.buyer_name || ''} (${order.buyer_id || ''})</span></div>
             <div class="detail-row"><span class="detail-label">البائع:</span><span class="detail-value">${order.seller_name || ''}</span></div>
-            <div class="detail-row"><span class="detail-label">نوع التسليم:</span><span class="detail-value">${order.delivery_type === 'instant' ? '⚡ فوري' : '📦 يدوي'}</span></div>
+            <div class="detail-row"><span class="detail-label">نوع التسليم:</span><span class="detail-value">${order.delivery_type === 'instant' ? ' فوري' : ' يدوي'}</span></div>
             <div class="detail-row"><span class="detail-label">التاريخ:</span><span class="detail-value">${formatDate(order.created_at)}</span></div>
         `;
         document.getElementById('detailsModal').classList.add('active');

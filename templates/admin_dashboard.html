@@ -4,46 +4,46 @@
 
 {% block content %}
 <div class="top-bar">
-    <h1>📊 نظرة عامة</h1>
+    <h1> نظرة عامة</h1>
     <div class="top-bar-actions">
-        <button class="btn btn-secondary btn-sm" onclick="loadAllStats()">🔄 تحديث</button>
+        <button class="btn btn-secondary btn-sm" onclick="loadAllStats()"> تحديث</button>
     </div>
 </div>
 
 <!-- إحصائيات رئيسية -->
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="icon">👥</div>
+        <div class="icon"></div>
         <div class="value" id="totalUsers">-</div>
         <div class="label">إجمالي العملاء</div>
     </div>
     <div class="stat-card">
-        <div class="icon">💰</div>
+        <div class="icon"></div>
         <div class="value" id="totalBalance">-</div>
         <div class="label">إجمالي الأرصدة</div>
     </div>
     <div class="stat-card">
-        <div class="icon">📦</div>
+        <div class="icon"></div>
         <div class="value" id="totalProducts">-</div>
         <div class="label">المنتجات</div>
     </div>
     <div class="stat-card">
-        <div class="icon">✅</div>
+        <div class="icon"></div>
         <div class="value" id="availableProducts">-</div>
         <div class="label">متاح للبيع</div>
     </div>
     <div class="stat-card">
-        <div class="icon">🛒</div>
+        <div class="icon"></div>
         <div class="value" id="totalOrders">-</div>
         <div class="label">إجمالي الطلبات</div>
     </div>
     <div class="stat-card">
-        <div class="icon">💵</div>
+        <div class="icon"></div>
         <div class="value" id="totalRevenue">-</div>
         <div class="label">إجمالي الإيرادات</div>
     </div>
     <div class="stat-card">
-        <div class="icon">🔑</div>
+        <div class="icon"></div>
         <div class="value" id="activeKeys">-</div>
         <div class="label">مفاتيح نشطة</div>
     </div>
@@ -59,7 +59,7 @@
     <!-- آخر الطلبات -->
     <div class="card">
         <div class="card-header">
-            <span class="card-title">🛒 آخر الطلبات</span>
+            <span class="card-title"> آخر الطلبات</span>
             <a href="/admin/orders" class="btn btn-secondary btn-sm">عرض الكل</a>
         </div>
         <div class="table-container">
@@ -82,7 +82,7 @@
     <!-- أعلى المنتجات في السلة -->
     <div class="card">
         <div class="card-header">
-            <span class="card-title">🔥 أكثر المنتجات إضافة للسلة</span>
+            <span class="card-title"> أكثر المنتجات إضافة للسلة</span>
             <a href="/admin/carts" class="btn btn-secondary btn-sm">السلات</a>
         </div>
         <div class="table-container">
@@ -108,7 +108,7 @@
     <!-- أعلى العملاء برصيد -->
     <div class="card">
         <div class="card-header">
-            <span class="card-title">👥 العملاء الأعلى رصيداً</span>
+            <span class="card-title"> العملاء الأعلى رصيداً</span>
             <a href="/admin/customers" class="btn btn-secondary btn-sm">جميع العملاء</a>
         </div>
         <div class="table-container">
@@ -130,7 +130,7 @@
     <!-- كروت الشحن -->
     <div class="card">
         <div class="card-header">
-            <span class="card-title">🔑 كروت الشحن</span>
+            <span class="card-title"> كروت الشحن</span>
             <a href="/admin/charge-keys" class="btn btn-secondary btn-sm">إدارة الكروت</a>
         </div>
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 15px;">
@@ -159,7 +159,7 @@
 <div id="generateModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center;">
     <div class="card" style="width: 90%; max-width: 400px; margin: 0;">
         <div class="card-header">
-            <span class="card-title">🔑 توليد كروت شحن</span>
+            <span class="card-title"> توليد كروت شحن</span>
             <button onclick="closeGenerateModal()" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">✕</button>
         </div>
         <div style="padding: 20px;">
@@ -171,7 +171,7 @@
                 <label style="display: block; margin-bottom: 5px; font-size: 14px;">عدد الكروت</label>
                 <input type="number" id="keyCount" placeholder="5" min="1" max="100" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-size: 16px;">
             </div>
-            <button class="btn btn-primary" onclick="generateKeys()" style="width: 100%;">✨ توليد</button>
+            <button class="btn btn-primary" onclick="generateKeys()" style="width: 100%;"> توليد</button>
             <div id="generatedKeys" style="margin-top: 15px; display: none; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 15px; max-height: 200px; overflow-y: auto;">
             </div>
         </div>

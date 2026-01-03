@@ -4,21 +4,21 @@
 
 {% block content %}
 <div class="top-bar">
-    <h1>🛒 إدارة الطلبات</h1>
+    <h1> إدارة الطلبات</h1>
     <div class="top-bar-actions">
-        <button class="btn btn-secondary" onclick="loadOrders()">🔄 تحديث</button>
+        <button class="btn btn-secondary" onclick="loadOrders()"> تحديث</button>
     </div>
 </div>
 
 <!-- الإحصائيات -->
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="icon">📦</div>
+        <div class="icon"></div>
         <div class="value" id="totalOrders">-</div>
         <div class="label">إجمالي الطلبات</div>
     </div>
     <div class="stat-card" style="border-color: var(--success);">
-        <div class="icon">✅</div>
+        <div class="icon"></div>
         <div class="value" id="completedOrders" style="color: var(--success);">-</div>
         <div class="label">مكتملة</div>
     </div>
@@ -28,7 +28,7 @@
         <div class="label">معلقة</div>
     </div>
     <div class="stat-card">
-        <div class="icon">💰</div>
+        <div class="icon"></div>
         <div class="value" id="totalRevenue">-</div>
         <div class="label">إجمالي الإيرادات</div>
     </div>
@@ -40,14 +40,14 @@
         <select id="statusFilter" style="padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
             <option value="all">جميع الحالات</option>
             <option value="pending">⏳ معلقة</option>
-            <option value="completed">✅ مكتملة</option>
+            <option value="completed"> مكتملة</option>
         </select>
         <select id="deliveryFilter" style="padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
             <option value="all">جميع الأنواع</option>
-            <option value="instant">⚡ فوري</option>
+            <option value="instant"> فوري</option>
             <option value="manual">👨‍💼 يدوي</option>
         </select>
-        <input type="text" id="searchInput" placeholder="🔍 بحث..." 
+        <input type="text" id="searchInput" placeholder=" بحث..." 
                style="flex: 1; min-width: 150px; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
     </div>
 </div>
@@ -55,7 +55,7 @@
 <!-- جدول الطلبات -->
 <div class="card">
     <div class="card-header">
-        <span class="card-title">📋 قائمة الطلبات</span>
+        <span class="card-title"> قائمة الطلبات</span>
         <span id="ordersCountLabel" style="color: var(--muted); font-size: 13px;">جاري التحميل...</span>
     </div>
     <div class="table-container">
@@ -113,10 +113,10 @@
                 updateStats(data.stats);
                 renderOrders();
             } else {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #e74c3c;">❌ ' + (data.message || 'حدث خطأ') + '</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #e74c3c;"> ' + (data.message || 'حدث خطأ') + '</td></tr>';
             }
         } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #e74c3c;">❌ خطأ في الاتصال</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #e74c3c;"> خطأ في الاتصال</td></tr>';
         }
     }
 
@@ -152,11 +152,11 @@
         
         tbody.innerHTML = filtered.map(o => {
             const statusBadge = o.status === 'completed' 
-                ? '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(0,184,148,0.2); color: var(--success);">✅ مكتمل</span>'
+                ? '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(0,184,148,0.2); color: var(--success);"> مكتمل</span>'
                 : '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(243,156,18,0.2); color: var(--warning);">⏳ معلق</span>';
             
             const typeBadge = o.delivery_type === 'instant'
-                ? '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(52,152,219,0.2); color: var(--info);">⚡ فوري</span>'
+                ? '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(52,152,219,0.2); color: var(--info);"> فوري</span>'
                 : '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(155,89,182,0.2); color: #9b59b6;">👨‍💼 يدوي</span>';
             
             const date = o.created_at ? new Date(o.created_at).toLocaleDateString('ar-SA') : '-';
@@ -174,8 +174,8 @@
                     <td>${statusBadge}</td>
                     <td style="font-size: 12px; color: var(--muted);">${date}</td>
                     <td>
-                        <button class="btn btn-primary btn-sm" onclick="viewOrder('${o.id}')">👁️</button>
-                        ${o.status === 'pending' ? `<button class="btn btn-success btn-sm" onclick="completeOrder('${o.id}')">✅</button>` : ''}
+                        <button class="btn btn-primary btn-sm" onclick="viewOrder('${o.id}')"></button>
+                        ${o.status === 'pending' ? `<button class="btn btn-success btn-sm" onclick="completeOrder('${o.id}')"></button>` : ''}
                     </td>
                 </tr>
             `;
@@ -190,7 +190,7 @@
         const details = document.getElementById('orderDetails');
         
         details.innerHTML = `
-            <h2 style="margin-bottom: 20px;">📦 تفاصيل الطلب</h2>
+            <h2 style="margin-bottom: 20px;"> تفاصيل الطلب</h2>
             
             <div style="display: grid; gap: 15px;">
                 <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px;">
@@ -221,20 +221,20 @@
                     </div>
                     <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px;">
                         <div style="color: var(--muted); font-size: 12px;">نوع التسليم</div>
-                        <div>${order.delivery_type === 'instant' ? '⚡ فوري' : '👨‍💼 يدوي'}</div>
+                        <div>${order.delivery_type === 'instant' ? ' فوري' : '👨‍💼 يدوي'}</div>
                     </div>
                 </div>
                 
                 ${order.hidden_data ? `
                     <div style="padding: 12px; background: rgba(108,92,231,0.15); border-radius: 10px; border: 1px solid rgba(108,92,231,0.3);">
-                        <div style="color: var(--primary-light); font-size: 12px;">🔐 البيانات السرية</div>
+                        <div style="color: var(--primary-light); font-size: 12px;"> البيانات السرية</div>
                         <div style="font-family: monospace; white-space: pre-wrap; margin-top: 8px;">${order.hidden_data}</div>
                     </div>
                 ` : ''}
                 
                 ${order.buyer_details ? `
                     <div style="padding: 12px; background: rgba(243,156,18,0.15); border-radius: 10px; border: 1px solid rgba(243,156,18,0.3);">
-                        <div style="color: var(--warning); font-size: 12px;">📝 معلومات المشتري</div>
+                        <div style="color: var(--warning); font-size: 12px;"> معلومات المشتري</div>
                         <div style="margin-top: 8px;">${order.buyer_details}</div>
                     </div>
                 ` : ''}
@@ -243,7 +243,7 @@
             ${order.status === 'pending' ? `
                 <div style="margin-top: 20px; text-align: center;">
                     <button class="btn btn-success" onclick="completeOrder('${order.id}'); closeModal();">
-                        ✅ إكمال الطلب
+                         إكمال الطلب
                     </button>
                 </div>
             ` : ''}
@@ -268,7 +268,7 @@
             const data = await res.json();
             
             if (data.status === 'success') {
-                showToast('✅ تم إكمال الطلب');
+                showToast(' تم إكمال الطلب');
                 loadOrders();
             } else {
                 showToast(data.message || 'حدث خطأ', 'error');

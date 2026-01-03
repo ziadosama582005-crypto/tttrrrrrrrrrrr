@@ -258,7 +258,7 @@
         <!-- الخطوة 1: إدخال Telegram ID أو Email -->
         <div id="step1" class="step active">
             <div class="logo-area">
-                <div class="logo">📱</div>
+                <div class="logo"></div>
                 <h1>دخول المتجر</h1>
                 <p class="subtitle" id="loginSubtitle">أدخل رقم Telegram ID الخاص بك</p>
             </div>
@@ -272,14 +272,14 @@
                     </div>
                     
                     <div class="switch-method">
-                        <a onclick="switchToEmail()">📧 التسجيل بالبريد الإلكتروني</a>
+                        <a onclick="switchToEmail()"> التسجيل بالبريد الإلكتروني</a>
                     </div>
                     
-                    <button type="submit" id="sendCodeBtn">📤 إرسال كود التحقق</button>
+                    <button type="submit" id="sendCodeBtn"> إرسال كود التحقق</button>
                 </form>
                 
                 <div class="help-text">
-                    💡 لا تعرف رقم Telegram ID؟ استخدم البوت واكتب /id
+                     لا تعرف رقم Telegram ID؟ استخدم البوت واكتب /id
                 </div>
             </div>
             
@@ -287,78 +287,78 @@
             <div id="emailSection" class="login-input-section">
                 <form id="emailForm">
                     <div class="form-group">
-                        <label for="loginEmail">📧 البريد الإلكتروني</label>
+                        <label for="loginEmail"> البريد الإلكتروني</label>
                         <input type="email" id="loginEmail" placeholder="example@email.com" dir="ltr">
                     </div>
                     
                     <div class="switch-method">
-                        <a onclick="switchToTelegram()">📱 التسجيل بـ Telegram ID</a>
+                        <a onclick="switchToTelegram()"> التسجيل بـ Telegram ID</a>
                     </div>
                     
-                    <button type="submit" id="sendCodeEmailBtn">📤 إرسال كود التحقق</button>
+                    <button type="submit" id="sendCodeEmailBtn"> إرسال كود التحقق</button>
                 </form>
                 
                 <div class="help-text">
-                    💡 يجب أن يكون البريد موثق في حسابك مسبقاً
+                     يجب أن يكون البريد موثق في حسابك مسبقاً
                 </div>
             </div>
             
             <div id="error1" class="message error"></div>
             
             <div class="security-note">
-                🛡️ سيتم إرسال كود مؤقت عبر البوت للتحقق من هويتك
+                 سيتم إرسال كود مؤقت عبر البوت للتحقق من هويتك
             </div>
         </div>
         
         <!-- الخطوة 2: إدخال الكود -->
         <div id="step2" class="step">
             <div class="logo-area">
-                <div class="logo">✅</div>
+                <div class="logo"></div>
                 <h1>كود التحقق</h1>
                 <p class="subtitle">أدخل الكود المرسل لك في Telegram</p>
             </div>
             
-            <div class="timer">⏰ <span id="countdown">2:00</span></div>
+            <div class="timer"> <span id="countdown">2:00</span></div>
             
             <form id="codeForm">
                 <div class="form-group">
-                    <label for="verifyCode">🔐 كود التحقق (6 أرقام)</label>
+                    <label for="verifyCode"> كود التحقق (6 أرقام)</label>
                     <input type="text" id="verifyCode" class="code-input" placeholder="000000" maxlength="6" required inputmode="numeric">
                 </div>
-                <button type="submit" id="verifyBtn">✅ تأكيد الدخول</button>
-                <button type="button" class="back-btn" onclick="goBack()">↩️ رجوع</button>
+                <button type="submit" id="verifyBtn"> تأكيد الدخول</button>
+                <button type="button" class="back-btn" onclick="goBack()"> رجوع</button>
             </form>
             
             <div id="error2" class="message error"></div>
             <div id="success2" class="message success"></div>
             
             <div class="security-note">
-                🛡️ لا تشارك الكود مع أحد - سيظل سري بيننا وبينك فقط
+                 لا تشارك الكود مع أحد - سيظل سري بيننا وبينك فقط
             </div>
         </div>
         
         <!-- الخطوة 3: المصادقة الثنائية (2FA) -->
         <div id="step3" class="step">
             <div class="logo-area">
-                <div class="logo">🔐</div>
+                <div class="logo"></div>
                 <h1>المصادقة الثنائية</h1>
                 <p class="subtitle">أدخل الكود من Google Authenticator</p>
             </div>
             
             <form id="twoFAForm">
                 <div class="form-group">
-                    <label for="twoFACode">🔑 كود المصادقة (6 أرقام)</label>
+                    <label for="twoFACode"> كود المصادقة (6 أرقام)</label>
                     <input type="text" id="twoFACode" class="code-input" placeholder="000000" maxlength="6" required inputmode="numeric">
                 </div>
-                <button type="submit" id="verify2FABtn">✅ تأكيد الدخول</button>
-                <button type="button" class="back-btn" onclick="goBackToStep1()">↩️ رجوع للبداية</button>
+                <button type="submit" id="verify2FABtn"> تأكيد الدخول</button>
+                <button type="button" class="back-btn" onclick="goBackToStep1()"> رجوع للبداية</button>
             </form>
             
             <div id="error3" class="message error"></div>
             <div id="success3" class="message success"></div>
             
             <div class="security-note">
-                🛡️ الكود يتغير كل 30 ثانية - أدخله بسرعة!
+                 الكود يتغير كل 30 ثانية - أدخله بسرعة!
             </div>
         </div>
     </div>
@@ -397,7 +397,7 @@
             const errorDiv = document.getElementById('error1');
             
             if (!userId || !userId.match(/^\d+$/)) {
-                errorDiv.textContent = '❌ الرجاء إدخال رقم صحيح فقط';
+                errorDiv.textContent = ' الرجاء إدخال رقم صحيح فقط';
                 errorDiv.style.display = 'block';
                 return;
             }
@@ -423,16 +423,16 @@
                     startCountdown();
                     document.getElementById('verifyCode').focus();
                 } else {
-                    errorDiv.textContent = `❌ ${data.message}`;
+                    errorDiv.textContent = ` ${data.message}`;
                     errorDiv.style.display = 'block';
                     btn.disabled = false;
-                    btn.innerHTML = '📤 إرسال كود التحقق';
+                    btn.innerHTML = ' إرسال كود التحقق';
                 }
             } catch (error) {
-                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
+                errorDiv.textContent = ' خطأ في الاتصال بالسيرفر';
                 errorDiv.style.display = 'block';
                 btn.disabled = false;
-                btn.innerHTML = '📤 إرسال كود التحقق';
+                btn.innerHTML = ' إرسال كود التحقق';
             }
         });
         
@@ -444,7 +444,7 @@
             const errorDiv = document.getElementById('error1');
             
             if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-                errorDiv.textContent = '❌ الرجاء إدخال بريد إلكتروني صحيح';
+                errorDiv.textContent = ' الرجاء إدخال بريد إلكتروني صحيح';
                 errorDiv.style.display = 'block';
                 return;
             }
@@ -470,16 +470,16 @@
                     startCountdown();
                     document.getElementById('verifyCode').focus();
                 } else {
-                    errorDiv.textContent = `❌ ${data.message}`;
+                    errorDiv.textContent = ` ${data.message}`;
                     errorDiv.style.display = 'block';
                     btn.disabled = false;
-                    btn.innerHTML = '📤 إرسال كود التحقق';
+                    btn.innerHTML = ' إرسال كود التحقق';
                 }
             } catch (error) {
-                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
+                errorDiv.textContent = ' خطأ في الاتصال بالسيرفر';
                 errorDiv.style.display = 'block';
                 btn.disabled = false;
-                btn.innerHTML = '📤 إرسال كود التحقق';
+                btn.innerHTML = ' إرسال كود التحقق';
             }
         });
         
@@ -492,7 +492,7 @@
             const successDiv = document.getElementById('success2');
             
             if (!code || code.length !== 6 || !code.match(/^\d{6}$/)) {
-                errorDiv.textContent = '❌ الرجاء إدخال 6 أرقام صحيحة';
+                errorDiv.textContent = ' الرجاء إدخال 6 أرقام صحيحة';
                 errorDiv.style.display = 'block';
                 return;
             }
@@ -517,7 +517,7 @@
                 if (data.success) {
                     // التحقق من طلب المصادقة الثنائية
                     if (data.requires_2fa) {
-                        successDiv.textContent = '🔐 مطلوب كود المصادقة الثنائية';
+                        successDiv.textContent = ' مطلوب كود المصادقة الثنائية';
                         successDiv.style.display = 'block';
                         clearInterval(countdownInterval);
                         setTimeout(() => {
@@ -526,7 +526,7 @@
                             document.getElementById('twoFACode').focus();
                         }, 1000);
                     } else {
-                        successDiv.textContent = '✅ تم التحقق! جاري نقلك...';
+                        successDiv.textContent = ' تم التحقق! جاري نقلك...';
                         successDiv.style.display = 'block';
                         clearInterval(countdownInterval);
                         setTimeout(() => {
@@ -534,16 +534,16 @@
                         }, 1500);
                     }
                 } else {
-                    errorDiv.textContent = `❌ ${data.message}`;
+                    errorDiv.textContent = ` ${data.message}`;
                     errorDiv.style.display = 'block';
                     btn.disabled = false;
-                    btn.innerHTML = '✅ تأكيد الدخول';
+                    btn.innerHTML = ' تأكيد الدخول';
                 }
             } catch (error) {
-                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
+                errorDiv.textContent = ' خطأ في الاتصال بالسيرفر';
                 errorDiv.style.display = 'block';
                 btn.disabled = false;
-                btn.innerHTML = '✅ تأكيد الدخول';
+                btn.innerHTML = ' تأكيد الدخول';
             }
         });
         
@@ -558,7 +558,7 @@
                 
                 if (secondsLeft <= 0) {
                     clearInterval(countdownInterval);
-                    document.getElementById('error2').textContent = '⏰ انتهت صلاحية الكود! الرجاء المحاولة مجدداً';
+                    document.getElementById('error2').textContent = ' انتهت صلاحية الكود! الرجاء المحاولة مجدداً';
                     document.getElementById('error2').style.display = 'block';
                     document.getElementById('verifyBtn').disabled = true;
                 }
@@ -583,11 +583,11 @@
             document.getElementById('error2').style.display = 'none';
             document.getElementById('success2').style.display = 'none';
             document.getElementById('sendCodeBtn').disabled = false;
-            document.getElementById('sendCodeBtn').innerHTML = '📤 إرسال كود التحقق';
+            document.getElementById('sendCodeBtn').innerHTML = ' إرسال كود التحقق';
             document.getElementById('sendCodeEmailBtn').disabled = false;
-            document.getElementById('sendCodeEmailBtn').innerHTML = '📤 إرسال كود التحقق';
+            document.getElementById('sendCodeEmailBtn').innerHTML = ' إرسال كود التحقق';
             document.getElementById('verifyBtn').disabled = false;
-            document.getElementById('verifyBtn').innerHTML = '✅ تأكيد الدخول';
+            document.getElementById('verifyBtn').innerHTML = ' تأكيد الدخول';
         }
         
         // ===== الرجوع للخطوة 1 من 2FA =====
@@ -602,7 +602,7 @@
             document.getElementById('error3').style.display = 'none';
             document.getElementById('success3').style.display = 'none';
             document.getElementById('sendCodeBtn').disabled = false;
-            document.getElementById('sendCodeBtn').innerHTML = '📤 إرسال كود التحقق';
+            document.getElementById('sendCodeBtn').innerHTML = ' إرسال كود التحقق';
             document.getElementById('userId').focus();
         }
         
@@ -615,7 +615,7 @@
             const successDiv = document.getElementById('success3');
             
             if (!totpCode || totpCode.length !== 6 || !totpCode.match(/^\d{6}$/)) {
-                errorDiv.textContent = '❌ الرجاء إدخال 6 أرقام صحيحة';
+                errorDiv.textContent = ' الرجاء إدخال 6 أرقام صحيحة';
                 errorDiv.style.display = 'block';
                 return;
             }
@@ -635,22 +635,22 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    successDiv.textContent = '✅ تم التحقق! جاري نقلك...';
+                    successDiv.textContent = ' تم التحقق! جاري نقلك...';
                     successDiv.style.display = 'block';
                     setTimeout(() => {
                         window.location.href = '/';
                     }, 1500);
                 } else {
-                    errorDiv.textContent = data.message || '❌ الكود غير صحيح';
+                    errorDiv.textContent = data.message || ' الكود غير صحيح';
                     errorDiv.style.display = 'block';
                     btn.disabled = false;
-                    btn.innerHTML = '✅ تأكيد الدخول';
+                    btn.innerHTML = ' تأكيد الدخول';
                 }
             } catch (error) {
-                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
+                errorDiv.textContent = ' خطأ في الاتصال بالسيرفر';
                 errorDiv.style.display = 'block';
                 btn.disabled = false;
-                btn.innerHTML = '✅ تأكيد الدخول';
+                btn.innerHTML = ' تأكيد الدخول';
             }
         });
         

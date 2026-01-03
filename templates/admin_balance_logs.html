@@ -4,9 +4,9 @@
 
 {% block content %}
 <div class="top-bar">
-    <h1>💳 سجل عمليات الرصيد</h1>
+    <h1> سجل عمليات الرصيد</h1>
     <div class="top-bar-actions">
-        <button class="btn btn-secondary" onclick="loadLogs()">🔄 تحديث</button>
+        <button class="btn btn-secondary" onclick="loadLogs()"> تحديث</button>
     </div>
 </div>
 
@@ -23,7 +23,7 @@
         <div class="label">إجمالي الخصومات</div>
     </div>
     <div class="stat-card">
-        <div class="icon">📊</div>
+        <div class="icon"></div>
         <div class="value" id="totalTransactions">-</div>
         <div class="label">إجمالي العمليات</div>
     </div>
@@ -37,7 +37,7 @@
             <option value="add">➕ إيداع</option>
             <option value="deduct">➖ خصم</option>
         </select>
-        <input type="text" id="searchInput" placeholder="🔍 بحث بالمستخدم..." 
+        <input type="text" id="searchInput" placeholder=" بحث بالمستخدم..." 
                style="flex: 1; min-width: 150px; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
     </div>
 </div>
@@ -45,7 +45,7 @@
 <!-- جدول السجلات -->
 <div class="card">
     <div class="card-header">
-        <span class="card-title">📋 سجل العمليات</span>
+        <span class="card-title"> سجل العمليات</span>
         <span id="logsCountLabel" style="color: var(--muted); font-size: 13px;">جاري التحميل...</span>
     </div>
     <div class="table-container">
@@ -88,10 +88,10 @@
                 updateStats();
                 renderLogs();
             } else {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #e74c3c;">❌ ' + (data.message || 'حدث خطأ') + '</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #e74c3c;"> ' + (data.message || 'حدث خطأ') + '</td></tr>';
             }
         } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #e74c3c;">❌ خطأ في الاتصال</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #e74c3c;"> خطأ في الاتصال</td></tr>';
         }
     }
 

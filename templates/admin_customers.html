@@ -4,31 +4,31 @@
 
 {% block content %}
 <div class="top-bar">
-    <h1>👥 إدارة العملاء</h1>
+    <h1> إدارة العملاء</h1>
     <div class="top-bar-actions">
-        <button class="btn btn-secondary" onclick="loadCustomers()">🔄 تحديث</button>
+        <button class="btn btn-secondary" onclick="loadCustomers()"> تحديث</button>
     </div>
 </div>
 
 <!-- الإحصائيات -->
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="icon">👥</div>
+        <div class="icon"></div>
         <div class="value" id="totalCustomers">-</div>
         <div class="label">إجمالي العملاء</div>
     </div>
     <div class="stat-card">
-        <div class="icon">💰</div>
+        <div class="icon"></div>
         <div class="value" id="totalBalance">-</div>
         <div class="label">إجمالي الأرصدة</div>
     </div>
     <div class="stat-card">
-        <div class="icon">🛒</div>
+        <div class="icon"></div>
         <div class="value" id="totalOrders">-</div>
         <div class="label">إجمالي الطلبات</div>
     </div>
     <div class="stat-card">
-        <div class="icon">💳</div>
+        <div class="icon"></div>
         <div class="value" id="totalSpent">-</div>
         <div class="label">إجمالي المشتريات</div>
     </div>
@@ -37,7 +37,7 @@
 <!-- البحث -->
 <div class="card">
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <input type="text" id="searchInput" placeholder="🔍 البحث بالاسم أو ID..." 
+        <input type="text" id="searchInput" placeholder=" البحث بالاسم أو ID..." 
                style="flex: 1; min-width: 200px; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
         <select id="sortBy" style="padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
             <option value="balance_desc">الرصيد (الأعلى)</option>
@@ -52,7 +52,7 @@
 <!-- جدول العملاء -->
 <div class="card">
     <div class="card-header">
-        <span class="card-title">📋 قائمة العملاء</span>
+        <span class="card-title"> قائمة العملاء</span>
         <span id="customersCountLabel" style="color: var(--muted); font-size: 13px;">جاري التحميل...</span>
     </div>
     <div class="table-container">
@@ -108,10 +108,10 @@
                 updateStats(data.stats);
                 renderCustomers();
             } else {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #e74c3c;">❌ ' + (data.message || 'حدث خطأ') + '</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #e74c3c;"> ' + (data.message || 'حدث خطأ') + '</td></tr>';
             }
         } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #e74c3c;">❌ خطأ في الاتصال</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #e74c3c;"> خطأ في الاتصال</td></tr>';
         }
     }
 
@@ -182,10 +182,10 @@
                     <td style="font-size: 12px; color: var(--muted);">${lastActivity}</td>
                     <td>
                         <button class="btn btn-primary btn-sm" onclick="viewCustomer('${userId}')">
-                            👁️ عرض
+                             عرض
                         </button>
                         <button class="btn btn-success btn-sm" onclick="addBalance('${userId}', '${name}')">
-                            💰 شحن
+                             شحن
                         </button>
                     </td>
                 </tr>
@@ -236,10 +236,10 @@
                                         const minutesLeft = Math.ceil(waitMinutes - passed);
                                         
                                         const methodName = {
-                                            'edfapay': '💳 بطاقة',
-                                            'key': '🔑 كود',
+                                            'edfapay': ' بطاقة',
+                                            'key': ' كود',
                                             'admin': '👨‍💼 أدمن',
-                                            'charge': '🔑 كود'
+                                            'charge': ' كود'
                                         }[ch.method] || ch.method;
                                         
                                         return `
@@ -249,7 +249,7 @@
                                                 <td style="font-size: 12px;">${ch.date || '-'}</td>
                                                 <td>
                                                     ${isAvailable 
-                                                        ? '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(0,184,148,0.2); color: var(--success);">✅ متاح للسحب</span>'
+                                                        ? '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(0,184,148,0.2); color: var(--success);"> متاح للسحب</span>'
                                                         : `<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(243,156,18,0.2); color: var(--warning);">⏳ ${minutesLeft} دقيقة</span>`
                                                     }
                                                 </td>
@@ -279,12 +279,12 @@
                                 <tbody>
                                     ${historyData.data.withdrawals.map(w => {
                                         const statusColor = w.status === 'completed' ? 'var(--success)' : w.status === 'rejected' ? 'var(--danger)' : 'var(--warning)';
-                                        const statusText = w.status === 'completed' ? '✅ مكتمل' : w.status === 'rejected' ? '❌ مرفوض' : '⏳ قيد المراجعة';
+                                        const statusText = w.status === 'completed' ? ' مكتمل' : w.status === 'rejected' ? ' مرفوض' : '⏳ قيد المراجعة';
                                         return `
                                             <tr>
                                                 <td>${w.amount} ر.س</td>
                                                 <td style="color: var(--success);">${w.net_amount} ر.س</td>
-                                                <td>${w.method === 'wallet' ? '📱 محفظة' : '🏦 بنك'}</td>
+                                                <td>${w.method === 'wallet' ? ' محفظة' : '🏦 بنك'}</td>
                                                 <td><span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: ${statusColor}22; color: ${statusColor};">${statusText}</span></td>
                                             </tr>
                                         `;
@@ -296,27 +296,27 @@
                 }
                 
                 details.innerHTML = `
-                    <h2 style="margin-bottom: 20px;">👤 ${name}</h2>
+                    <h2 style="margin-bottom: 20px;"> ${name}</h2>
                     <p style="color: var(--muted); margin-bottom: 20px;">ID: ${userId}</p>
                     
                     <div class="stats-grid" style="margin-bottom: 20px;">
                         <div class="stat-card">
-                            <div class="icon">💰</div>
+                            <div class="icon"></div>
                             <div class="value">${(c.balance || 0).toFixed(2)}</div>
                             <div class="label">الرصيد الحالي</div>
                         </div>
                         <div class="stat-card">
-                            <div class="icon">📥</div>
+                            <div class="icon"></div>
                             <div class="value">${historyData.stats?.total_charged?.toFixed(2) || 0}</div>
                             <div class="label">إجمالي الشحن</div>
                         </div>
                         <div class="stat-card">
-                            <div class="icon">🛒</div>
+                            <div class="icon"></div>
                             <div class="value">${c.orders_count || 0}</div>
                             <div class="label">الطلبات</div>
                         </div>
                         <div class="stat-card">
-                            <div class="icon">💸</div>
+                            <div class="icon"></div>
                             <div class="value">${historyData.stats?.total_withdrawals || 0}</div>
                             <div class="label">طلبات السحب</div>
                         </div>
@@ -324,19 +324,19 @@
                     
                     <!-- سجل الشحنات -->
                     <div style="margin-bottom: 20px;">
-                        <h3 style="margin-bottom: 10px;">📥 سجل الشحنات (${historyData.data?.charges?.length || 0})</h3>
+                        <h3 style="margin-bottom: 10px;"> سجل الشحنات (${historyData.data?.charges?.length || 0})</h3>
                         ${chargesHtml}
                     </div>
                     
                     <!-- طلبات السحب -->
                     <div style="margin-bottom: 20px;">
-                        <h3 style="margin-bottom: 10px;">💸 طلبات السحب (${historyData.data?.withdrawals?.length || 0})</h3>
+                        <h3 style="margin-bottom: 10px;"> طلبات السحب (${historyData.data?.withdrawals?.length || 0})</h3>
                         ${withdrawalsHtml}
                     </div>
                     
                     <!-- الطلبات -->
                     <div style="margin-bottom: 20px;">
-                        <h3 style="margin-bottom: 10px;">🛒 الطلبات (${(c.orders || []).length})</h3>
+                        <h3 style="margin-bottom: 10px;"> الطلبات (${(c.orders || []).length})</h3>
                         ${c.orders && c.orders.length > 0 ? `
                             <div class="table-container">
                                 <table>
@@ -357,7 +357,7 @@
                                                 <td>${o.price || 0} ر.س</td>
                                                 <td>
                                                     <span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: ${o.status === 'completed' ? 'rgba(0,184,148,0.2)' : 'rgba(243,156,18,0.2)'}; color: ${o.status === 'completed' ? 'var(--success)' : 'var(--warning)'};">
-                                                        ${o.status === 'completed' ? '✅ مكتمل' : '⏳ معلق'}
+                                                        ${o.status === 'completed' ? ' مكتمل' : '⏳ معلق'}
                                                     </span>
                                                 </td>
                                                 <td style="font-size: 12px;">${o.created_at ? new Date(o.created_at).toLocaleDateString('ar-SA') : '-'}</td>
@@ -370,11 +370,11 @@
                     </div>
                 `;
             } else {
-                details.innerHTML = '<p style="color: var(--danger); text-align: center;">❌ حدث خطأ في جلب البيانات</p>';
+                details.innerHTML = '<p style="color: var(--danger); text-align: center;"> حدث خطأ في جلب البيانات</p>';
             }
         } catch (e) {
             console.error(e);
-            details.innerHTML = '<p style="color: var(--danger); text-align: center;">❌ خطأ في الاتصال</p>';
+            details.innerHTML = '<p style="color: var(--danger); text-align: center;"> خطأ في الاتصال</p>';
         }
     }
 
@@ -383,7 +383,7 @@
     }
 
     async function addBalance(userId, name) {
-        const amount = prompt(`💰 كم تريد إضافة لرصيد ${name}؟`);
+        const amount = prompt(` كم تريد إضافة لرصيد ${name}؟`);
         if (!amount || isNaN(amount) || parseFloat(amount) <= 0) return;
         
         try {
@@ -398,7 +398,7 @@
             const data = await res.json();
             
             if (data.success) {
-                showToast(`✅ تم إضافة ${amount} ر.س لـ ${name}`);
+                showToast(` تم إضافة ${amount} ر.س لـ ${name}`);
                 loadCustomers();
             } else {
                 showToast(data.message || 'حدث خطأ', 'error');

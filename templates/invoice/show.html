@@ -202,7 +202,7 @@
 <body>
     <div class="invoice-card">
         <div class="header">
-            <div class="merchant-icon">🏪</div>
+            <div class="merchant-icon"></div>
             <div class="merchant-name">{{ merchant_name }}</div>
             <div class="invoice-id">رقم الفاتورة: {{ invoice_id }}</div>
         </div>
@@ -216,13 +216,13 @@
         </div>
         
         <div class="timer-section">
-            <div class="timer-label">⏰ الوقت المتبقي للدفع</div>
+            <div class="timer-label"> الوقت المتبقي للدفع</div>
             <div class="timer-value" id="countdown" data-remaining="{{ remaining_seconds }}">00:00:00</div>
         </div>
         
         <form id="paymentForm" action="/invoice/{{ invoice_id }}/pay" method="POST">
             <div class="form-group">
-                <label class="form-label">📱 رقم الجوال</label>
+                <label class="form-label"> رقم الجوال</label>
                 <div class="phone-wrapper">
                     <select name="country_code" id="countrySelect" class="country-select">
                         <option value="966" data-length="9">🇸🇦 +966</option>
@@ -263,12 +263,12 @@
             
             <button type="submit" class="pay-btn" id="payBtn">
                 <span class="loading" id="loading">⏳ </span>
-                💳 ادفع الآن
+                 ادفع الآن
             </button>
         </form>
         
         <div class="secure-note">
-            🔒 <span>دفع آمن</span> عبر بوابة EdfaPay
+             <span>دفع آمن</span> عبر بوابة EdfaPay
         </div>
     </div>
     
@@ -330,7 +330,7 @@
                 countdownEl.textContent = 'انتهت الصلاحية';
                 countdownEl.classList.add('timer-expired');
                 payBtn.disabled = true;
-                payBtn.textContent = '⏰ انتهت صلاحية الفاتورة';
+                payBtn.textContent = ' انتهت صلاحية الفاتورة';
                 return;
             }
             

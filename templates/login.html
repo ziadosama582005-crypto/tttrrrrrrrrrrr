@@ -78,28 +78,28 @@
     <div class="login-box">
         <!-- الخطوة 1: إدخال كلمة المرور -->
         <div id="step1" class="step active">
-            <h1>🔐 دخول الآدمن</h1>
+            <h1> دخول الآدمن</h1>
             <p class="subtitle">أدخل كلمة المرور لإرسال كود التحقق</p>
             <form id="passwordForm">
                 <input type="password" id="password" placeholder="كلمة المرور" required autofocus>
-                <button type="submit" id="sendCodeBtn">📱 إرسال كود التحقق</button>
+                <button type="submit" id="sendCodeBtn"> إرسال كود التحقق</button>
             </form>
             <div id="error1" class="error" style="display:none;"></div>
             <div class="security-note">
-                🛡️ سيتم إرسال كود مؤقت للبوت للتأكد من هويتك
+                 سيتم إرسال كود مؤقت للبوت للتأكد من هويتك
             </div>
         </div>
         
         <!-- الخطوة 2: إدخال الكود -->
         <div id="step2" class="step">
-            <h1>📱 كود التحقق</h1>
+            <h1> كود التحقق</h1>
             <p class="subtitle">أدخل الكود المرسل لك على البوت</p>
-            <div class="timer">⏰ صالح لمدة: <span id="countdown">180</span> ثانية</div>
+            <div class="timer"> صالح لمدة: <span id="countdown">180</span> ثانية</div>
             <form id="codeForm">
                 <input type="text" id="verifyCode" class="code-input" placeholder="000000" maxlength="6" required pattern="[0-9]{6}">
-                <button type="submit" id="verifyBtn">✅ تأكيد الدخول</button>
+                <button type="submit" id="verifyBtn"> تأكيد الدخول</button>
             </form>
-            <button class="back-btn" onclick="goBack()">↩️ رجوع</button>
+            <button class="back-btn" onclick="goBack()"> رجوع</button>
             <div id="error2" class="error" style="display:none;"></div>
             <div id="success2" class="success" style="display:none;"></div>
         </div>
@@ -138,13 +138,13 @@
                     errorDiv.textContent = data.message;
                     errorDiv.style.display = 'block';
                     btn.disabled = false;
-                    btn.textContent = '📱 إرسال كود التحقق';
+                    btn.textContent = ' إرسال كود التحقق';
                 }
             } catch(error) {
-                errorDiv.textContent = '❌ خطأ في الاتصال';
+                errorDiv.textContent = ' خطأ في الاتصال';
                 errorDiv.style.display = 'block';
                 btn.disabled = false;
-                btn.textContent = '📱 إرسال كود التحقق';
+                btn.textContent = ' إرسال كود التحقق';
             }
         });
         
@@ -170,7 +170,7 @@
                 const data = await response.json();
                 
                 if(data.status === 'success') {
-                    successDiv.textContent = '✅ تم التحقق! جاري الدخول...';
+                    successDiv.textContent = ' تم التحقق! جاري الدخول...';
                     successDiv.style.display = 'block';
                     clearInterval(countdownInterval);
                     setTimeout(() => {
@@ -180,13 +180,13 @@
                     errorDiv.textContent = data.message;
                     errorDiv.style.display = 'block';
                     btn.disabled = false;
-                    btn.textContent = '✅ تأكيد الدخول';
+                    btn.textContent = ' تأكيد الدخول';
                 }
             } catch(error) {
-                errorDiv.textContent = '❌ خطأ في الاتصال';
+                errorDiv.textContent = ' خطأ في الاتصال';
                 errorDiv.style.display = 'block';
                 btn.disabled = false;
-                btn.textContent = '✅ تأكيد الدخول';
+                btn.textContent = ' تأكيد الدخول';
             }
         });
         
@@ -201,7 +201,7 @@
                 
                 if(secondsLeft <= 0) {
                     clearInterval(countdownInterval);
-                    document.getElementById('error2').textContent = '⏰ انتهت صلاحية الكود! أعد المحاولة';
+                    document.getElementById('error2').textContent = ' انتهت صلاحية الكود! أعد المحاولة';
                     document.getElementById('error2').style.display = 'block';
                     document.getElementById('verifyBtn').disabled = true;
                 }
@@ -218,7 +218,7 @@
             document.getElementById('error1').style.display = 'none';
             document.getElementById('error2').style.display = 'none';
             document.getElementById('sendCodeBtn').disabled = false;
-            document.getElementById('sendCodeBtn').textContent = '📱 إرسال كود التحقق';
+            document.getElementById('sendCodeBtn').textContent = ' إرسال كود التحقق';
         }
         
         // السماح بأرقام فقط في حقل الكود

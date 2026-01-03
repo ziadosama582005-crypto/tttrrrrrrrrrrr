@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>💳 محفظتي - سوق التجار</title>
+    <title> محفظتي - سوق التجار</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -277,7 +277,7 @@
     <div class="page-content">
         <!-- بطاقة الرصيد -->
         <div class="balance-card">
-            <div class="balance-label">💰 رصيدك الحالي</div>
+            <div class="balance-label"> رصيدك الحالي</div>
             <div class="balance-amount" id="currentBalance">{{ balance }}</div>
             <div class="balance-currency">ريال سعودي</div>
         </div>
@@ -301,14 +301,14 @@
         <!-- قسم الشحن بالبطاقة -->
         <div class="section-card">
             <div class="section-title">
-                <span>💳</span>
+                <span></span>
                 شحن رصيدك
             </div>
             
             <form id="chargeForm" onsubmit="processPayment(event)">
                 <!-- رقم الجوال -->
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #dfe6e9; font-size: 14px; margin-bottom: 8px;">📱 رقم الجوال</label>
+                    <label style="display: block; color: #dfe6e9; font-size: 14px; margin-bottom: 8px;"> رقم الجوال</label>
                     <div style="display: flex; gap: 10px; direction: ltr;">
                         <select id="countryCode" style="width: 100px; padding: 12px 8px; border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; background: rgba(255,255,255,0.05); color: #fff; font-size: 14px; font-family: 'Tajawal', sans-serif; cursor: pointer;">
                             <option value="966">🇸🇦 +966</option>
@@ -335,7 +335,7 @@
                 
                 <!-- المبلغ -->
                 <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: #dfe6e9; font-size: 14px; margin-bottom: 8px;">💰 المبلغ المراد شحنه</label>
+                    <label style="display: block; color: #dfe6e9; font-size: 14px; margin-bottom: 8px;"> المبلغ المراد شحنه</label>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <input type="number" id="chargeAmount" placeholder="100" min="10" max="5000" required
                                style="flex: 1; padding: 12px; border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; background: rgba(255,255,255,0.05); color: #fff; font-size: 18px; text-align: center; font-family: 'Tajawal', sans-serif;">
@@ -354,12 +354,12 @@
                 
                 <!-- زر الدفع -->
                 <button type="submit" id="payBtn" style="width: 100%; padding: 16px; border: none; border-radius: 12px; background: linear-gradient(135deg, #00b894 0%, #00cec9 100%); color: white; font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.3s; font-family: 'Tajawal', sans-serif;">
-                    💳 إتمام الدفع
+                     إتمام الدفع
                 </button>
             </form>
             
             <p style="text-align: center; color: #666; font-size: 12px; margin-top: 15px;">
-                🔒 دفع آمن عبر <span style="color: #00cec9;">EdfaPay</span>
+                 دفع آمن عبر <span style="color: #00cec9;">EdfaPay</span>
             </p>
         </div>
         
@@ -375,7 +375,7 @@
                 <div class="transaction-item">
                     <div class="transaction-info">
                         <div class="transaction-icon {{ t.type }}">
-                            {% if t.type == 'income' %}⬆️{% else %}⬇️{% endif %}
+                            {% if t.type == 'income' %}{% else %}{% endif %}
                         </div>
                         <div class="transaction-details">
                             <h4>{{ t.title }}</h4>
@@ -389,7 +389,7 @@
                 {% endfor %}
             {% else %}
                 <div class="empty-transactions">
-                    <div class="icon">📋</div>
+                    <div class="icon"></div>
                     <p>لا توجد معاملات بعد</p>
                 </div>
             {% endif %}
@@ -397,7 +397,7 @@
     </div>
     
     <!-- رسالة النجاح -->
-    <div class="success-toast" id="successToast">✅ تم الشحن بنجاح!</div>
+    <div class="success-toast" id="successToast"> تم الشحن بنجاح!</div>
     
     <script>
         const userId = '{{ user_id }}';
@@ -416,13 +416,13 @@
             
             // التحقق من رقم الجوال
             if(!phone || phone.length < 7) {
-                alert('❌ الرجاء إدخال رقم جوال صحيح');
+                alert(' الرجاء إدخال رقم جوال صحيح');
                 return;
             }
             
             // التحقق من المبلغ
             if(!amount || amount < 10 || amount > 5000) {
-                alert('❌ المبلغ يجب أن يكون بين 10 و 5000 ريال');
+                alert(' المبلغ يجب أن يكون بين 10 و 5000 ريال');
                 return;
             }
             
@@ -453,14 +453,14 @@
                     // توجيه لصفحة الدفع
                     window.location.href = result.payment_url;
                 } else {
-                    alert('❌ ' + (result.message || 'حدث خطأ'));
+                    alert(' ' + (result.message || 'حدث خطأ'));
                     btn.disabled = false;
-                    btn.textContent = '💳 إتمام الدفع';
+                    btn.textContent = ' إتمام الدفع';
                 }
             } catch(error) {
-                alert('❌ حدث خطأ في الاتصال');
+                alert(' حدث خطأ في الاتصال');
                 btn.disabled = false;
-                btn.textContent = '💳 إتمام الدفع';
+                btn.textContent = ' إتمام الدفع';
             }
         }
         

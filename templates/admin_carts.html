@@ -4,26 +4,26 @@
 
 {% block content %}
 <div class="top-bar">
-    <h1>🛒 السلات النشطة</h1>
+    <h1> السلات النشطة</h1>
     <div class="top-bar-actions">
-        <button class="btn btn-secondary" onclick="loadCarts()">🔄 تحديث</button>
+        <button class="btn btn-secondary" onclick="loadCarts()"> تحديث</button>
     </div>
 </div>
 
 <!-- الإحصائيات -->
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="icon">🛒</div>
+        <div class="icon"></div>
         <div class="value" id="totalCarts">-</div>
         <div class="label">سلات نشطة</div>
     </div>
     <div class="stat-card">
-        <div class="icon">📦</div>
+        <div class="icon"></div>
         <div class="value" id="totalItems">-</div>
         <div class="label">إجمالي المنتجات</div>
     </div>
     <div class="stat-card">
-        <div class="icon">💰</div>
+        <div class="icon"></div>
         <div class="value" id="totalValue">-</div>
         <div class="label">القيمة الإجمالية</div>
     </div>
@@ -32,7 +32,7 @@
 <!-- جدول السلات -->
 <div class="card">
     <div class="card-header">
-        <span class="card-title">📋 السلات النشطة</span>
+        <span class="card-title"> السلات النشطة</span>
         <span id="cartsCountLabel" style="color: var(--muted); font-size: 13px;">جاري التحميل...</span>
     </div>
     <div class="table-container">
@@ -108,8 +108,8 @@
                     }
                     
                     const statusBadge = isExpired
-                        ? '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(231,76,60,0.2); color: var(--danger);">❌ منتهية</span>'
-                        : '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(0,184,148,0.2); color: var(--success);">✅ نشطة</span>';
+                        ? '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(231,76,60,0.2); color: var(--danger);"> منتهية</span>'
+                        : '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(0,184,148,0.2); color: var(--success);"> نشطة</span>';
                     
                     return `
                         <tr>
@@ -123,10 +123,10 @@
                     `;
                 }).join('');
             } else {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #e74c3c;">❌ ' + (data.message || 'حدث خطأ') + '</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #e74c3c;"> ' + (data.message || 'حدث خطأ') + '</td></tr>';
             }
         } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #e74c3c;">❌ خطأ في الاتصال</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #e74c3c;"> خطأ في الاتصال</td></tr>';
         }
     }
 

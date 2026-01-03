@@ -228,10 +228,10 @@
 
 {% block content %}
 <div class="top-bar">
-    <h1>📦 إدارة المنتجات</h1>
+    <h1> إدارة المنتجات</h1>
     <div class="top-bar-actions">
         <button class="btn btn-primary" onclick="openAddModal()">➕ إضافة منتج</button>
-        <button class="btn btn-secondary btn-sm" onclick="loadProducts()">🔄 تحديث</button>
+        <button class="btn btn-secondary btn-sm" onclick="loadProducts()"> تحديث</button>
     </div>
 </div>
 
@@ -256,7 +256,7 @@
 </div>
 
 <!-- المنتجات المتاحة -->
-<h2 class="section-title">📦 المنتجات المتاحة</h2>
+<h2 class="section-title"> المنتجات المتاحة</h2>
 <div id="availableGrid" class="products-grid">
     <div class="loading">
         <div class="spinner"></div>
@@ -264,7 +264,7 @@
 </div>
 
 <!-- المنتجات المباعة -->
-<h2 class="section-title">✅ المنتجات المباعة</h2>
+<h2 class="section-title"> المنتجات المباعة</h2>
 <div id="soldGrid" class="products-grid">
     <div class="loading">
         <div class="spinner"></div>
@@ -279,50 +279,50 @@
         </div>
         <div class="modal-body">
             <div class="form-group">
-                <label>📦 نوع التسليم *</label>
+                <label> نوع التسليم *</label>
                 <select id="productDeliveryType" required onchange="toggleDeliveryFields()">
                     <option value="">-- اختر نوع التسليم --</option>
-                    <option value="instant">⚡ تسليم فوري (إرسال تلقائي للبيانات)</option>
+                    <option value="instant"> تسليم فوري (إرسال تلقائي للبيانات)</option>
                     <option value="manual">👨‍💼 تسليم يدوي (المشتري يكتب طلبه)</option>
                 </select>
             </div>
             
             <div id="commonFields" style="display: none;">
                 <div class="form-group">
-                    <label>📦 اسم المنتج *</label>
+                    <label> اسم المنتج *</label>
                     <input type="text" id="productName" placeholder="مثال: نتفلكس شهر كامل" required>
                 </div>
                 <div class="form-group">
-                    <label>💰 السعر (ريال) *</label>
+                    <label> السعر (ريال) *</label>
                     <input type="number" id="productPrice" placeholder="25" min="1" required>
                 </div>
                 <div class="form-group">
-                    <label>🏷️ الفئة *</label>
+                    <label> الفئة *</label>
                     <select id="productCategory" required>
                         <option value="">-- اختر الفئة --</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>📝 وصف المنتج (اختياري)</label>
+                    <label> وصف المنتج (اختياري)</label>
                     <textarea id="productDetails" placeholder="وصف مختصر للمنتج..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label>🖼️ رابط الصورة (اختياري)</label>
+                    <label> رابط الصورة (اختياري)</label>
                     <input type="url" id="productImage" placeholder="https://example.com/image.jpg">
                 </div>
             </div>
             
             <div id="instantFields" style="display: none;">
                 <div class="form-group" style="background: rgba(46, 204, 113, 0.1); padding: 15px; border-radius: 10px; border: 1px solid rgba(46, 204, 113, 0.3);">
-                    <label>🔐 البيانات السرية (إيميل/باسورد) *</label>
+                    <label> البيانات السرية (إيميل/باسورد) *</label>
                     <textarea id="productHiddenData" placeholder="email@example.com&#10;password123"></textarea>
-                    <small>⚡ هذه البيانات ستُرسل تلقائياً للمشتري فور الشراء</small>
+                    <small> هذه البيانات ستُرسل تلقائياً للمشتري فور الشراء</small>
                 </div>
             </div>
             
             <div id="manualFields" style="display: none;">
                 <div class="form-group" style="background: rgba(241, 196, 15, 0.1); padding: 15px; border-radius: 10px; border: 1px solid rgba(241, 196, 15, 0.3);">
-                    <label>📝 ماذا تحتاج من المشتري؟ *</label>
+                    <label> ماذا تحتاج من المشتري؟ *</label>
                     <textarea id="productBuyerInstructions" placeholder="مثال: آيدي اللعبة، اسم الحساب..."></textarea>
                     <small>👨‍💼 سيظهر هذا للمشتري وسيُطلب منه كتابة هذه المعلومات</small>
                 </div>
@@ -330,7 +330,7 @@
         </div>
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeAddModal()">إلغاء</button>
-            <button class="btn btn-success" onclick="submitProduct()">✅ نشر المنتج</button>
+            <button class="btn btn-success" onclick="submitProduct()"> نشر المنتج</button>
         </div>
     </div>
 </div>
@@ -339,16 +339,16 @@
 <div id="deleteModal" class="modal">
     <div class="modal-content" style="max-width: 400px;">
         <div class="modal-header" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
-            <h2>🗑️ تأكيد الحذف</h2>
+            <h2> تأكيد الحذف</h2>
         </div>
         <div class="modal-body" style="text-align: center;">
-            <div style="font-size: 50px; margin-bottom: 15px;">⚠️</div>
+            <div style="font-size: 50px; margin-bottom: 15px;"></div>
             <p style="font-size: 16px; margin-bottom: 10px;">هل أنت متأكد من حذف هذا المنتج؟</p>
             <p id="deleteProductName" style="color: var(--danger); font-weight: bold;"></p>
         </div>
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeDeleteModal()">إلغاء</button>
-            <button class="btn btn-danger" onclick="confirmDelete()">🗑️ حذف</button>
+            <button class="btn btn-danger" onclick="confirmDelete()"> حذف</button>
         </div>
     </div>
 </div>
@@ -404,7 +404,7 @@
         if(available.length === 0) {
             availableGrid.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1;">
-                    <div class="icon">📦</div>
+                    <div class="icon"></div>
                     <p>لا توجد منتجات متاحة حالياً</p>
                 </div>
             `;
@@ -412,7 +412,7 @@
             availableGrid.innerHTML = available.map(product => `
                 <div class="product-card">
                     <div class="product-image">
-                        ${product.image_url ? `<img src="${product.image_url}" alt="${product.item_name}">` : '🎁'}
+                        ${product.image_url ? `<img src="${product.image_url}" alt="${product.item_name}">` : ''}
                         ${product.category ? `<span class="product-badge">${product.category}</span>` : ''}
                     </div>
                     <div class="product-info">
@@ -420,7 +420,7 @@
                         <div class="product-details">${product.details || 'بدون تفاصيل'}</div>
                         <div class="product-footer">
                             <span class="product-price">${product.price} ريال</span>
-                            <button class="delete-btn" onclick="openDeleteModal('${product.id}', '${product.item_name.replace(/'/g, "\\'")}')">🗑️ حذف</button>
+                            <button class="delete-btn" onclick="openDeleteModal('${product.id}', '${product.item_name.replace(/'/g, "\\'")}')"> حذف</button>
                         </div>
                     </div>
                 </div>
@@ -430,7 +430,7 @@
         if(sold.length === 0) {
             soldGrid.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1;">
-                    <div class="icon">🛒</div>
+                    <div class="icon"></div>
                     <p>لم يتم بيع أي منتج بعد</p>
                 </div>
             `;
@@ -438,13 +438,13 @@
             soldGrid.innerHTML = sold.map(product => `
                 <div class="product-card sold-card">
                     <div class="product-image">
-                        ${product.image_url ? `<img src="${product.image_url}" alt="${product.item_name}" style="filter: grayscale(50%);">` : '🎁'}
+                        ${product.image_url ? `<img src="${product.image_url}" alt="${product.item_name}" style="filter: grayscale(50%);">` : ''}
                         ${product.category ? `<span class="product-badge" style="background: #e74c3c;">${product.category}</span>` : ''}
                     </div>
                     <div class="product-info">
                         <div class="product-name">${product.item_name}</div>
                         <div class="product-details">
-                            ${product.buyer_name ? `🎉 المشتري: ${product.buyer_name}` : ''}
+                            ${product.buyer_name ? ` المشتري: ${product.buyer_name}` : ''}
                         </div>
                         <div class="product-footer">
                             <span class="product-price" style="text-decoration: line-through; color: #888;">${product.price} ريال</span>
@@ -555,7 +555,7 @@
             const data = await response.json();
             
             if(data.status === 'success') {
-                showAlert('success', '✅ تم إضافة المنتج بنجاح!');
+                showAlert('success', ' تم إضافة المنتج بنجاح!');
                 closeAddModal();
                 loadProducts();
             } else {
@@ -590,7 +590,7 @@
             const data = await response.json();
             
             if(data.status === 'success') {
-                showAlert('success', '✅ تم حذف المنتج بنجاح!');
+                showAlert('success', ' تم حذف المنتج بنجاح!');
                 closeDeleteModal();
                 loadProducts();
             } else {

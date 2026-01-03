@@ -4,32 +4,32 @@
 
 {% block content %}
 <div class="top-bar">
-    <h1>🔑 إدارة كروت الشحن</h1>
+    <h1> إدارة كروت الشحن</h1>
     <div class="top-bar-actions">
         <button class="btn btn-primary" onclick="showGenerateModal()">➕ إنشاء كروت</button>
-        <button class="btn btn-secondary" onclick="loadKeys()">🔄 تحديث</button>
+        <button class="btn btn-secondary" onclick="loadKeys()"> تحديث</button>
     </div>
 </div>
 
 <!-- الإحصائيات -->
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="icon">🔑</div>
+        <div class="icon"></div>
         <div class="value" id="totalKeys">-</div>
         <div class="label">إجمالي الكروت</div>
     </div>
     <div class="stat-card" style="border-color: var(--success);">
-        <div class="icon">✅</div>
+        <div class="icon"></div>
         <div class="value" id="activeKeys" style="color: var(--success);">-</div>
         <div class="label">نشطة</div>
     </div>
     <div class="stat-card" style="border-color: var(--muted);">
-        <div class="icon">🔒</div>
+        <div class="icon"></div>
         <div class="value" id="usedKeys" style="color: var(--muted);">-</div>
         <div class="label">مستخدمة</div>
     </div>
     <div class="stat-card">
-        <div class="icon">💰</div>
+        <div class="icon"></div>
         <div class="value" id="totalValue">-</div>
         <div class="label">القيمة الإجمالية</div>
     </div>
@@ -40,13 +40,13 @@
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
         <select id="statusFilter" style="padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
             <option value="all">جميع الحالات</option>
-            <option value="active">✅ نشطة</option>
-            <option value="used">🔒 مستخدمة</option>
+            <option value="active"> نشطة</option>
+            <option value="used"> مستخدمة</option>
         </select>
         <select id="amountFilter" style="padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
             <option value="all">جميع القيم</option>
         </select>
-        <input type="text" id="searchInput" placeholder="🔍 بحث بالكود..." 
+        <input type="text" id="searchInput" placeholder=" بحث بالكود..." 
                style="flex: 1; min-width: 150px; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
     </div>
 </div>
@@ -54,7 +54,7 @@
 <!-- جدول الكروت -->
 <div class="card">
     <div class="card-header">
-        <span class="card-title">📋 قائمة الكروت</span>
+        <span class="card-title"> قائمة الكروت</span>
         <span id="keysCountLabel" style="color: var(--muted); font-size: 13px;">جاري التحميل...</span>
     </div>
     <div class="table-container">
@@ -99,15 +99,15 @@
             </div>
             
             <div style="display: flex; gap: 10px;">
-                <button class="btn btn-primary" style="flex: 1;" onclick="generateKeys()">✅ إنشاء</button>
-                <button class="btn btn-secondary" onclick="closeModal()">❌ إلغاء</button>
+                <button class="btn btn-primary" style="flex: 1;" onclick="generateKeys()"> إنشاء</button>
+                <button class="btn btn-secondary" onclick="closeModal()"> إلغاء</button>
             </div>
             
             <!-- نتيجة الإنشاء -->
             <div id="generatedResult" style="display: none; margin-top: 20px; padding: 15px; background: rgba(0,184,148,0.1); border-radius: 10px; border: 1px solid rgba(0,184,148,0.3);">
-                <h4 style="color: var(--success); margin-bottom: 10px;">✅ تم إنشاء الكروت!</h4>
+                <h4 style="color: var(--success); margin-bottom: 10px;"> تم إنشاء الكروت!</h4>
                 <div id="generatedKeys" style="font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto;"></div>
-                <button class="btn btn-secondary btn-sm" style="margin-top: 10px;" onclick="copyKeys()">📋 نسخ الكل</button>
+                <button class="btn btn-secondary btn-sm" style="margin-top: 10px;" onclick="copyKeys()"> نسخ الكل</button>
             </div>
         </div>
     </div>
@@ -133,10 +133,10 @@
                 updateAmountFilter();
                 renderKeys();
             } else {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #e74c3c;">❌ ' + (data.message || 'حدث خطأ') + '</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #e74c3c;"> ' + (data.message || 'حدث خطأ') + '</td></tr>';
             }
         } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #e74c3c;">❌ خطأ في الاتصال</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #e74c3c;"> خطأ في الاتصال</td></tr>';
         }
     }
 
@@ -183,8 +183,8 @@
         
         tbody.innerHTML = filtered.map(k => {
             const statusBadge = k.used
-                ? '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(100,100,100,0.3); color: var(--muted);">🔒 مستخدم</span>'
-                : '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(0,184,148,0.2); color: var(--success);">✅ نشط</span>';
+                ? '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(100,100,100,0.3); color: var(--muted);"> مستخدم</span>'
+                : '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(0,184,148,0.2); color: var(--success);"> نشط</span>';
             
             const date = k.created_at ? new Date(k.created_at).toLocaleDateString('ar-SA') : '-';
             
@@ -192,14 +192,14 @@
                 <tr style="${k.used ? 'opacity: 0.6;' : ''}">
                     <td>
                         <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 6px; font-size: 12px;">${k.key || '-'}</code>
-                        ${!k.used ? `<button onclick="copyKey('${k.key}')" style="background: none; border: none; cursor: pointer; margin-right: 5px;">📋</button>` : ''}
+                        ${!k.used ? `<button onclick="copyKey('${k.key}')" style="background: none; border: none; cursor: pointer; margin-right: 5px;"></button>` : ''}
                     </td>
                     <td style="color: var(--success); font-weight: 600;">${k.amount || 0} ر.س</td>
                     <td>${statusBadge}</td>
                     <td style="font-size: 12px; color: var(--muted);">${date}</td>
                     <td style="font-size: 12px; color: var(--muted);">${k.used_by || '-'}</td>
                     <td>
-                        ${!k.used ? `<button class="btn btn-danger btn-sm" onclick="deleteKey('${k.id}')">🗑️</button>` : ''}
+                        ${!k.used ? `<button class="btn btn-danger btn-sm" onclick="deleteKey('${k.id}')"></button>` : ''}
                     </td>
                 </tr>
             `;
@@ -241,7 +241,7 @@
                 ).join('');
                 document.getElementById('generatedResult').style.display = 'block';
                 
-                showToast(`✅ تم إنشاء ${keys.length} كرت`);
+                showToast(` تم إنشاء ${keys.length} كرت`);
                 loadKeys();
             } else {
                 showToast(data.message || 'حدث خطأ', 'error');
@@ -253,13 +253,13 @@
 
     function copyKeys() {
         navigator.clipboard.writeText(generatedKeysText).then(() => {
-            showToast('✅ تم نسخ الكروت');
+            showToast(' تم نسخ الكروت');
         });
     }
 
     function copyKey(key) {
         navigator.clipboard.writeText(key).then(() => {
-            showToast('✅ تم نسخ الكود');
+            showToast(' تم نسخ الكود');
         });
     }
 
@@ -275,7 +275,7 @@
             const data = await res.json();
             
             if (data.status === 'success') {
-                showToast('✅ تم الحذف');
+                showToast(' تم الحذف');
                 loadKeys();
             } else {
                 showToast(data.message || 'حدث خطأ', 'error');

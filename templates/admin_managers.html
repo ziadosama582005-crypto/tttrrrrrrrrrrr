@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="top-bar">
-    <h1>👥 إدارة المشرفين</h1>
+    <h1> إدارة المشرفين</h1>
     <div class="top-bar-actions">
         <button class="btn btn-primary" onclick="openAddModal()">
             ➕ إضافة مشرف
@@ -40,7 +40,7 @@
             </div>
         </div>
         <div class="owner-note">
-            ⚠️ المالك لا يمكن حذفه ويملك جميع الصلاحيات
+             المالك لا يمكن حذفه ويملك جميع الصلاحيات
         </div>
     </div>
 </div>
@@ -49,7 +49,7 @@
 <div class="card">
     <div class="card-header">
         <span class="card-title">👨‍💼 المشرفين</span>
-        <button class="btn btn-sm btn-secondary" onclick="loadAdmins()">🔄 تحديث</button>
+        <button class="btn btn-sm btn-secondary" onclick="loadAdmins()"> تحديث</button>
     </div>
     <div id="adminsList">
         <div class="loading">
@@ -72,11 +72,11 @@
                 <small class="hint">يمكن للمستخدم معرفة الـ ID من خلال @userinfobot</small>
             </div>
             <div class="form-group">
-                <label>📝 اسم المشرف (اختياري)</label>
+                <label> اسم المشرف (اختياري)</label>
                 <input type="text" id="newAdminName" placeholder="مثال: أحمد" class="form-control">
             </div>
             <div class="form-group">
-                <label>📋 ملاحظات (اختياري)</label>
+                <label> ملاحظات (اختياري)</label>
                 <textarea id="newAdminNote" placeholder="ملاحظات حول هذا المشرف..." class="form-control"></textarea>
             </div>
         </div>
@@ -299,10 +299,10 @@
                 document.getElementById('adminsCount').textContent = admins.length;
                 renderAdmins();
             } else {
-                container.innerHTML = '<div class="empty-state"><div class="icon">❌</div><p>حدث خطأ في التحميل</p></div>';
+                container.innerHTML = '<div class="empty-state"><div class="icon"></div><p>حدث خطأ في التحميل</p></div>';
             }
         } catch (e) {
-            container.innerHTML = '<div class="empty-state"><div class="icon">❌</div><p>حدث خطأ في الاتصال</p></div>';
+            container.innerHTML = '<div class="empty-state"><div class="icon"></div><p>حدث خطأ في الاتصال</p></div>';
         }
     }
     
@@ -313,7 +313,7 @@
         if (admins.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <div class="icon">👥</div>
+                    <div class="icon"></div>
                     <p>لا يوجد مشرفين حالياً</p>
                     <small>اضغط على "إضافة مشرف" لإضافة أول مشرف</small>
                 </div>
@@ -331,13 +331,13 @@
                         <div class="admin-details">
                             <h4>${admin.name || 'مشرف'}</h4>
                             <small>🆔 ${admin.telegram_id}</small>
-                            ${admin.note ? `<br><small>📝 ${admin.note}</small>` : ''}
+                            ${admin.note ? `<br><small> ${admin.note}</small>` : ''}
                         </div>
                     </div>
                     <div class="admin-meta">
-                        <span class="date">📅 ${date}</span>
+                        <span class="date"> ${date}</span>
                         <button class="btn btn-sm btn-danger" onclick="deleteAdmin('${admin.id}', '${admin.name || admin.telegram_id}')">
-                            🗑️ حذف
+                             حذف
                         </button>
                     </div>
                 </div>
@@ -387,7 +387,7 @@
             const data = await res.json();
             
             if (data.status === 'success') {
-                showToast('✅ تمت إضافة المشرف بنجاح', 'success');
+                showToast(' تمت إضافة المشرف بنجاح', 'success');
                 closeAddModal();
                 loadAdmins();
             } else {
@@ -412,7 +412,7 @@
             const data = await res.json();
             
             if (data.status === 'success') {
-                showToast('✅ تم حذف المشرف', 'success');
+                showToast(' تم حذف المشرف', 'success');
                 loadAdmins();
             } else {
                 showToast(data.message || 'حدث خطأ', 'error');

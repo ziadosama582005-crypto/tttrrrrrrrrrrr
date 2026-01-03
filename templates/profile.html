@@ -1022,7 +1022,7 @@
         <!-- الهيدر -->
         <div class="header">
             <a href="/" class="back-btn" title="العودة">←</a>
-            <h1 class="header-title">📱 حسابي</h1>
+            <h1 class="header-title"> حسابي</h1>
         </div>
         
         <!-- بطاقة الملف الشخصي -->
@@ -1032,13 +1032,13 @@
                     {% if profile_photo %}
                         <img src="{{ profile_photo }}" alt="صورة البروفايل">
                     {% else %}
-                        👤
+                        
                     {% endif %}
                 </div>
                 <div class="profile-info">
                     <div class="profile-name">{{ user_name }}</div>
                     <div class="profile-id">ID: {{ user_id }}</div>
-                    <div class="profile-balance">💰 الرصيد: {{ "%.2f"|format(balance) }} ر.س</div>
+                    <div class="profile-balance"> الرصيد: {{ "%.2f"|format(balance) }} ر.س</div>
                     
                     <!-- أزرار السحب -->
                     <div class="withdrawal-buttons">
@@ -1046,14 +1046,14 @@
                                 onclick="openWithdrawModal('normal')"
                                 {% if normal_withdraw_amount <= 0 %}disabled{% endif %}
                                 title="{% if normal_withdraw_amount <= 0 %}لا يوجد رصيد متاح للسحب العادي{% endif %}">
-                            🔄 عادي
+                             عادي
                             <span class="fee-badge">6.5%</span>
                         </button>
                         <button class="withdraw-btn instant" 
                                 onclick="openWithdrawModal('instant')"
                                 {% if balance <= 0 %}disabled{% endif %}
                                 title="{% if balance <= 0 %}لا يوجد رصيد{% endif %}">
-                            ⚡ فوري
+                             فوري
                             <span class="fee-badge">8%</span>
                         </button>
                     </div>
@@ -1062,13 +1062,13 @@
                     <div class="withdraw-amounts">
                         <!-- الرصيد المتاح للسحب العادي -->
                         <div class="withdraw-info success">
-                            ✅ متاح للسحب العادي: {{ "%.2f"|format(normal_withdraw_amount) }} ر.س
+                             متاح للسحب العادي: {{ "%.2f"|format(normal_withdraw_amount) }} ر.س
                         </div>
                         
                         <!-- الرصيد المجمد - نستخدم المتغير من الـ backend مباشرة -->
                         {% if frozen_balance > 0 %}
                         <div class="withdraw-info frozen">
-                            ❄️ <b>رصيد مجمد مؤقتاً:</b> {{ "%.2f"|format(frozen_balance) }} ر.س
+                             <b>رصيد مجمد مؤقتاً:</b> {{ "%.2f"|format(frozen_balance) }} ر.س
                             <br>
                             {% if min_minutes_left > 0 %}
                             <small>⏳ يصبح متاحاً للسحب العادي بعد: {{ min_minutes_left }} دقيقة</small>
@@ -1078,21 +1078,21 @@
                         
                         <!-- الرصيد الكلي للسحب الفوري -->
                         <div class="withdraw-info instant-info">
-                            ⚡ متاح للسحب الفوري: {{ "%.2f"|format(balance) }} ر.س
+                             متاح للسحب الفوري: {{ "%.2f"|format(balance) }} ر.س
                         </div>
                         
                         <!-- آخر 3 شحنات -->
                         {% if recent_charges %}
                         <div class="recent-charges">
-                            <div class="charges-title">📋 آخر الشحنات:</div>
+                            <div class="charges-title"> آخر الشحنات:</div>
                             {% for charge in recent_charges %}
                             <div class="charge-item {% if charge.is_available %}available{% else %}pending{% endif %}">
                                 <span class="charge-amount">{{ "%.2f"|format(charge.amount) }} ر.س</span>
                                 <span class="charge-method">{{ charge.method }}</span>
                                 {% if charge.is_available %}
-                                <span class="charge-status available">✅ متاح</span>
+                                <span class="charge-status available"> متاح</span>
                                 {% else %}
-                                <span class="charge-status pending">❄️ {{ charge.minutes_left }} د</span>
+                                <span class="charge-status pending"> {{ charge.minutes_left }} د</span>
                                 {% endif %}
                             </div>
                             {% endfor %}
@@ -1106,13 +1106,13 @@
             <div class="divider"></div>
             
             <!-- قسم الأمان والتوثيق -->
-            <h2 class="section-title">🔐 الأمان والتوثيق</h2>
+            <h2 class="section-title"> الأمان والتوثيق</h2>
             
             <div class="security-section">
                 <!-- توثيق الإيميل -->
                 <div class="security-item">
                     <div class="security-item-info">
-                        <div class="security-icon">📧</div>
+                        <div class="security-icon"></div>
                         <div class="security-text">
                             <h3>توثيق البريد الإلكتروني</h3>
                             <p>{% if email %}{{ email }}{% else %}لم يتم إضافة بريد إلكتروني{% endif %}</p>
@@ -1132,7 +1132,7 @@
                 <!-- المصادقة الثنائية -->
                 <div class="security-item">
                     <div class="security-item-info">
-                        <div class="security-icon">🔐</div>
+                        <div class="security-icon"></div>
                         <div class="security-text">
                             <h3>المصادقة الثنائية (2FA)</h3>
                             <p>حماية إضافية عبر Google Authenticator</p>
@@ -1152,7 +1152,7 @@
         
         <!-- آخر الطلبات -->
         <div class="profile-card">
-            <h2 class="section-title">📦 آخر 3 طلبات</h2>
+            <h2 class="section-title"> آخر 3 طلبات</h2>
             
             {% if orders %}
                 <div class="orders-list">
@@ -1169,7 +1169,7 @@
                                     <div class="order-price">{{ "%.2f"|format(order.total) }} ر.س</div>
                                 </div>
                                 <div>
-                                    <div class="order-date">📅 {{ order.date_formatted }}</div>
+                                    <div class="order-date"> {{ order.date_formatted }}</div>
                                 </div>
                             </div>
                         </div>
@@ -1186,7 +1186,7 @@
         <!-- زر تسجيل الخروج -->
         <div class="action-buttons" style="margin-top: 30px;">
             <button class="action-btn logout-btn" onclick="logout()">
-                🚪 تسجيل الخروج
+                 تسجيل الخروج
             </button>
         </div>
     </div>
@@ -1231,7 +1231,7 @@
             const successDiv = document.getElementById('emailSuccess');
             
             if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-                errorDiv.textContent = '❌ الرجاء إدخال بريد إلكتروني صحيح';
+                errorDiv.textContent = ' الرجاء إدخال بريد إلكتروني صحيح';
                 errorDiv.style.display = 'block';
                 return;
             }
@@ -1250,7 +1250,7 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    successDiv.textContent = '✅ تم إرسال كود التحقق إلى Telegram';
+                    successDiv.textContent = ' تم إرسال كود التحقق إلى Telegram';
                     successDiv.style.display = 'block';
                     document.getElementById('emailStep1').style.display = 'none';
                     document.getElementById('emailStep2').style.display = 'block';
@@ -1258,11 +1258,11 @@
                     document.getElementById('emailStep1Btn').style.display = 'none';
                     document.getElementById('emailStep2Btn').style.display = 'block';
                 } else {
-                    errorDiv.textContent = `❌ ${data.message}`;
+                    errorDiv.textContent = ` ${data.message}`;
                     errorDiv.style.display = 'block';
                 }
             } catch (error) {
-                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
+                errorDiv.textContent = ' خطأ في الاتصال بالسيرفر';
                 errorDiv.style.display = 'block';
             }
             
@@ -1276,7 +1276,7 @@
             const errorDiv = document.getElementById('emailError');
             
             if (!code || code.length !== 6) {
-                errorDiv.textContent = '❌ الرجاء إدخال كود من 6 أرقام';
+                errorDiv.textContent = ' الرجاء إدخال كود من 6 أرقام';
                 errorDiv.style.display = 'block';
                 return;
             }
@@ -1295,14 +1295,14 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert('✅ تم توثيق البريد الإلكتروني بنجاح!');
+                    alert(' تم توثيق البريد الإلكتروني بنجاح!');
                     location.reload();
                 } else {
-                    errorDiv.textContent = `❌ ${data.message}`;
+                    errorDiv.textContent = ` ${data.message}`;
                     errorDiv.style.display = 'block';
                 }
             } catch (error) {
-                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
+                errorDiv.textContent = ' خطأ في الاتصال بالسيرفر';
                 errorDiv.style.display = 'block';
             }
             
@@ -1334,11 +1334,11 @@
                     loading.style.display = 'none';
                     content.style.display = 'block';
                 } else {
-                    alert('❌ ' + data.message);
+                    alert(' ' + data.message);
                     modal.classList.remove('show');
                 }
             } catch (error) {
-                alert('❌ خطأ في الاتصال بالسيرفر');
+                alert(' خطأ في الاتصال بالسيرفر');
                 modal.classList.remove('show');
             }
         }
@@ -1354,7 +1354,7 @@
             const errorDiv = document.getElementById('2faError');
             
             if (!code || code.length !== 6) {
-                errorDiv.textContent = '❌ الرجاء إدخال كود من 6 أرقام';
+                errorDiv.textContent = ' الرجاء إدخال كود من 6 أرقام';
                 errorDiv.className = 'alert error';
                 return;
             }
@@ -1373,14 +1373,14 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert('✅ تم تفعيل المصادقة الثنائية بنجاح!');
+                    alert(' تم تفعيل المصادقة الثنائية بنجاح!');
                     location.reload();
                 } else {
-                    errorDiv.textContent = `❌ ${data.message}`;
+                    errorDiv.textContent = ` ${data.message}`;
                     errorDiv.className = 'alert error';
                 }
             } catch (error) {
-                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
+                errorDiv.textContent = ' خطأ في الاتصال بالسيرفر';
                 errorDiv.className = 'alert error';
             }
             
@@ -1391,7 +1391,7 @@
         function copySecret() {
             const secret = document.getElementById('secretKey').textContent;
             navigator.clipboard.writeText(secret).then(() => {
-                alert('✅ تم نسخ المفتاح السري');
+                alert(' تم نسخ المفتاح السري');
             });
         }
         
@@ -1410,7 +1410,7 @@
             const errorDiv = document.getElementById('disable2faError');
             
             if (!code || code.length !== 6) {
-                errorDiv.textContent = '❌ الرجاء إدخال كود من 6 أرقام';
+                errorDiv.textContent = ' الرجاء إدخال كود من 6 أرقام';
                 errorDiv.className = 'alert error';
                 return;
             }
@@ -1428,14 +1428,14 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    alert('✅ تم تعطيل المصادقة الثنائية');
+                    alert(' تم تعطيل المصادقة الثنائية');
                     location.reload();
                 } else {
-                    errorDiv.textContent = `❌ ${data.message}`;
+                    errorDiv.textContent = ` ${data.message}`;
                     errorDiv.className = 'alert error';
                 }
             } catch (error) {
-                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
+                errorDiv.textContent = ' خطأ في الاتصال بالسيرفر';
                 errorDiv.className = 'alert error';
             }
             
@@ -1448,7 +1448,7 @@
     <div class="modal-overlay" id="emailModal">
         <div class="modal-content">
             <div class="modal-header">
-                <span style="font-size: 50px;">📧</span>
+                <span style="font-size: 50px;"></span>
                 <h2>توثيق البريد الإلكتروني</h2>
                 <p>أضف بريدك الإلكتروني لتأمين حسابك</p>
             </div>
@@ -1486,7 +1486,7 @@
     <div class="modal-overlay" id="setup2FAModal">
         <div class="modal-content">
             <div class="modal-header">
-                <span style="font-size: 50px;">🔐</span>
+                <span style="font-size: 50px;"></span>
                 <h2>تفعيل المصادقة الثنائية</h2>
                 <p>استخدم Google Authenticator لحماية حسابك</p>
             </div>
@@ -1497,7 +1497,7 @@
             
             <div id="2faContent" style="display: none;">
                 <div class="info-box">
-                    <h4>📱 خطوات التفعيل:</h4>
+                    <h4> خطوات التفعيل:</h4>
                     <ol>
                         <li>حمّل تطبيق Google Authenticator</li>
                         <li>امسح رمز QR أدناه أو أدخل المفتاح يدوياً</li>
@@ -1511,7 +1511,7 @@
                 
                 <div class="secret-key" onclick="copySecret()" style="cursor: pointer;" title="انقر للنسخ">
                     <span id="secretKey"></span>
-                    <br><small style="color: #6c5ce7;">📋 انقر للنسخ</small>
+                    <br><small style="color: #6c5ce7;"> انقر للنسخ</small>
                 </div>
                 
                 <div id="2faError" class="alert"></div>
@@ -1533,7 +1533,7 @@
     <div class="modal-overlay" id="disable2FAModal">
         <div class="modal-content">
             <div class="modal-header">
-                <span style="font-size: 50px;">⚠️</span>
+                <span style="font-size: 50px;"></span>
                 <h2>تعطيل المصادقة الثنائية</h2>
                 <p>أدخل الكود من تطبيق Authenticator للتأكيد</p>
             </div>
@@ -1558,7 +1558,7 @@
     <div class="withdraw-modal" id="withdrawModal">
         <div class="withdraw-modal-content">
             <div class="withdraw-modal-header">
-                <h2 id="withdrawModalTitle">💸 طلب سحب</h2>
+                <h2 id="withdrawModalTitle"> طلب سحب</h2>
                 <button class="withdraw-modal-close" onclick="closeWithdrawModal()">×</button>
             </div>
             <div class="withdraw-modal-body">
@@ -1587,7 +1587,7 @@
                     <label>اختر طريقة السحب:</label>
                     <div class="method-options">
                         <div class="method-option" onclick="selectMethod('wallet')" id="methodWallet">
-                            <div class="icon">📱</div>
+                            <div class="icon"></div>
                             <div>محفظة إلكترونية</div>
                         </div>
                         <div class="method-option" onclick="selectMethod('bank')" id="methodBank">
@@ -1612,7 +1612,7 @@
                         <input type="text" id="walletNumber" placeholder="05XXXXXXXX">
                     </div>
                     <div class="withdraw-note">
-                        ⏰ سيتم التحويل خلال 12-24 ساعة بعد الموافقة على الطلب
+                         سيتم التحويل خلال 12-24 ساعة بعد الموافقة على الطلب
                     </div>
                 </div>
                 
@@ -1631,12 +1631,12 @@
                         <input type="text" id="bankIban" placeholder="SA0000000000000000000000" maxlength="24" style="text-transform: uppercase;">
                     </div>
                     <div class="withdraw-note">
-                        ⏰ سيتم التحويل خلال 12-24 ساعة بعد الموافقة على الطلب
+                         سيتم التحويل خلال 12-24 ساعة بعد الموافقة على الطلب
                     </div>
                 </div>
                 
                 <button class="withdraw-submit-btn" onclick="submitWithdraw()" id="submitWithdrawBtn" disabled>
-                    ✅ تأكيد طلب السحب
+                     تأكيد طلب السحب
                 </button>
             </div>
         </div>
@@ -1666,7 +1666,7 @@
             const feeAmount = currentAmount * (fee / 100);
             const netAmount = currentAmount - feeAmount;
             
-            title.textContent = type === 'normal' ? '🔄 سحب عادي' : '⚡ سحب فوري';
+            title.textContent = type === 'normal' ? ' سحب عادي' : ' سحب فوري';
             typeSpan.textContent = type === 'normal' ? 'عادي (6.5%)' : 'فوري (8%)';
             document.getElementById('withdrawBalance').textContent = currentAmount.toFixed(2) + ' ر.س';
             feePercent.textContent = fee;
@@ -1715,9 +1715,9 @@
                 data.wallet_number = document.getElementById('walletNumber').value.trim();
                 
                 if (!data.full_name || !data.wallet_type || !data.wallet_number) {
-                    alert('❌ الرجاء ملء جميع الحقول');
+                    alert(' الرجاء ملء جميع الحقول');
                     btn.disabled = false;
-                    btn.textContent = '✅ تأكيد طلب السحب';
+                    btn.textContent = ' تأكيد طلب السحب';
                     return;
                 }
             } else {
@@ -1726,16 +1726,16 @@
                 data.iban = document.getElementById('bankIban').value.trim().toUpperCase();
                 
                 if (!data.full_name || !data.bank_name || !data.iban) {
-                    alert('❌ الرجاء ملء جميع الحقول');
+                    alert(' الرجاء ملء جميع الحقول');
                     btn.disabled = false;
-                    btn.textContent = '✅ تأكيد طلب السحب';
+                    btn.textContent = ' تأكيد طلب السحب';
                     return;
                 }
                 
                 if (!data.iban.startsWith('SA') || data.iban.length !== 24) {
-                    alert('❌ رقم الآيبان غير صحيح (يجب أن يبدأ بـ SA ويتكون من 24 حرف)');
+                    alert(' رقم الآيبان غير صحيح (يجب أن يبدأ بـ SA ويتكون من 24 حرف)');
                     btn.disabled = false;
-                    btn.textContent = '✅ تأكيد طلب السحب';
+                    btn.textContent = ' تأكيد طلب السحب';
                     return;
                 }
             }
@@ -1750,17 +1750,17 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    alert('✅ تم إرسال طلب السحب بنجاح!\n\nسيتم مراجعته والتحويل خلال 12-24 ساعة.');
+                    alert(' تم إرسال طلب السحب بنجاح!\n\nسيتم مراجعته والتحويل خلال 12-24 ساعة.');
                     closeWithdrawModal();
                     location.reload();
                 } else {
-                    alert('❌ ' + result.message);
+                    alert(' ' + result.message);
                 }
             } catch (error) {
-                alert('❌ خطأ في الاتصال بالسيرفر');
+                alert(' خطأ في الاتصال بالسيرفر');
             }
             
             btn.disabled = false;
-            btn.textContent = '✅ تأكيد طلب السحب';
+            btn.textContent = ' تأكيد طلب السحب';
         }
     </script>

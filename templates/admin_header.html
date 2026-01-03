@@ -114,13 +114,13 @@
         </div>
 
         <div class="field">
-          <label>📝 النص</label>
+          <label> النص</label>
           <input id="text" type="text" maxlength="200" placeholder="مثال: خصم اليوم 20%" value="{{ header_settings.text }}" />
           <div class="hint">ملاحظة: لن يظهر الشريط إذا النص فاضي.</div>
         </div>
 
         <div class="field">
-          <label>🔗 الرابط (اختياري)</label>
+          <label> الرابط (اختياري)</label>
           <input id="link_url" type="url" maxlength="500" placeholder="https://example.com" value="{{ header_settings.link_url }}" />
           <div class="hint">إذا حطّيت رابط، النص يصير قابل للنقر.</div>
         </div>
@@ -160,7 +160,7 @@
           return;
         }
 
-        showAlert('success', 'تم الحفظ ✅ (قد تحتاج تحديث الصفحة لرؤية التغيير)');
+        showAlert('success', 'تم الحفظ  (قد تحتاج تحديث الصفحة لرؤية التغيير)');
       } catch (e) {
         showAlert('error', 'خطأ في الاتصال');
       }

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}💳 محفظتي - المتجر الرقمي{% endblock %}
+{% block title %} محفظتي - المتجر الرقمي{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -243,7 +243,7 @@
     <div class="container-sm">
         <!-- بطاقة الرصيد -->
         <div class="balance-card">
-            <div class="balance-label">💰 رصيدك الحالي</div>
+            <div class="balance-label"> رصيدك الحالي</div>
             <div class="balance-amount" id="currentBalance">{{ balance }}</div>
             <div class="balance-currency">ريال سعودي</div>
         </div>
@@ -267,14 +267,14 @@
         <!-- قسم الشحن بالبطاقة -->
         <div class="section-card">
             <div class="section-title">
-                <span>💳</span>
+                <span></span>
                 شحن رصيدك
             </div>
             
             <form id="chargeForm" onsubmit="processPayment(event)">
                 <!-- رقم الجوال -->
                 <div style="margin-bottom: 20px;">
-                    <label class="form-label">📱 رقم الجوال</label>
+                    <label class="form-label"> رقم الجوال</label>
                     <div style="display: flex; gap: 10px; direction: ltr;">
                         <select id="countryCode" class="form-input" style="width: 110px; padding: 12px 8px;">
                             <option value="966">🇸🇦 +966</option>
@@ -301,7 +301,7 @@
                 
                 <!-- المبلغ -->
                 <div style="margin-bottom: 20px;">
-                    <label class="form-label">💰 المبلغ المراد شحنه</label>
+                    <label class="form-label"> المبلغ المراد شحنه</label>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <input type="number" id="chargeAmount" placeholder="100" min="10" max="5000" required
                                class="form-input" style="flex: 1; text-align: center; font-size: 18px;">
@@ -320,12 +320,12 @@
                 
                 <!-- زر الدفع -->
                 <button type="submit" id="payBtn" class="pay-btn">
-                    💳 إتمام الدفع
+                     إتمام الدفع
                 </button>
             </form>
             
             <p style="text-align: center; color: #666; font-size: 12px; margin-top: 15px;">
-                🔒 دفع آمن عبر <span style="color: #00cec9;">EdfaPay</span>
+                 دفع آمن عبر <span style="color: #00cec9;">EdfaPay</span>
             </p>
         </div>
         
@@ -341,7 +341,7 @@
                 <div class="transaction-item">
                     <div class="transaction-info">
                         <div class="transaction-icon {{ t.type }}">
-                            {% if t.type == 'income' %}⬆️{% else %}⬇️{% endif %}
+                            {% if t.type == 'income' %}{% else %}{% endif %}
                         </div>
                         <div class="transaction-details">
                             <h4>{{ t.title }}</h4>
@@ -355,7 +355,7 @@
                 {% endfor %}
             {% else %}
                 <div class="empty-transactions">
-                    <div class="icon">📋</div>
+                    <div class="icon"></div>
                     <p>لا توجد معاملات بعد</p>
                 </div>
             {% endif %}
@@ -381,13 +381,13 @@
         
         // التحقق من رقم الجوال
         if(!phone || phone.length < 7) {
-            showToast('❌ الرجاء إدخال رقم جوال صحيح', 'error');
+            showToast(' الرجاء إدخال رقم جوال صحيح', 'error');
             return;
         }
         
         // التحقق من المبلغ
         if(!amount || amount < 10 || amount > 5000) {
-            showToast('❌ المبلغ يجب أن يكون بين 10 و 5000 ريال', 'error');
+            showToast(' المبلغ يجب أن يكون بين 10 و 5000 ريال', 'error');
             return;
         }
         
@@ -418,14 +418,14 @@
                 // توجيه لصفحة الدفع
                 window.location.href = result.payment_url;
             } else {
-                showToast('❌ ' + (result.message || 'حدث خطأ'), 'error');
+                showToast(' ' + (result.message || 'حدث خطأ'), 'error');
                 btn.disabled = false;
-                btn.textContent = '💳 إتمام الدفع';
+                btn.textContent = ' إتمام الدفع';
             }
         } catch(error) {
-            showToast('❌ حدث خطأ في الاتصال', 'error');
+            showToast(' حدث خطأ في الاتصال', 'error');
             btn.disabled = false;
-            btn.textContent = '💳 إتمام الدفع';
+            btn.textContent = ' إتمام الدفع';
         }
     }
     

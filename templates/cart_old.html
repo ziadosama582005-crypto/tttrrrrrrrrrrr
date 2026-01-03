@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🛒 سلة التسوق</title>
+    <title> سلة التسوق</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -420,7 +420,7 @@
 </head>
 <body>
     <div class="timer-bar" id="timerBar" style="display: none;">
-        <span class="timer-text">⏰ تنتهي السلة خلال: </span>
+        <span class="timer-text"> تنتهي السلة خلال: </span>
         <span class="timer-countdown" id="timerCountdown">--:--:--</span>
     </div>
     
@@ -438,14 +438,14 @@
     <!-- نافذة التأكيد -->
     <div class="modal" id="confirmModal">
         <div class="modal-content">
-            <div class="modal-icon">⚠️</div>
+            <div class="modal-icon"></div>
             <div class="modal-title">تأكيد الشراء</div>
             <div class="modal-text">هل أنت متأكد من شراء جميع المنتجات في السلة؟</div>
             <div class="modal-items" id="modalItems"></div>
             <div class="modal-total" id="modalTotal"></div>
             <div class="modal-btns">
-                <button class="modal-btn btn-confirm" onclick="processCheckout()">✅ تأكيد</button>
-                <button class="modal-btn btn-cancel" onclick="closeModal()">❌ إلغاء</button>
+                <button class="modal-btn btn-confirm" onclick="processCheckout()"> تأكيد</button>
+                <button class="modal-btn btn-cancel" onclick="closeModal()"> إلغاء</button>
             </div>
         </div>
     </div>
@@ -453,10 +453,10 @@
     <!-- نافذة النجاح -->
     <div class="modal" id="successModal">
         <div class="modal-content">
-            <div class="modal-icon">🎉</div>
+            <div class="modal-icon"></div>
             <div class="modal-title">تم الشراء بنجاح!</div>
             <div class="modal-text" id="successText"></div>
-            <button class="modal-btn btn-confirm" onclick="window.location.href='/my_purchases'" style="width: 100%;">📦 عرض مشترياتي</button>
+            <button class="modal-btn btn-confirm" onclick="window.location.href='/my_purchases'" style="width: 100%;"> عرض مشترياتي</button>
         </div>
     </div>
     
@@ -506,7 +506,7 @@
             } catch (error) {
                 console.error('Error loading cart:', error);
                 document.getElementById('loadingDiv').style.display = 'none';
-                document.getElementById('cartContent').innerHTML = '<div class="empty-cart"><div class="empty-cart-icon">❌</div><div class="empty-cart-text">حدث خطأ في تحميل السلة</div></div>';
+                document.getElementById('cartContent').innerHTML = '<div class="empty-cart"><div class="empty-cart-icon"></div><div class="empty-cart-text">حدث خطأ في تحميل السلة</div></div>';
             } finally {
                 isLoadingCart = false;
             }
@@ -529,10 +529,10 @@
             cartData.items.forEach((item, index) => {
                 const statusClass = item.sold ? 'unavailable' : (item.price_changed ? 'price-changed' : '');
                 const statusBadge = item.sold ? 
-                    '<span class="item-status status-sold">❌ نفد</span>' : 
+                    '<span class="item-status status-sold"> نفد</span>' : 
                     (item.price_changed ? 
-                        '<span class="item-status status-price-changed">💰 تغير السعر</span>' : 
-                        '<span class="item-status status-available">✅ متاح</span>');
+                        '<span class="item-status status-price-changed"> تغير السعر</span>' : 
+                        '<span class="item-status status-available"> متاح</span>');
                 
                 if (!item.sold) {
                     total += item.current_price || item.price;
@@ -544,7 +544,7 @@
                 html += `
                     <div class="cart-item ${statusClass}" data-id="${item.product_id}">
                         <div class="item-image">
-                            ${item.image_url ? `<img src="${item.image_url}" onerror="this.parentElement.innerHTML='🎁'">` : '🎁'}
+                            ${item.image_url ? `<img src="${item.image_url}" onerror="this.parentElement.innerHTML=''">` : ''}
                         </div>
                         <div class="item-info">
                             <div class="item-name">${item.name}</div>
@@ -553,11 +553,11 @@
                             ${statusBadge}
                             ${item.delivery_type === 'manual' && item.buyer_details ? `
                                 <div style="margin-top:8px;padding:8px;background:rgba(241,196,15,0.1);border-radius:8px;font-size:12px;color:#f39c12;">
-                                    📝 ${item.buyer_details}
+                                     ${item.buyer_details}
                                 </div>
                             ` : ''}
                         </div>
-                        <button class="delete-btn" onclick="removeItem('${item.product_id}')">🗑️</button>
+                        <button class="delete-btn" onclick="removeItem('${item.product_id}')"></button>
                     </div>
                 `;
             });
@@ -568,13 +568,13 @@
             
             html += `
                 <div class="cart-summary">
-                    <div class="summary-title">📋 ملخص الطلب</div>
+                    <div class="summary-title"> ملخص الطلب</div>
                     <div class="summary-row">
-                        <span class="summary-label">📦 عدد المنتجات:</span>
+                        <span class="summary-label"> عدد المنتجات:</span>
                         <span class="summary-value">${availableCount}</span>
                     </div>
                     <div class="summary-row summary-total">
-                        <span class="summary-label">💰 الإجمالي:</span>
+                        <span class="summary-label"> الإجمالي:</span>
                         <span class="summary-value">${total.toFixed(2)} ر.س</span>
                     </div>
                     <div class="balance-info">
@@ -584,17 +584,17 @@
                     </div>
                     ${balanceAfter < 0 ? `
                         <div class="insufficient-balance">
-                            ⚠️ رصيدك غير كافي! تحتاج ${Math.abs(balanceAfter).toFixed(2)} ر.س إضافية
+                             رصيدك غير كافي! تحتاج ${Math.abs(balanceAfter).toFixed(2)} ر.س إضافية
                         </div>
-                        <a href="/wallet?user_id=${userId}" class="charge-btn">💳 شحن الرصيد</a>
+                        <a href="/wallet?user_id=${userId}" class="charge-btn"> شحن الرصيد</a>
                     ` : ''}
                     ${hasUnavailable ? `
                         <div class="insufficient-balance" style="background: rgba(241, 196, 15, 0.1); color: #f39c12;">
-                            ⚠️ بعض المنتجات غير متاحة وسيتم تجاهلها
+                             بعض المنتجات غير متاحة وسيتم تجاهلها
                         </div>
                     ` : ''}
                     <button class="checkout-btn" onclick="showConfirmModal()" ${!canCheckout ? 'disabled' : ''}>
-                        ${canCheckout ? '✅ إتمام الشراء' : (balanceAfter < 0 ? '💳 اشحن أولاً' : 'لا توجد منتجات متاحة')}
+                        ${canCheckout ? ' إتمام الشراء' : (balanceAfter < 0 ? ' اشحن أولاً' : 'لا توجد منتجات متاحة')}
                     </button>
                 </div>
             `;
@@ -607,9 +607,9 @@
             document.getElementById('timerBar').style.display = 'none';
             document.getElementById('cartContent').innerHTML = `
                 <div class="empty-cart">
-                    <div class="empty-cart-icon">🛒</div>
+                    <div class="empty-cart-icon"></div>
                     <div class="empty-cart-text">سلتك فارغة</div>
-                    <a href="/" class="shop-btn">🏪 تصفح المتجر</a>
+                    <a href="/" class="shop-btn"> تصفح المتجر</a>
                 </div>
             `;
         }
@@ -687,12 +687,12 @@
                     document.getElementById('successModal').classList.add('show');
                 } else {
                     showToast(data.message || 'حدث خطأ', 'error');
-                    checkoutBtn.textContent = '✅ إتمام الشراء';
+                    checkoutBtn.textContent = ' إتمام الشراء';
                     checkoutBtn.disabled = false;
                 }
             } catch (error) {
                 showToast('حدث خطأ في الاتصال', 'error');
-                checkoutBtn.textContent = '✅ إتمام الشراء';
+                checkoutBtn.textContent = ' إتمام الشراء';
                 checkoutBtn.disabled = false;
             }
         }

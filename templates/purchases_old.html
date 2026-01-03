@@ -361,25 +361,25 @@
             {% for purchase in purchases %}
             <div class="purchase-card">
                 <div class="card-main">
-                    <div class="card-icon">📦</div>
+                    <div class="card-icon"></div>
                     <div class="card-info">
                         <div class="card-title">{{ purchase.get('item_name', 'منتج') }}</div>
                         <div class="card-meta">
                             <span class="meta-item price">{{ purchase.get('price', 0) }} ر.س</span>
-                            <span class="meta-item">📅 {{ purchase.get('sold_at', 'غير محدد') }}</span>
+                            <span class="meta-item"> {{ purchase.get('sold_at', 'غير محدد') }}</span>
                         </div>
                     </div>
                     {% set status = purchase.get('status', 'completed') %}
                     {% if status == 'pending' %}
                     <div class="card-badge pending">⏳ قيد المراجعة</div>
                     {% elif status == 'claimed' %}
-                    <div class="card-badge claimed">🔄 جاري التنفيذ</div>
+                    <div class="card-badge claimed"> جاري التنفيذ</div>
                     {% else %}
                     <div class="card-badge completed">✓ مكتمل</div>
                     {% endif %}
                 </div>
                 <button class="view-details-btn" onclick="openModal({{ loop.index }})">
-                    📋 بيانات الطلب
+                     بيانات الطلب
                 </button>
             </div>
             
@@ -387,13 +387,13 @@
             <div class="modal-overlay" id="modal-{{ loop.index }}" onclick="closeModalOnOverlay(event, {{ loop.index }})">
                 <div class="modal-content" onclick="event.stopPropagation()">
                     <div class="modal-header">
-                        <div class="modal-title">📦 {{ purchase.get('item_name', 'منتج') }}</div>
+                        <div class="modal-title"> {{ purchase.get('item_name', 'منتج') }}</div>
                         <button class="close-btn" onclick="closeModal({{ loop.index }})">✕</button>
                     </div>
                     <div class="modal-body">
                         <!-- معلومات الطلب -->
                         <div class="modal-section">
-                            <div class="section-title">📊 معلومات الطلب</div>
+                            <div class="section-title"> معلومات الطلب</div>
                             <div class="order-info-grid">
                                 <div class="order-info-item">
                                     <div class="order-info-label">السعر</div>
@@ -413,7 +413,7 @@
                                     {% if status == 'pending' %}
                                     <div class="order-info-value" style="color: #e17055;">⏳ قيد المراجعة</div>
                                     {% elif status == 'claimed' %}
-                                    <div class="order-info-value" style="color: #0984e3;">🔄 جاري التنفيذ</div>
+                                    <div class="order-info-value" style="color: #0984e3;"> جاري التنفيذ</div>
                                     {% else %}
                                     <div class="order-info-value" style="color: #00b894;">✓ مكتمل</div>
                                     {% endif %}
@@ -424,7 +424,7 @@
                         {% if purchase.get('details') %}
                         <!-- الوصف -->
                         <div class="modal-section">
-                            <div class="section-title">📝 وصف المنتج</div>
+                            <div class="section-title"> وصف المنتج</div>
                             <div class="section-content">{{ purchase.get('details') }}</div>
                         </div>
                         {% endif %}
@@ -432,11 +432,11 @@
                         {% if purchase.get('hidden_data') %}
                         <!-- بيانات الاشتراك -->
                         <div class="modal-section">
-                            <div class="section-title">🔐 بيانات الاشتراك</div>
+                            <div class="section-title"> بيانات الاشتراك</div>
                             <div class="hidden-data-box">
                                 <div class="hidden-data-content" id="data-{{ loop.index }}">{{ purchase.get('hidden_data') }}</div>
                                 <button class="copy-data-btn" onclick="copyData({{ loop.index }})">
-                                    📋 نسخ البيانات
+                                     نسخ البيانات
                                 </button>
                             </div>
                         </div>
@@ -447,15 +447,15 @@
             {% endfor %}
         {% else %}
             <div class="empty-state">
-                <div class="empty-icon">🛒</div>
+                <div class="empty-icon"></div>
                 <p class="empty-text">لم تقم بأي عملية شراء بعد</p>
-                <a href="/" class="shop-btn">🛍️ تصفح المنتجات</a>
+                <a href="/" class="shop-btn"> تصفح المنتجات</a>
             </div>
         {% endif %}
     </div>
     
     <!-- Toast -->
-    <div class="toast" id="toast">✅ تم نسخ البيانات!</div>
+    <div class="toast" id="toast"> تم نسخ البيانات!</div>
     
     <script>
         // فتح النافذة
@@ -508,7 +508,7 @@
                     document.execCommand('copy');
                     showToast();
                 } catch(e) {
-                    alert('❌ فشل النسخ');
+                    alert(' فشل النسخ');
                 }
                 document.body.removeChild(textArea);
             });

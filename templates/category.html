@@ -296,7 +296,7 @@
     <div class="container">
         <!-- المنتجات المتاحة -->
         {% if items %}
-        <h3 class="section-title">📦 المنتجات المتاحة</h3>
+        <h3 class="section-title"> المنتجات المتاحة</h3>
         <div class="products-grid">
             {% for item in items %}
             <div class="product-card">
@@ -304,7 +304,7 @@
                     {% if item.image_url %}
                     <img src="{{ item.image_url }}" alt="{{ item.item_name }}">
                     {% else %}
-                    📦
+                    
                     {% endif %}
                 </div>
                 <div class="product-content">
@@ -313,7 +313,7 @@
                         {% if item.delivery_type == 'manual' %}
                         <span class="product-badge manual">👨‍💼 تسليم يدوي</span>
                         {% else %}
-                        <span class="product-badge instant">⚡ تسليم فوري</span>
+                        <span class="product-badge instant"> تسليم فوري</span>
                         {% endif %}
                         <div class="product-price">{{ item.price|round(2) }} ر.س</div>
                     </div>
@@ -323,14 +323,14 @@
                             data-name="{{ item.item_name }}" 
                             data-instructions="{{ item.buyer_instructions|default('أدخل المتطلبات المطلوبة', true) }}"
                             onclick="openManualModalFromBtn(this)">
-                        📝 أدخل المتطلبات
+                         أدخل المتطلبات
                     </button>
                     {% else %}
                     <button class="product-btn" 
                             data-id="{{ item.id }}" 
                             data-name="{{ item.item_name }}"
                             onclick="addToCartFromBtn(this)">
-                        🛒 أضف للسلة
+                         أضف للسلة
                     </button>
                     {% endif %}
                 </div>
@@ -348,7 +348,7 @@
         
         <!-- المنتجات المباعة -->
         {% if sold_items %}
-        <h3 class="section-title" style="color: #888;">✅ المنتجات المباعة ({{ sold_items|length }})</h3>
+        <h3 class="section-title" style="color: #888;"> المنتجات المباعة ({{ sold_items|length }})</h3>
         <div class="products-grid">
             {% for item in sold_items %}
             <div class="product-card" style="opacity: 0.6;">
@@ -356,7 +356,7 @@
                     {% if item.image_url %}
                     <img src="{{ item.image_url }}" alt="{{ item.item_name }}" style="opacity: 0.5;">
                     {% else %}
-                    ✅
+                    
                     {% endif %}
                 </div>
                 <div class="product-content">
@@ -365,7 +365,7 @@
                         <div class="product-price" style="color: #888;">{{ item.price|round(2) }} ر.س</div>
                     </div>
                     <button class="product-btn" disabled>
-                        ✅ مباع
+                         مباع
                     </button>
                 </div>
             </div>
@@ -375,12 +375,12 @@
         
         <!-- مشتريات المستخدم -->
         {% if my_purchases %}
-        <h3 class="section-title" style="color: var(--green);">🎁 مشترياتي من هذه الفئة ({{ my_purchases|length }})</h3>
+        <h3 class="section-title" style="color: var(--green);"> مشترياتي من هذه الفئة ({{ my_purchases|length }})</h3>
         <div class="products-grid">
             {% for purchase in my_purchases %}
             <div class="product-card" style="border-color: var(--green);">
                 <div class="product-image" style="background: linear-gradient(135deg, var(--green) 0%, #00a86b 100%);">
-                    📦
+                    
                 </div>
                 <div class="product-content">
                     <div>
@@ -406,27 +406,27 @@
     <div class="modal-overlay" id="manualModal" onclick="closeManualModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <h3>📝 أدخل متطلباتك</h3>
+                <h3> أدخل متطلباتك</h3>
                 <button class="close-btn" onclick="closeManualModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label>📦 المنتج:</label>
+                    <label> المنتج:</label>
                     <div id="modalProductName" style="color: var(--primary); font-weight: bold;"></div>
                 </div>
                 <div class="form-group">
-                    <label>📋 التعليمات:</label>
+                    <label> التعليمات:</label>
                     <div id="modalInstructions" class="hint"></div>
                 </div>
                 <div class="form-group">
-                    <label>✏️ أدخل بياناتك / متطلباتك:</label>
+                    <label> أدخل بياناتك / متطلباتك:</label>
                     <textarea id="buyerDetails" class="form-control" placeholder="مثال: اسم المستخدم، الإيميل، الخ..."></textarea>
-                    <div class="hint">⚠️ تأكد من صحة البيانات قبل الإرسال</div>
+                    <div class="hint"> تأكد من صحة البيانات قبل الإرسال</div>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn-modal btn-secondary" onclick="closeManualModal()">إلغاء</button>
-                <button class="btn-modal btn-warning" onclick="confirmAddManual()">🛒 إضافة للسلة</button>
+                <button class="btn-modal btn-warning" onclick="confirmAddManual()"> إضافة للسلة</button>
             </div>
         </div>
     </div>
@@ -476,12 +476,12 @@
         const buyerDetails = document.getElementById('buyerDetails').value.trim();
         
         if (!buyerDetails) {
-            alert('❌ يجب إدخال المتطلبات المطلوبة!');
+            alert(' يجب إدخال المتطلبات المطلوبة!');
             return;
         }
         
         if (buyerDetails.length < 3) {
-            alert('❌ المتطلبات قصيرة جداً!');
+            alert(' المتطلبات قصيرة جداً!');
             return;
         }
         
@@ -504,13 +504,13 @@
             const data = await response.json();
             
             if (data.status === 'success') {
-                showToast('✅ تم إضافة ' + productName + ' للسلة');
+                showToast(' تم إضافة ' + productName + ' للسلة');
                 setTimeout(() => location.reload(), 1000);
             } else {
-                showToast('❌ ' + (data.message || 'حدث خطأ'), 'error');
+                showToast(' ' + (data.message || 'حدث خطأ'), 'error');
             }
         } catch (error) {
-            showToast('❌ حدث خطأ في الاتصال', 'error');
+            showToast(' حدث خطأ في الاتصال', 'error');
         }
     }
 

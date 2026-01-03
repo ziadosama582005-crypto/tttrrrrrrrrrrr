@@ -235,16 +235,16 @@
 
 {% block content %}
 <div class="top-bar">
-    <h1>🏷️ إدارة الأقسام</h1>
+    <h1> إدارة الأقسام</h1>
     <div class="top-bar-actions">
         <button class="btn btn-primary" onclick="openAddModal()">➕ إضافة قسم</button>
-        <button class="btn btn-secondary btn-sm" onclick="loadCategories()">🔄 تحديث</button>
+        <button class="btn btn-secondary btn-sm" onclick="loadCategories()"> تحديث</button>
     </div>
 </div>
 
 <!-- إعدادات عرض الأقسام -->
 <div class="settings-card">
-    <h3>⚙️ ترتيب عرض الأقسام في الموقع</h3>
+    <h3> ترتيب عرض الأقسام في الموقع</h3>
     <div class="columns-selector">
         <button class="column-btn" data-cols="2" onclick="setColumns(2)">
             2×2 (عمودين)
@@ -274,18 +274,18 @@
         <div class="modal-body">
             <input type="hidden" id="editCategoryId">
             <div class="form-group">
-                <label>🏷️ اسم القسم *</label>
+                <label> اسم القسم *</label>
                 <input type="text" id="categoryName" placeholder="مثال: نتفلكس">
             </div>
             <div class="form-group">
-                <label>🖼️ رابط صورة القسم</label>
+                <label> رابط صورة القسم</label>
                 <input type="url" id="categoryImage" placeholder="https://example.com/image.png" oninput="previewImage()">
                 <div class="image-preview" id="imagePreview"></div>
             </div>
             <div class="form-group">
-                <label>📦 نوع التسليم الافتراضي *</label>
+                <label> نوع التسليم الافتراضي *</label>
                 <select id="categoryDeliveryType">
-                    <option value="instant">⚡ تسليم فوري</option>
+                    <option value="instant"> تسليم فوري</option>
                     <option value="manual">👨‍💼 تسليم يدوي</option>
                 </select>
             </div>
@@ -301,16 +301,16 @@
 <div id="deleteModal" class="modal">
     <div class="modal-content" style="max-width: 400px;">
         <div class="modal-header" style="background: linear-gradient(135deg, var(--danger), #c0392b);">
-            <h2>🗑️ تأكيد الحذف</h2>
+            <h2> تأكيد الحذف</h2>
         </div>
         <div class="modal-body" style="text-align: center;">
-            <div style="font-size: 50px; margin-bottom: 15px;">⚠️</div>
+            <div style="font-size: 50px; margin-bottom: 15px;"></div>
             <p style="margin-bottom: 10px;">هل أنت متأكد من حذف هذا القسم؟</p>
             <p id="deleteCategoryName" style="color: var(--danger); font-weight: bold;"></p>
         </div>
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeDeleteModal()">إلغاء</button>
-            <button class="btn btn-danger" onclick="confirmDelete()">🗑️ حذف</button>
+            <button class="btn btn-danger" onclick="confirmDelete()"> حذف</button>
         </div>
     </div>
 </div>
@@ -362,7 +362,7 @@
             if(data.status === 'success') {
                 currentColumns = cols;
                 updateColumnsUI();
-                showAlert('success', '✅ تم حفظ الإعداد!');
+                showAlert('success', ' تم حفظ الإعداد!');
             } else {
                 showAlert('error', data.message || 'فشل الحفظ');
             }
@@ -408,19 +408,19 @@
                          onerror="this.src='https://placehold.co/60x60/6c5ce7/ffffff?text=📁'">
                     <div class="category-info">
                         <div class="category-name">${cat.name}</div>
-                        <div class="category-count">📦 ${cat.product_count || 0} منتج</div>
+                        <div class="category-count"> ${cat.product_count || 0} منتج</div>
                         <div style="font-size: 12px; margin-top: 3px; color: var(--muted);">
-                            ${cat.delivery_type === 'manual' ? '👨‍💼 يدوي' : '⚡ فوري'}
+                            ${cat.delivery_type === 'manual' ? '👨‍💼 يدوي' : ' فوري'}
                         </div>
                     </div>
                     <div class="category-order">${cat.order || '?'}</div>
                 </div>
                 <div class="category-actions">
                     <button class="btn btn-primary btn-sm" onclick="openEditModal('${cat.id}', '${cat.name}', '${cat.image_url || ''}', '${cat.delivery_type || 'instant'}')">
-                        ✏️ تعديل
+                         تعديل
                     </button>
                     <button class="btn btn-danger btn-sm" onclick="openDeleteModal('${cat.id}', '${cat.name}', ${cat.product_count || 0})">
-                        🗑️ حذف
+                         حذف
                     </button>
                 </div>
             </div>
@@ -440,7 +440,7 @@
     
     function openEditModal(id, name, imageUrl, deliveryType) {
         isEditMode = true;
-        document.getElementById('modalTitle').textContent = '✏️ تعديل القسم';
+        document.getElementById('modalTitle').textContent = ' تعديل القسم';
         document.getElementById('editCategoryId').value = id;
         document.getElementById('categoryName').value = name;
         document.getElementById('categoryImage').value = imageUrl;
@@ -457,7 +457,7 @@
         const url = document.getElementById('categoryImage').value;
         const preview = document.getElementById('imagePreview');
         if(url) {
-            preview.innerHTML = `<img src="${url}" onerror="this.src='https://placehold.co/100x100/6c5ce7/ffffff?text=❌'">`;
+            preview.innerHTML = `<img src="${url}" onerror="this.src='https://placehold.co/100x100/6c5ce7/ffffff?text='">`;
         } else {
             preview.innerHTML = '';
         }
@@ -489,7 +489,7 @@
             const data = await response.json();
             
             if(data.status === 'success') {
-                showAlert('success', isEditMode ? '✅ تم تعديل القسم!' : '✅ تم إضافة القسم!');
+                showAlert('success', isEditMode ? ' تم تعديل القسم!' : ' تم إضافة القسم!');
                 closeModal();
                 loadCategories();
             } else {
@@ -528,7 +528,7 @@
             const data = await response.json();
             
             if(data.status === 'success') {
-                showAlert('success', '✅ تم حذف القسم!');
+                showAlert('success', ' تم حذف القسم!');
                 closeDeleteModal();
                 loadCategories();
             } else {

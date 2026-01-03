@@ -515,17 +515,17 @@
         <!-- يمين الشاشة: البحث وحسابي -->
         <div class="header-right">
             <button class="header-btn" onclick="openSearch()" title="بحث">
-                🔍
+                بحث
             </button>
             <button class="header-btn account-btn" id="headerAccountBtn" onclick="handleAccountClick()" title="حسابي">
-                <span id="headerAccountIcon">👤</span> <span id="headerAccountText">حسابي</span>
+                <span id="headerAccountIcon"></span> <span id="headerAccountText">حسابي</span>
             </button>
         </div>
         
         <!-- وسط: الشعار -->
         <div class="header-center">
             <div class="header-logo">
-                🛒 المتجر
+                المتجر
             </div>
         </div>
         
@@ -543,38 +543,32 @@
     <div class="side-menu-overlay" id="sideMenuOverlay" onclick="closeSideMenu()"></div>
     <div class="side-menu" id="sideMenu">
         <div class="side-menu-header">
-            <h3>📋 القائمة</h3>
+            <h3>القائمة</h3>
             <button class="close-menu-btn" onclick="closeSideMenu()">×</button>
         </div>
         <div class="side-menu-content">
             <a href="/" class="menu-item">
-                <span>🏠</span>
                 <span>الرئيسية</span>
             </a>
             <div class="menu-item" id="accountMenuItem" onclick="handleAccountClick();" style="cursor: pointer;">
-                <span id="accountIcon">👤</span>
+                <span id="accountIcon"></span>
                 <span id="accountText">حسابي</span>
             </div>
             <div class="menu-item" onclick="goToPageOrLogin('/cart', 'السلة');" style="cursor: pointer;">
-                <span>🛒</span>
                 <span>السلة</span>
             </div>
             <div class="menu-item" onclick="goToPageOrLogin('/wallet', 'المحفظة');" style="cursor: pointer;">
-                <span>💰</span>
                 <span>المحفظة</span>
             </div>
             <div class="menu-divider"></div>
             <div class="menu-item" onclick="goToPageOrLogin('/my_purchases', 'مشترياتي');" style="cursor: pointer;">
-                <span>📦</span>
                 <span>مشترياتي</span>
             </div>
             <div class="menu-item" onclick="openTelegramBot(); closeSideMenu();" style="cursor: pointer;">
-                <span>💬</span>
                 <span>الدعم الفني</span>
             </div>
             <div class="menu-divider"></div>
             <div class="menu-item" onclick="openTelegramBot(); closeSideMenu();" style="cursor: pointer;">
-                <span>📱</span>
                 <span>تيليجرام</span>
             </div>
         </div>
@@ -584,12 +578,11 @@
     <div class="search-overlay" id="searchOverlay">
         <div class="search-container">
             <div class="search-header">
-                <h3>🔍 البحث في المتجر</h3>
+                <h3>البحث في المتجر</h3>
                 <button class="close-search-btn" onclick="closeSearch()">×</button>
             </div>
             <div class="search-input-wrapper">
                 <input type="text" class="search-input" id="searchInput" placeholder="ابحث عن منتج أو فئة..." oninput="handleSearch(this.value)">
-                <span class="search-icon">🔍</span>
             </div>
             <div class="search-results" id="searchResults">
                 <!-- نتائج البحث ستظهر هنا -->
@@ -603,7 +596,7 @@
         <!-- تبويبات نوع التسليم -->
         <div style="background: linear-gradient(135deg, #6c5ce7, #a29bfe); padding: 15px; border-radius: 15px; margin-bottom: 25px; display: flex; gap: 10px;">
             <button id="btn-instant" onclick="filterDelivery('instant')" style="flex: 1; padding: 12px; border: none; border-radius: 10px; background: white; color: #6c5ce7; font-weight: bold; cursor: pointer;">
-                ⚡ فوري
+                 فوري
             </button>
             <button id="btn-manual" onclick="filterDelivery('manual')" style="flex: 1; padding: 12px; border: none; border-radius: 10px; background: rgba(255,255,255,0.2); color: white; font-weight: bold; cursor: pointer;">
                 👨‍💼 يدوي
@@ -618,7 +611,7 @@
                     {% if category.image_url %}
                     <img src="{{ category.image_url }}" alt="{{ category.name }}">
                     {% else %}
-                    📦
+                    
                     {% endif %}
                 </div>
                 <div class="category-content">
@@ -655,7 +648,7 @@
             <!-- الخطوة 1: إدخال Telegram ID أو البريد -->
             <div id="step1" class="step active">
                 <div class="modal-header">
-                    <div class="modal-icon">📱</div>
+                    <div class="modal-icon"></div>
                     <h2>دخول المتجر</h2>
                     <p id="loginSubtitle">أدخل رقم Telegram ID الخاص بك</p>
                 </div>
@@ -669,10 +662,10 @@
                         </div>
                         
                         <div class="switch-method">
-                            <a onclick="switchToEmail()">📧 التسجيل بالبريد الإلكتروني</a>
+                            <a onclick="switchToEmail()"> التسجيل بالبريد الإلكتروني</a>
                         </div>
                         
-                        <button type="submit" id="sendCodeBtn">📤 إرسال كود التحقق</button>
+                        <button type="submit" id="sendCodeBtn"> إرسال كود التحقق</button>
                     </form>
                 </div>
                 
@@ -680,45 +673,45 @@
                 <div id="emailSection" class="login-section">
                     <form id="emailForm">
                         <div class="form-group">
-                            <label for="loginEmail">📧 البريد الإلكتروني</label>
+                            <label for="loginEmail"> البريد الإلكتروني</label>
                             <input type="email" id="loginEmail" placeholder="example@email.com" dir="ltr">
                         </div>
                         
                         <div class="switch-method">
-                            <a onclick="switchToTelegram()">📱 التسجيل بـ Telegram ID</a>
+                            <a onclick="switchToTelegram()"> التسجيل بـ Telegram ID</a>
                         </div>
                         
-                        <button type="submit" id="sendCodeEmailBtn">📤 إرسال كود التحقق</button>
+                        <button type="submit" id="sendCodeEmailBtn"> إرسال كود التحقق</button>
                     </form>
                     
                     <div class="help-text">
-                        💡 يجب أن يكون البريد موثق في حسابك مسبقاً
+                         يجب أن يكون البريد موثق في حسابك مسبقاً
                     </div>
                 </div>
                 
                 <div id="error1" class="message error"></div>
                 <div class="security-note">
-                    🛡️ سيتم إرسال كود مؤقت عبر البوت للتحقق من هويتك
+                     سيتم إرسال كود مؤقت عبر البوت للتحقق من هويتك
                 </div>
             </div>
             
             <!-- الخطوة 2: إدخال الكود -->
             <div id="step2" class="step">
                 <div class="modal-header">
-                    <div class="modal-icon">✅</div>
+                    <div class="modal-icon"></div>
                     <h2>كود التحقق</h2>
                     <p>أدخل الكود المرسل لك في Telegram</p>
                 </div>
                 
-                <div class="timer">⏰ <span id="countdown">2:00</span></div>
+                <div class="timer"> <span id="countdown">2:00</span></div>
                 
                 <form id="codeForm">
                     <div class="form-group">
-                        <label for="verifyCode">🔐 كود التحقق (6 أرقام)</label>
+                        <label for="verifyCode"> كود التحقق (6 أرقام)</label>
                         <input type="text" id="verifyCode" class="code-input" placeholder="000000" maxlength="6" required inputmode="numeric">
                     </div>
-                    <button type="submit" id="verifyBtn">✅ تأكيد الدخول</button>
-                    <button type="button" class="back-btn" onclick="goBackStep()">↩️ رجوع</button>
+                    <button type="submit" id="verifyBtn"> تأكيد الدخول</button>
+                    <button type="button" class="back-btn" onclick="goBackStep()"> رجوع</button>
                 </form>
                 
                 <div id="error2" class="message error"></div>
@@ -728,18 +721,18 @@
             <!-- الخطوة 3: المصادقة الثنائية -->
             <div id="step3" class="step">
                 <div class="modal-header">
-                    <div class="modal-icon">🔐</div>
+                    <div class="modal-icon"></div>
                     <h2>المصادقة الثنائية</h2>
                     <p>أدخل الكود من Google Authenticator</p>
                 </div>
                 
                 <form id="twoFAForm">
                     <div class="form-group">
-                        <label for="twoFACode">🔑 كود المصادقة (6 أرقام)</label>
+                        <label for="twoFACode"> كود المصادقة (6 أرقام)</label>
                         <input type="text" id="twoFACode" class="code-input" placeholder="000000" maxlength="6" required inputmode="numeric">
                     </div>
-                    <button type="submit" id="verify2FABtn">✅ تأكيد الدخول</button>
-                    <button type="button" class="back-btn" onclick="goBackToStep1()">↩️ رجوع للبداية</button>
+                    <button type="submit" id="verify2FABtn"> تأكيد الدخول</button>
+                    <button type="button" class="back-btn" onclick="goBackToStep1()"> رجوع للبداية</button>
                 </form>
                 
                 <div id="error3" class="message error"></div>
@@ -1029,11 +1022,11 @@
             document.getElementById('error2').style.display = 'none';
             document.getElementById('success2').style.display = 'none';
             document.getElementById('sendCodeBtn').disabled = false;
-            document.getElementById('sendCodeBtn').innerHTML = '📤 إرسال كود التحقق';
+            document.getElementById('sendCodeBtn').innerHTML = ' إرسال كود التحقق';
             document.getElementById('sendCodeEmailBtn').disabled = false;
-            document.getElementById('sendCodeEmailBtn').innerHTML = '📤 إرسال كود التحقق';
+            document.getElementById('sendCodeEmailBtn').innerHTML = ' إرسال كود التحقق';
             document.getElementById('verifyBtn').disabled = false;
-            document.getElementById('verifyBtn').innerHTML = '✅ تأكيد الدخول';
+            document.getElementById('verifyBtn').innerHTML = ' تأكيد الدخول';
             // إعادة تعيين للقسم الافتراضي
             document.getElementById('telegramSection').classList.add('active');
             document.getElementById('emailSection').classList.remove('active');
@@ -1066,7 +1059,7 @@
             const errorDiv = document.getElementById('error1');
             
             if (!userId || !userId.match(/^\d+$/)) {
-                errorDiv.textContent = '❌ الرجاء إدخال رقم صحيح فقط';
+                errorDiv.textContent = ' الرجاء إدخال رقم صحيح فقط';
                 errorDiv.style.display = 'block';
                 return;
             }
@@ -1091,16 +1084,16 @@
                     startCountdown();
                     document.getElementById('verifyCode').focus();
                 } else {
-                    errorDiv.textContent = `❌ ${data.message}`;
+                    errorDiv.textContent = ` ${data.message}`;
                     errorDiv.style.display = 'block';
                     btn.disabled = false;
-                    btn.innerHTML = '📤 إرسال كود التحقق';
+                    btn.innerHTML = ' إرسال كود التحقق';
                 }
             } catch (error) {
-                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
+                errorDiv.textContent = ' خطأ في الاتصال بالسيرفر';
                 errorDiv.style.display = 'block';
                 btn.disabled = false;
-                btn.innerHTML = '📤 إرسال كود التحقق';
+                btn.innerHTML = ' إرسال كود التحقق';
             }
         });
         
@@ -1112,7 +1105,7 @@
             const errorDiv = document.getElementById('error1');
             
             if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-                errorDiv.textContent = '❌ الرجاء إدخال بريد إلكتروني صحيح';
+                errorDiv.textContent = ' الرجاء إدخال بريد إلكتروني صحيح';
                 errorDiv.style.display = 'block';
                 return;
             }
@@ -1137,16 +1130,16 @@
                     startCountdown();
                     document.getElementById('verifyCode').focus();
                 } else {
-                    errorDiv.textContent = `❌ ${data.message}`;
+                    errorDiv.textContent = ` ${data.message}`;
                     errorDiv.style.display = 'block';
                     btn.disabled = false;
-                    btn.innerHTML = '📤 إرسال كود التحقق';
+                    btn.innerHTML = ' إرسال كود التحقق';
                 }
             } catch (error) {
-                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
+                errorDiv.textContent = ' خطأ في الاتصال بالسيرفر';
                 errorDiv.style.display = 'block';
                 btn.disabled = false;
-                btn.innerHTML = '📤 إرسال كود التحقق';
+                btn.innerHTML = ' إرسال كود التحقق';
             }
         });
         
@@ -1159,7 +1152,7 @@
             const successDiv = document.getElementById('success2');
             
             if (!code || code.length !== 6 || !code.match(/^\d{6}$/)) {
-                errorDiv.textContent = '❌ الرجاء إدخال 6 أرقام صحيحة';
+                errorDiv.textContent = ' الرجاء إدخال 6 أرقام صحيحة';
                 errorDiv.style.display = 'block';
                 return;
             }
@@ -1184,7 +1177,7 @@
                 if (data.success) {
                     // التحقق من طلب المصادقة الثنائية
                     if (data.requires_2fa) {
-                        successDiv.textContent = '🔐 مطلوب كود المصادقة الثنائية';
+                        successDiv.textContent = ' مطلوب كود المصادقة الثنائية';
                         successDiv.style.display = 'block';
                         clearInterval(countdownInterval);
                         setTimeout(() => {
@@ -1193,7 +1186,7 @@
                             document.getElementById('twoFACode').focus();
                         }, 1000);
                     } else {
-                        successDiv.textContent = '✅ تم التحقق! جاري نقلك...';
+                        successDiv.textContent = ' تم التحقق! جاري نقلك...';
                         successDiv.style.display = 'block';
                         clearInterval(countdownInterval);
                         setTimeout(() => {
@@ -1201,16 +1194,16 @@
                         }, 1500);
                     }
                 } else {
-                    errorDiv.textContent = `❌ ${data.message}`;
+                    errorDiv.textContent = ` ${data.message}`;
                     errorDiv.style.display = 'block';
                     btn.disabled = false;
-                    btn.innerHTML = '✅ تأكيد الدخول';
+                    btn.innerHTML = ' تأكيد الدخول';
                 }
             } catch (error) {
-                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
+                errorDiv.textContent = ' خطأ في الاتصال بالسيرفر';
                 errorDiv.style.display = 'block';
                 btn.disabled = false;
-                btn.innerHTML = '✅ تأكيد الدخول';
+                btn.innerHTML = ' تأكيد الدخول';
             }
         });
         
@@ -1225,7 +1218,7 @@
                 
                 if (secondsLeft <= 0) {
                     clearInterval(countdownInterval);
-                    document.getElementById('error2').textContent = '⏰ انتهت صلاحية الكود! الرجاء المحاولة مجدداً';
+                    document.getElementById('error2').textContent = ' انتهت صلاحية الكود! الرجاء المحاولة مجدداً';
                     document.getElementById('error2').style.display = 'block';
                     document.getElementById('verifyBtn').disabled = true;
                 }
@@ -1250,9 +1243,9 @@
             document.getElementById('error2').style.display = 'none';
             document.getElementById('success2').style.display = 'none';
             document.getElementById('sendCodeBtn').disabled = false;
-            document.getElementById('sendCodeBtn').innerHTML = '📤 إرسال كود التحقق';
+            document.getElementById('sendCodeBtn').innerHTML = ' إرسال كود التحقق';
             document.getElementById('sendCodeEmailBtn').disabled = false;
-            document.getElementById('sendCodeEmailBtn').innerHTML = '📤 إرسال كود التحقق';
+            document.getElementById('sendCodeEmailBtn').innerHTML = ' إرسال كود التحقق';
         }
         
         // الرجوع للخطوة 1 من 2FA
@@ -1267,9 +1260,9 @@
             document.getElementById('error3').style.display = 'none';
             document.getElementById('success3').style.display = 'none';
             document.getElementById('sendCodeBtn').disabled = false;
-            document.getElementById('sendCodeBtn').innerHTML = '📤 إرسال كود التحقق';
+            document.getElementById('sendCodeBtn').innerHTML = ' إرسال كود التحقق';
             document.getElementById('sendCodeEmailBtn').disabled = false;
-            document.getElementById('sendCodeEmailBtn').innerHTML = '📤 إرسال كود التحقق';
+            document.getElementById('sendCodeEmailBtn').innerHTML = ' إرسال كود التحقق';
         }
         
         // الخطوة 3: التحقق من المصادقة الثنائية
@@ -1281,7 +1274,7 @@
             const successDiv = document.getElementById('success3');
             
             if (!totpCode || totpCode.length !== 6 || !totpCode.match(/^\d{6}$/)) {
-                errorDiv.textContent = '❌ الرجاء إدخال 6 أرقام صحيحة';
+                errorDiv.textContent = ' الرجاء إدخال 6 أرقام صحيحة';
                 errorDiv.style.display = 'block';
                 return;
             }
@@ -1301,22 +1294,22 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    successDiv.textContent = '✅ تم التحقق! جاري نقلك...';
+                    successDiv.textContent = ' تم التحقق! جاري نقلك...';
                     successDiv.style.display = 'block';
                     setTimeout(() => {
                         location.reload();
                     }, 1500);
                 } else {
-                    errorDiv.textContent = data.message || '❌ الكود غير صحيح';
+                    errorDiv.textContent = data.message || ' الكود غير صحيح';
                     errorDiv.style.display = 'block';
                     btn.disabled = false;
-                    btn.innerHTML = '✅ تأكيد الدخول';
+                    btn.innerHTML = ' تأكيد الدخول';
                 }
             } catch (error) {
-                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
+                errorDiv.textContent = ' خطأ في الاتصال بالسيرفر';
                 errorDiv.style.display = 'block';
                 btn.disabled = false;
-                btn.innerHTML = '✅ تأكيد الدخول';
+                btn.innerHTML = ' تأكيد الدخول';
             }
         });
         
@@ -1473,7 +1466,7 @@
             results.forEach(item => {
                 html += `
                     <div class="search-result-item" onclick="location.href='${item.url}'; closeSearch();">
-                        <span style="font-size: 30px;">📦</span>
+                        <span style="font-size: 30px;"></span>
                         <div>
                             <div style="font-weight: bold;">${item.name}</div>
                             <div style="color: #888; font-size: 13px;">${item.count} منتج</div>
@@ -1558,7 +1551,7 @@
                      onmouseover="this.style.background='rgba(255, 107, 107, 0.2)'"
                      onmouseout="this.style.background='transparent'"
                      onclick="logout()">
-                    🚪 تسجيل الخروج
+                     تسجيل الخروج
                 </div>
             `;
             document.body.appendChild(menu);
@@ -1585,9 +1578,9 @@
             var headerAccountText = document.getElementById('headerAccountText');
             
             if (isLoggedIn) {
-                if (accountIcon) accountIcon.textContent = '✅';
+                if (accountIcon) accountIcon.textContent = '';
                 if (accountText) accountText.textContent = 'حسابي (مسجل)';
-                if (headerAccountIcon) headerAccountIcon.textContent = '✅';
+                if (headerAccountIcon) headerAccountIcon.textContent = '';
                 if (headerAccountText) headerAccountText.textContent = 'حسابي';
             }
         }
