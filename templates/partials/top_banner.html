@@ -78,6 +78,7 @@
     <a href="/" class="back-btn" title="الرجوع للرئيسية">
         ←
     </a>
+    {% if user_id %}
     <a href="/cart?user_id={{ user_id }}" class="cart-widget" title="السلة">
         <div class="cart-info">
             <span class="cart-count" id="headerCartCount">0 منتج</span>
@@ -85,6 +86,15 @@
         </div>
         <span class="cart-icon">🛒</span>
     </a>
+    {% else %}
+    <a href="#" class="cart-widget" onclick="alert('يرجى تسجيل الدخول أولاً عبر بوت التليجرام'); return false;" title="السلة">
+        <div class="cart-info">
+            <span class="cart-count">سجل دخول</span>
+            <span class="cart-total">للسلة</span>
+        </div>
+        <span class="cart-icon">🛒</span>
+    </a>
+    {% endif %}
 </header>
 <script>
     async function loadHeaderCart() {
