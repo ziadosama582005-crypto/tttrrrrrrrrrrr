@@ -400,14 +400,20 @@
     let cartData = null;
     let countdownInterval = null;
     let isLoadingCart = false;
-    let lastLoadTime = 0;
+    
     async function loadCart() {
-        const now = Date.now();
-        if (isLoadingCart || (now - lastLoadTime) < 5000) {
+        if (isLoadingCart) return;
+        isLoadingCart = true;
+        
+        // تحقق من وجود userId
+        if (!userId || userId === '' || userId === 'None') {
+            document.getElementById('loadingDiv').style.display = 'none';
+            document.getElementById('cartContent').innerHTML = '<div class="empty-cart"><div class="empty-cart-icon">🛒</div><div class="empty-cart-text">يجب تسجيل الدخول لعرض السلة</div><a href="/" class="shop-btn">العودة للمتجر</a></div>';
+            document.getElementById('cartContent').style.display = 'block';
+            isLoadingCart = false;
             return;
         }
-        isLoadingCart = true;
-        lastLoadTime = now;
+        
         try {
             const response = await fetch('/api/cart/get?user_id=' + userId);
             const data = await response.json();
