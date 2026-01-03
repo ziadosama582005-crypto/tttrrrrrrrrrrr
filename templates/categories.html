@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>المتجر الرقمي - الفئات</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         * {
             margin: 0;
@@ -21,77 +21,9 @@
             padding-top: 70px;
         }
         
-        /* الهيدر الرئيسي */
-        .main-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            border-bottom: 1px solid rgba(108, 92, 231, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 15px;
-            z-index: 999;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .header-center {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
-        .header-logo {
-            font-size: 22px;
-            font-weight: bold;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .header-logo img {
-            height: 35px;
-            width: auto;
-        }
-        
-        .header-left {
-            display: flex;
-            align-items: center;
-        }
-        
-        .header-btn {
-            background: rgba(108, 92, 231, 0.2);
-            border: 1px solid rgba(108, 92, 231, 0.4);
-            color: #fff;
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 18px;
-        }
-        
-        .header-btn:hover {
-            background: rgba(108, 92, 231, 0.4);
-            border-color: #6c5ce7;
-            transform: scale(1.05);
-        }
-        
-        .header-btn.account-btn {
-            width: auto;
+        {% include 'partials/top_banner.html' %}
+
+        <!-- صندوق البحث -->
             padding: 0 12px;
             gap: 6px;
             font-size: 14px;
