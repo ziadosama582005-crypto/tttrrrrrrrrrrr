@@ -106,18 +106,26 @@ a {
 /* ========== التوست ========== */
 .toast {
     position: fixed;
-    bottom: 100px;
+    top: 20px;
     left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: var(--card-bg);
+    transform: translateX(-50%) translateY(-100px);
+    background: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%);
     color: white;
-    padding: 12px 24px;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    z-index: 9999;
+    padding: 14px 20px;
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    z-index: 99999;
     opacity: 0;
-    transition: all 0.3s;
-    border-left: 4px solid var(--green);
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 280px;
+    max-width: 90%;
+    font-size: 15px;
+    font-weight: 500;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
 }
 
 .toast.show {
@@ -126,11 +134,46 @@ a {
 }
 
 .toast.error {
-    border-left-color: var(--red);
+    background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
+    border: 1px solid rgba(255,255,255,0.2);
 }
 
 .toast.success {
-    border-left-color: var(--green);
+    background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.toast.warning {
+    background: linear-gradient(135deg, #f39c12 0%, #fdcb6e 100%);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #1a1a2e;
+}
+
+.toast-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.toast-message {
+    flex: 1;
+    line-height: 1.4;
+}
+
+.toast-action {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    color: white;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: 'Tajawal', sans-serif;
+    transition: background 0.2s;
+}
+
+.toast-action:hover {
+    background: rgba(255,255,255,0.3);
 }
 
 /* ========== حالة فارغة ========== */
