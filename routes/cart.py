@@ -107,13 +107,13 @@ def api_cart_add():
         if not cart.get('items'):
             cart = {
                 'items': [],
-                'created_at': now.isoformat(),
-                'expires_at': reservation_time.isoformat(),
+                'created_at': now.isoformat() + 'Z',
+                'expires_at': reservation_time.isoformat() + 'Z',
                 'status': 'active'
             }
         else:
             # تحديث وقت انتهاء السلة ليكون 5 دقائق من الآن
-            cart['expires_at'] = reservation_time.isoformat()
+            cart['expires_at'] = reservation_time.isoformat() + 'Z'
         
         # التحقق من عدم وجود المنتج في السلة
         existing_ids = [item['product_id'] for item in cart.get('items', [])]
@@ -160,7 +160,7 @@ def api_cart_add():
             'status': 'success',
             'message': f'✅ تم حجز المنتج لك لمدة {reservation_minutes} دقائق! أكمل الشراء بسرعة 🔥',
             'cart_count': len(cart['items']),
-            'expires_at': reservation_time.isoformat()
+            'expires_at': reservation_time.isoformat() + 'Z'
         })
         
     except Exception as e:
