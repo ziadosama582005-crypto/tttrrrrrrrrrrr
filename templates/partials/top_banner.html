@@ -1,171 +1,429 @@
-{# Navigation Bar علوي مع Hamburger Menu #}
+{# الهيدر الرئيسي الموحد مع البحث والحساب #}
 <style>
-  .top-nav {
-    background: linear-gradient(135deg, rgba(45, 52, 54, 0.98) 0%, rgba(26, 26, 46, 0.98) 100%);
-    border-bottom: 2px solid #6c5ce7;
-    position: sticky;
+  /* الهيدر الرئيسي */
+  .main-header {
+    position: fixed;
     top: 0;
-    z-index: 999;
-    padding: 10px 15px;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-bottom: 1px solid rgba(108, 92, 231, 0.3);
     display: flex;
+    align-items: center;
     justify-content: space-between;
+    padding: 0 15px;
+    z-index: 999;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+  }
+  
+  .header-right {
+    display: flex;
     align-items: center;
     gap: 10px;
   }
-  .nav-left { display: flex; align-items: center; gap: 15px; }
-  .nav-center { display: flex; align-items: center; justify-content: center; }
-  .nav-right { display: flex; align-items: center; gap: 10px; }
   
-  .hamburger-btn {
-    background: transparent;
-    border: none;
-    color: #6c5ce7;
-    font-size: 24px;
-    cursor: pointer;
-    padding: 5px;
+  .header-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
   }
   
-  .logo-text {
-    font-size: 16px;
+  .header-logo {
+    font-size: 22px;
     font-weight: bold;
-    color: #6c5ce7;
-    text-decoration: none;
-  }
-  
-  .nav-icon {
     color: #fff;
-    font-size: 20px;
-    cursor: pointer;
-    transition: color 0.3s;
-    text-decoration: none;
-  }
-  .nav-icon:hover { color: #6c5ce7; }
-  
-  .sidebar {
-    position: fixed;
-    right: -300px;
-    top: 0;
-    width: 280px;
-    height: 100vh;
-    background: linear-gradient(180deg, rgba(26, 26, 46, 0.98) 0%, rgba(15, 15, 26, 0.98) 100%);
-    border-left: 2px solid #6c5ce7;
-    z-index: 998;
-    overflow-y: auto;
-    transition: right 0.3s ease;
-    padding-top: 15px;
-  }
-  .sidebar.open { right: 0; }
-  
-  .sidebar-header {
-    padding: 15px;
-    border-bottom: 1px solid rgba(108, 92, 231, 0.2);
     display: flex;
-    justify-content: space-between;
     align-items: center;
-  }
-  .sidebar-close {
-    background: transparent;
-    border: none;
-    color: #6c5ce7;
-    font-size: 24px;
-    cursor: pointer;
+    gap: 8px;
   }
   
-  .sidebar-categories {
-    padding: 15px 0;
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
-  .sidebar-category {
-    padding: 12px 20px;
+  
+  .header-btn {
+    background: rgba(108, 92, 231, 0.2);
+    border: 1px solid rgba(108, 92, 231, 0.4);
     color: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 18px;
     text-decoration: none;
-    display: block;
-    border-left: 3px solid transparent;
+  }
+  
+  .header-btn:hover {
+    background: rgba(108, 92, 231, 0.4);
+    border-color: #6c5ce7;
+    transform: scale(1.05);
+  }
+  
+  .header-btn.account-btn {
+    width: auto;
+    padding: 0 12px;
+    gap: 6px;
+    font-size: 14px;
+  }
+  
+  .menu-btn {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .menu-btn span {
+    width: 18px;
+    height: 2px;
+    background: #fff;
+    border-radius: 2px;
     transition: all 0.3s;
   }
-  .sidebar-category:hover {
-    border-left-color: #6c5ce7;
-    background: rgba(108, 92, 231, 0.1);
-    color: #6c5ce7;
-  }
   
-  .sidebar-overlay {
+  /* القائمة الجانبية */
+  .side-menu-overlay {
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    opacity: 0;
-    visibility: hidden;
-    z-index: 997;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+  }
+  
+  .side-menu-overlay.show {
+    display: block;
+  }
+  
+  .side-menu {
+    position: fixed;
+    top: 0;
+    right: -280px;
+    width: 280px;
+    height: 100%;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    z-index: 1001;
+    transition: right 0.3s ease;
+    overflow-y: auto;
+    border-left: 1px solid rgba(108, 92, 231, 0.3);
+  }
+  
+  .side-menu.show {
+    right: 0;
+  }
+  
+  .side-menu-header {
+    padding: 20px;
+    border-bottom: 1px solid rgba(108, 92, 231, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .side-menu-header h3 {
+    color: #fff;
+    font-size: 18px;
+  }
+  
+  .close-menu-btn {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 24px;
+    cursor: pointer;
+  }
+  
+  .side-menu-content {
+    padding: 15px;
+  }
+  
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 15px;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 10px;
+    margin-bottom: 5px;
     transition: all 0.3s;
   }
-  .sidebar-overlay.open {
-    opacity: 1;
-    visibility: visible;
+  
+  .menu-item:hover {
+    background: rgba(108, 92, 231, 0.2);
+  }
+  
+  .menu-divider {
+    height: 1px;
+    background: rgba(108, 92, 231, 0.2);
+    margin: 15px 0;
+  }
+  
+  /* مربع البحث */
+  .search-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 1002;
+    padding: 20px;
+  }
+  
+  .search-overlay.show {
+    display: block;
+  }
+  
+  .search-container {
+    max-width: 600px;
+    margin: 80px auto 0;
+  }
+  
+  .search-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .search-header h3 {
+    color: #fff;
+    font-size: 20px;
+  }
+  
+  .close-search-btn {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 28px;
+    cursor: pointer;
+  }
+  
+  .search-input-wrapper {
+    position: relative;
+  }
+  
+  .search-input {
+    width: 100%;
+    padding: 15px 50px 15px 20px;
+    border: 2px solid rgba(108, 92, 231, 0.5);
+    border-radius: 15px;
+    background: rgba(26, 26, 46, 0.9);
+    color: #fff;
+    font-size: 16px;
+    font-family: inherit;
+  }
+  
+  .search-input:focus {
+    outline: none;
+    border-color: #6c5ce7;
+  }
+  
+  .search-icon-inside {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c5ce7;
+    font-size: 20px;
+  }
+  
+  .search-results {
+    margin-top: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+  .search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(26, 26, 46, 0.8);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    text-decoration: none;
+    color: #fff;
+    transition: all 0.3s;
+  }
+  
+  .search-result-item:hover {
+    background: rgba(108, 92, 231, 0.2);
+    transform: translateX(-5px);
+  }
+  
+  .search-result-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+  
+  .search-result-info h4 {
+    font-size: 14px;
+    margin-bottom: 5px;
+  }
+  
+  .search-result-info p {
+    font-size: 12px;
+    color: #6c5ce7;
+  }
+  
+  .no-results {
+    text-align: center;
+    color: #888;
+    padding: 30px;
+  }
+  
+  /* تصحيح padding للصفحة */
+  body {
+    padding-top: 70px;
   }
 </style>
 
-<div class="top-nav">
-  <div class="nav-left">
-    <button class="hamburger-btn" onclick="toggleSidebar()">☰</button>
+<!-- الهيدر -->
+<header class="main-header">
+  <div class="header-right">
+    <button class="header-btn menu-btn" onclick="toggleSideMenu()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <a href="/profile" class="header-btn account-btn">
+      👤 <span>حسابي</span>
+    </a>
   </div>
-  <div class="nav-center">
-    <span class="logo-text">🛍️ متجر</span>
+  
+  <div class="header-center">
+    <a href="/" class="header-logo">
+      🛒 المتجر
+    </a>
   </div>
-  <div class="nav-right">
-    <a href="/" class="nav-icon" title="الرئيسية">🏠</a>
-    <a href="/cart" class="nav-icon" title="السلة">🛒</a>
+  
+  <div class="header-left">
+    <button class="header-btn" onclick="openSearch()">🔍</button>
+  </div>
+</header>
+
+<!-- القائمة الجانبية -->
+<div class="side-menu-overlay" id="sideMenuOverlay" onclick="toggleSideMenu()"></div>
+<div class="side-menu" id="sideMenu">
+  <div class="side-menu-header">
+    <h3>القائمة</h3>
+    <button class="close-menu-btn" onclick="toggleSideMenu()">✕</button>
+  </div>
+  <div class="side-menu-content">
+    <a href="/" class="menu-item">🏠 الرئيسية</a>
+    <a href="/cart" class="menu-item">🛒 السلة</a>
+    <a href="/profile" class="menu-item">👤 حسابي</a>
+    <a href="/purchases" class="menu-item">📦 مشترياتي</a>
+    <a href="/wallet" class="menu-item">💰 المحفظة</a>
+    <div class="menu-divider"></div>
+    <div id="menuCategories"></div>
   </div>
 </div>
 
-<div class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <span style="color: #6c5ce7; font-weight: bold;">الفئات</span>
-    <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
-  </div>
-  <div class="sidebar-categories" id="sidebarCategories">
-    <p style="padding: 20px; text-align: center; color: #666;">جاري التحميل...</p>
+<!-- نافذة البحث -->
+<div class="search-overlay" id="searchOverlay">
+  <div class="search-container">
+    <div class="search-header">
+      <h3>البحث في المنتجات</h3>
+      <button class="close-search-btn" onclick="closeSearch()">✕</button>
+    </div>
+    <div class="search-input-wrapper">
+      <input type="text" class="search-input" id="searchInput" placeholder="ابحث عن منتج..." oninput="performSearch(this.value)">
+      <span class="search-icon-inside">🔍</span>
+    </div>
+    <div class="search-results" id="searchResults"></div>
   </div>
 </div>
-
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
 <script>
-  function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    sidebar.classList.toggle('open');
-    overlay.classList.toggle('open');
+  // القائمة الجانبية
+  function toggleSideMenu() {
+    document.getElementById('sideMenu').classList.toggle('show');
+    document.getElementById('sideMenuOverlay').classList.toggle('show');
   }
   
-  async function loadCategories() {
+  // البحث
+  function openSearch() {
+    document.getElementById('searchOverlay').classList.add('show');
+    document.getElementById('searchInput').focus();
+  }
+  
+  function closeSearch() {
+    document.getElementById('searchOverlay').classList.remove('show');
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchResults').innerHTML = '';
+  }
+  
+  // إغلاق البحث بزر Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeSearch();
+      document.getElementById('sideMenu').classList.remove('show');
+      document.getElementById('sideMenuOverlay').classList.remove('show');
+    }
+  });
+  
+  // البحث في المنتجات
+  async function performSearch(query) {
+    const resultsContainer = document.getElementById('searchResults');
+    
+    if (query.length < 2) {
+      resultsContainer.innerHTML = '';
+      return;
+    }
+    
     try {
-      const cats = window.categoriesData || [];
-      const container = document.getElementById('sidebarCategories');
-      container.innerHTML = '';
+      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+      const products = await response.json();
       
-      if (cats.length === 0) {
-        container.innerHTML = '<p style="padding: 20px; text-align: center; color: #666;">لا توجد فئات</p>';
+      if (products.length === 0) {
+        resultsContainer.innerHTML = '<div class="no-results">لا توجد نتائج</div>';
         return;
       }
       
+      resultsContainer.innerHTML = products.map(p => `
+        <a href="/product/${p.id}" class="search-result-item" onclick="closeSearch()">
+          <img src="${p.image || '/static/placeholder.png'}" class="search-result-img" alt="${p.name}">
+          <div class="search-result-info">
+            <h4>${p.name}</h4>
+            <p>${p.price} ر.س</p>
+          </div>
+        </a>
+      `).join('');
+    } catch (e) {
+      resultsContainer.innerHTML = '<div class="no-results">حدث خطأ في البحث</div>';
+    }
+  }
+  
+  // تحميل الفئات في القائمة الجانبية
+  async function loadMenuCategories() {
+    try {
+      const cats = window.categoriesData || [];
+      const container = document.getElementById('menuCategories');
+      
+      if (cats.length === 0) return;
+      
+      container.innerHTML = '<div style="padding: 5px 15px; color: #6c5ce7; font-size: 12px; margin-bottom: 5px;">الفئات</div>';
       cats.forEach(cat => {
-        const link = document.createElement('a');
-        link.href = '/t/' + cat.id;
-        link.className = 'sidebar-category';
-        link.textContent = cat.name;
-        link.onclick = toggleSidebar;
-        container.appendChild(link);
+        container.innerHTML += `<a href="/t/${cat.id}" class="menu-item">📁 ${cat.name}</a>`;
       });
     } catch (e) {
       console.error('Error loading categories:', e);
     }
   }
   
-  document.getElementById('sidebar').addEventListener('transitionend', function() {
-    if (this.classList.contains('open')) {
-      loadCategories();
-    }
-  });
+  // تحميل الفئات عند فتح الصفحة
+  document.addEventListener('DOMContentLoaded', loadMenuCategories);
 </script>
