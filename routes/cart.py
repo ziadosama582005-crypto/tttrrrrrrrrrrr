@@ -46,7 +46,7 @@ def cart_page():
 @cart_bp.route('/api/cart/add', methods=['POST'])
 @require_session_user()
 def api_cart_add():
-    """إضافة منتج للسلة - محمي من Authentication Bypass"""
+    """إضافة منتج للسلة مع حجز المنتج - محمي من Authentication Bypass"""
     try:
         data = request.json
         user_id = get_session_user_id()  # من Session فقط، ليس من المستخدم
@@ -57,7 +57,8 @@ def api_cart_add():
             return jsonify({'status': 'error', 'message': 'بيانات ناقصة'})
         
         # التحقق من المنتج
-        product_doc = db.collection('products').document(product_id).get()
+        product_ref = db.collection('products').document(product_id)
+        product_doc = product_ref.get()
         if not product_doc.exists:
             return jsonify({'status': 'error', 'message': 'المنتج غير موجود'})
         
@@ -67,8 +68,29 @@ def api_cart_add():
         if product.get('sold', False):
             return jsonify({'status': 'error', 'message': 'عذراً، هذا المنتج تم بيعه! 🚫'})
         
-        cart = get_user_cart(user_id) or {}
+        # ✅ التحقق من الحجز (نظام جديد)
         now = datetime.utcnow()
+        reserved_until = product.get('reserved_until')
+        reserved_by = product.get('reserved_by')
+        
+        if reserved_until and reserved_by:
+            # تحويل التاريخ إذا كان timestamp من Firebase
+            if hasattr(reserved_until, 'timestamp'):
+                reserved_until = datetime.utcfromtimestamp(reserved_until.timestamp())
+            elif isinstance(reserved_until, str):
+                reserved_until = datetime.fromisoformat(reserved_until.replace('Z', ''))
+            
+            # هل المنتج محجوز لشخص آخر والوقت لم ينتهِ؟
+            if reserved_until > now and str(reserved_by) != str(user_id):
+                remaining = int((reserved_until - now).total_seconds())
+                minutes = remaining // 60
+                seconds = remaining % 60
+                return jsonify({
+                    'status': 'error', 
+                    'message': f'⚠️ هذا المنتج محجوز لعميل آخر! حاول بعد {minutes}:{seconds:02d} دقيقة.'
+                })
+        
+        cart = get_user_cart(user_id) or {}
         
         # التحقق من انتهاء السلة
         if cart.get('expires_at'):
@@ -79,20 +101,32 @@ def api_cart_add():
                 cart = {}
         
         # إنشاء سلة جديدة أو تحديث
+        reservation_minutes = 5  # مدة الحجز بالدقائق
+        reservation_time = now + timedelta(minutes=reservation_minutes)
+        
         if not cart.get('items'):
             cart = {
                 'items': [],
                 'created_at': now.isoformat(),
-                'expires_at': (now + timedelta(hours=3)).isoformat(),
+                'expires_at': reservation_time.isoformat(),
                 'status': 'active'
             }
+        else:
+            # تحديث وقت انتهاء السلة ليكون 5 دقائق من الآن
+            cart['expires_at'] = reservation_time.isoformat()
         
         # التحقق من عدم وجود المنتج في السلة
         existing_ids = [item['product_id'] for item in cart.get('items', [])]
         if product_id in existing_ids:
             return jsonify({'status': 'error', 'message': 'المنتج موجود في السلة بالفعل!'})
         
-        # إضافة المنتج
+        # ✅ حجز المنتج في Firebase (Lock)
+        product_ref.update({
+            'reserved_by': user_id,
+            'reserved_until': reservation_time.isoformat()
+        })
+        
+        # إضافة المنتج للسلة
         cart_item = {
             'product_id': product_id,
             'name': product.get('item_name', 'منتج'),
@@ -102,7 +136,8 @@ def api_cart_add():
             'delivery_type': product.get('delivery_type', 'instant'),
             'buyer_instructions': product.get('buyer_instructions', ''),
             'buyer_details': buyer_details,
-            'added_at': now.isoformat()
+            'added_at': now.isoformat(),
+            'reserved_until': reservation_time.isoformat()
         }
         cart['items'].append(cart_item)
         cart['updated_at'] = now.isoformat()
@@ -123,12 +158,15 @@ def api_cart_add():
         
         return jsonify({
             'status': 'success',
-            'message': 'تمت الإضافة للسلة! 🛒',
-            'cart_count': len(cart['items'])
+            'message': f'✅ تم حجز المنتج لك لمدة {reservation_minutes} دقائق! أكمل الشراء بسرعة 🔥',
+            'cart_count': len(cart['items']),
+            'expires_at': reservation_time.isoformat()
         })
         
     except Exception as e:
         print(f"❌ خطأ في إضافة للسلة: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'status': 'error', 'message': 'حدث خطأ'})
 
 
@@ -185,7 +223,7 @@ def api_cart_get():
 
 @cart_bp.route('/api/cart/remove', methods=['POST'])
 def api_cart_remove():
-    """حذف منتج من السلة"""
+    """حذف منتج من السلة وإلغاء الحجز"""
     try:
         data = request.json
         user_id = str(data.get('user_id'))
@@ -201,6 +239,21 @@ def api_cart_remove():
         # حذف المنتج
         cart['items'] = [i for i in cart['items'] if i['product_id'] != product_id]
         cart['updated_at'] = datetime.utcnow().isoformat()
+        
+        # ✅ إلغاء حجز المنتج في Firebase
+        try:
+            product_ref = db.collection('products').document(product_id)
+            product_doc = product_ref.get()
+            if product_doc.exists:
+                product_data = product_doc.to_dict()
+                # تأكد أن الحجز للمستخدم الحالي فقط
+                if str(product_data.get('reserved_by')) == str(user_id):
+                    product_ref.update({
+                        'reserved_by': None,
+                        'reserved_until': None
+                    })
+        except Exception as e:
+            print(f"⚠️ خطأ في إلغاء الحجز: {e}")
         
         # حفظ في Firebase
         save_user_cart(user_id, cart)
@@ -235,6 +288,32 @@ def api_cart_checkout():
         if not cart or not cart.get('items'):
             return jsonify({'status': 'error', 'message': 'السلة فارغة'})
         
+        # ✅ التحقق من انتهاء مهلة الحجز
+        now = datetime.utcnow()
+        expires_at = cart.get('expires_at')
+        if expires_at:
+            if isinstance(expires_at, str):
+                expires = datetime.fromisoformat(expires_at.replace('Z', ''))
+            else:
+                expires = expires_at
+            if expires < now:
+                # انتهت مهلة الحجز - نلغي الحجوزات ونفرغ السلة
+                for item in cart.get('items', []):
+                    try:
+                        product_ref = db.collection('products').document(item['product_id'])
+                        product_doc = product_ref.get()
+                        if product_doc.exists:
+                            product_data = product_doc.to_dict()
+                            if str(product_data.get('reserved_by')) == str(user_id):
+                                product_ref.update({'reserved_by': None, 'reserved_until': None})
+                    except:
+                        pass
+                clear_user_cart(user_id)
+                return jsonify({
+                    'status': 'error', 
+                    'message': '⏰ انتهت مهلة الحجز (5 دقائق)! يرجى إضافة المنتجات للسلة مرة أخرى.'
+                })
+        
         # تصفية المنتجات المتاحة
         available_items = []
         total = 0
@@ -244,6 +323,11 @@ def api_cart_checkout():
             if product_doc.exists:
                 product = product_doc.to_dict()
                 if not product.get('sold', False):
+                    # ✅ التحقق من أن الحجز للمستخدم الحالي
+                    reserved_by = product.get('reserved_by')
+                    if reserved_by and str(reserved_by) != str(user_id):
+                        continue  # المنتج محجوز لشخص آخر
+                    
                     item['product_data'] = product
                     item['current_price'] = float(product.get('price', item['price']))
                     total += item['current_price']
@@ -289,13 +373,15 @@ def api_cart_checkout():
                 delivery_type = item.get('delivery_type', product.get('delivery_type', 'instant'))
                 order_status = 'completed' if delivery_type == 'instant' else 'pending'
                 
-                # تحديث المنتج كمباع
+                # تحديث المنتج كمباع وإزالة الحجز
                 product_ref = db.collection('products').document(product_id)
                 transaction.update(product_ref, {
                     'sold': True,
                     'buyer_id': user_id,
                     'buyer_name': buyer_name,
-                    'sold_at': firestore.SERVER_TIMESTAMP
+                    'sold_at': firestore.SERVER_TIMESTAMP,
+                    'reserved_by': None,
+                    'reserved_until': None
                 })
                 
                 # إنشاء الطلب

@@ -355,12 +355,39 @@
     @keyframes spin {
         to { transform: rotate(360deg); }
     }
+    .reservation-alert {
+        background: linear-gradient(135deg, rgba(241, 196, 15, 0.2), rgba(230, 126, 34, 0.2));
+        border: 1px solid rgba(241, 196, 15, 0.4);
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+    .reservation-alert .alert-icon {
+        font-size: 24px;
+        margin-bottom: 5px;
+    }
+    .reservation-alert .alert-text {
+        color: #f39c12;
+        font-size: 14px;
+        font-weight: bold;
+    }
+    .reservation-alert .alert-timer {
+        color: #e74c3c;
+        font-size: 20px;
+        font-weight: bold;
+        margin-top: 5px;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
 </style>
 {% endblock %}
 {% block content %}
     <div class="timer-bar" id="timerBar" style="display: none;">
-        <span class="timer-text">⏰ تنتهي السلة خلال: </span>
-        <span class="timer-countdown" id="timerCountdown">--:--:--</span>
+        <span class="timer-text">🔥 المنتجات محجوزة لك! أكمل الشراء خلال: </span>
+        <span class="timer-countdown" id="timerCountdown">--:--</span>
     </div>
     <div class="content">
         <div class="loading" id="loadingDiv">
@@ -609,18 +636,30 @@
             const diff = expiry - now;
             if (diff <= 0) {
                 document.getElementById('timerCountdown').textContent = 'انتهت!';
+                document.getElementById('timerBar').style.background = 'linear-gradient(135deg, rgba(231, 76, 60, 0.3), rgba(192, 57, 43, 0.3))';
                 if (countdownInterval) {
                     clearInterval(countdownInterval);
                     countdownInterval = null;
                 }
-                setTimeout(() => loadCart(), 1000);
+                // تحديث الصفحة بعد انتهاء الوقت
+                setTimeout(() => {
+                    alert('⏰ انتهى وقت الحجز! سيتم إتاحة المنتجات لعملاء آخرين.');
+                    location.reload();
+                }, 1000);
                 return;
             }
-            const hours = Math.floor(diff / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const minutes = Math.floor(diff / (1000 * 60));
             const seconds = Math.floor((diff % (1000 * 60)) / 1000);
             document.getElementById('timerCountdown').textContent = 
-                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // تغيير اللون عند اقتراب انتهاء الوقت
+            if (diff < 60000) { // أقل من دقيقة
+                document.getElementById('timerBar').style.background = 'linear-gradient(135deg, rgba(231, 76, 60, 0.3), rgba(192, 57, 43, 0.3))';
+                document.getElementById('timerCountdown').style.animation = 'pulse 0.5s infinite';
+            } else if (diff < 120000) { // أقل من دقيقتين
+                document.getElementById('timerBar').style.background = 'linear-gradient(135deg, rgba(241, 196, 15, 0.3), rgba(230, 126, 34, 0.3))';
+            }
         }
         updateTimer();
         countdownInterval = setInterval(updateTimer, 1000);
