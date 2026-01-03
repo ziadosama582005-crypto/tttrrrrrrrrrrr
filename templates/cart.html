@@ -538,7 +538,7 @@
                     </div>
                 ` : ''}
                 <button class="checkout-btn" onclick="showConfirmModal()" ${!canCheckout ? 'disabled' : ''}>
-                    ${canCheckout ? '💳 إتمام الشراء' : (balanceAfter < 0 ? '💳 اشحن أولاً' : 'لا توجد منتجات متاحة')}
+                    ${canCheckout ? '💳 إتمام الشراء' : (balanceAfter < 0 ? '� اشحن رصيدك' : '⚠️ لا توجد منتجات متاحة')}
                 </button>
             </div>
         `;
@@ -550,7 +550,7 @@
             <div class="empty-cart">
                 <div class="empty-cart-icon">🛒</div>
                 <div class="empty-cart-text">سلتك فارغة</div>
-                <a href="/" class="shop-btn">🛍️ تصفح المتجر</a>
+                <a href="/" class="shop-btn">🏪 العودة للمتجر</a>
             </div>
         `;
     }
@@ -563,13 +563,13 @@
             });
             const data = await response.json();
             if (data.status === 'success') {
-                showToast('تم حذف المنتج من السلة', 'success');
+                showToast('🗑️ تم حذف المنتج', 'success');
                 loadCart();
             } else {
-                showToast(data.message || 'حدث خطأ', 'error');
+                showToast(data.message || '❌ حدث خطأ', 'error');
             }
         } catch (error) {
-            showToast('حدث خطأ في الاتصال', 'error');
+            showToast('📡 خطأ في الاتصال', 'error');
         }
     }
     function showConfirmModal() {
@@ -613,13 +613,13 @@
                 `;
                 document.getElementById('successModal').classList.add('show');
             } else {
-                showToast(data.message || 'حدث خطأ', 'error');
-                checkoutBtn.textContent = ' إتمام الشراء';
+                showToast(data.message || '❌ حدث خطأ', 'error');
+                checkoutBtn.textContent = '💳 إتمام الشراء';
                 checkoutBtn.disabled = false;
             }
         } catch (error) {
-            showToast('حدث خطأ في الاتصال', 'error');
-            checkoutBtn.textContent = ' إتمام الشراء';
+            showToast('📡 خطأ في الاتصال', 'error');
+            checkoutBtn.textContent = '💳 إتمام الشراء';
             checkoutBtn.disabled = false;
         }
     }

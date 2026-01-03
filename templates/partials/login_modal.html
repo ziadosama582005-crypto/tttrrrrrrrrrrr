@@ -52,7 +52,7 @@
                     <label for="verifyCode">كود التحقق (6 أرقام)</label>
                     <input type="text" id="verifyCode" class="code-input" placeholder="000000" maxlength="6" required inputmode="numeric">
                 </div>
-                <button type="submit" id="verifyBtn">✅ تأكيد الدخول</button>
+                <button type="submit" id="verifyBtn">🚀 تأكيد الدخول</button>
                 <button type="button" class="back-btn" onclick="goBackStep()">← رجوع</button>
             </form>
             <div id="error2" class="message error"></div>
@@ -69,7 +69,7 @@
                     <label for="twoFACode">كود المصادقة (6 أرقام)</label>
                     <input type="text" id="twoFACode" class="code-input" placeholder="000000" maxlength="6" required inputmode="numeric">
                 </div>
-                <button type="submit" id="verify2FABtn">✅ تأكيد الدخول</button>
+                <button type="submit" id="verify2FABtn">🚀 تأكيد الدخول</button>
                 <button type="button" class="back-btn" onclick="goBackToStep1()">← رجوع للبداية</button>
             </form>
             <div id="error3" class="message error"></div>
@@ -325,7 +325,7 @@
         document.getElementById('sendCodeEmailBtn').disabled = false;
         document.getElementById('sendCodeEmailBtn').innerHTML = '📤 إرسال كود التحقق';
         document.getElementById('verifyBtn').disabled = false;
-        document.getElementById('verifyBtn').innerHTML = '✅ تأكيد الدخول';
+        document.getElementById('verifyBtn').innerHTML = '🚀 تأكيد الدخول';
         document.getElementById('telegramSection').classList.add('active');
         document.getElementById('emailSection').classList.remove('active');
         document.getElementById('loginSubtitle').textContent = 'أدخل رقم Telegram ID الخاص بك';
@@ -354,7 +354,7 @@
         const errorDiv = document.getElementById('error1');
 
         if (!userId || !userId.match(/^\d+$/)) {
-            errorDiv.textContent = '❌ الرجاء إدخال رقم صحيح فقط';
+            errorDiv.textContent = '🔢 الرجاء إدخال أرقام فقط';
             errorDiv.style.display = 'block';
             return;
         }
@@ -475,7 +475,7 @@
                         document.getElementById('twoFACode').focus();
                     }, 1000);
                 } else {
-                    successDiv.textContent = '✅ تم التحقق! جاري نقلك...';
+                    successDiv.textContent = '✨ مرحباً! جاري التحويل...';
                     successDiv.style.display = 'block';
                     clearInterval(countdownInterval);
                     setTimeout(() => {
@@ -486,13 +486,13 @@
                 errorDiv.textContent = `❌ ${data.message}`;
                 errorDiv.style.display = 'block';
                 btn.disabled = false;
-                btn.innerHTML = '✅ تأكيد الدخول';
+                btn.innerHTML = '🚀 تأكيد الدخول';
             }
         } catch (error) {
-            errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
+            errorDiv.textContent = '📡 خطأ في الاتصال بالسيرفر';
             errorDiv.style.display = 'block';
             btn.disabled = false;
-            btn.innerHTML = '✅ تأكيد الدخول';
+            btn.innerHTML = '🚀 تأكيد الدخول';
         }
     });
 
@@ -558,7 +558,7 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    successDiv.textContent = '✅ تم التحقق! جاري نقلك...';
+                    successDiv.textContent = '✨ مرحباً! جاري التحويل...';
                     successDiv.style.display = 'block';
                     setTimeout(() => {
                         location.reload();
@@ -567,13 +567,13 @@
                     errorDiv.textContent = data.message || '❌ الكود غير صحيح';
                     errorDiv.style.display = 'block';
                     btn.disabled = false;
-                    btn.innerHTML = '✅ تأكيد الدخول';
+                    btn.innerHTML = '🚀 تأكيد الدخول';
                 }
             } catch (error) {
-                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
+                errorDiv.textContent = '📡 خطأ في الاتصال بالسيرفر';
                 errorDiv.style.display = 'block';
                 btn.disabled = false;
-                btn.innerHTML = '✅ تأكيد الدخول';
+                btn.innerHTML = '🚀 تأكيد الدخول';
             }
         });
     }

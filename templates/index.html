@@ -2878,7 +2878,7 @@
                     </div>
                     <div class="pdm-actions">
                         <button class="pdm-btn close" onclick="closeProductDetailModal()">إغلاق</button>
-                        <button class="pdm-btn cart" id="pdmAddCartBtn" data-id="${product.id}" data-name="${safeItemName}" data-delivery="${product.delivery_type || 'instant'}" data-instructions="${buyerInstr}">أضف للسلة </button>
+                        <button class="pdm-btn cart" id="pdmAddCartBtn" data-id="${product.id}" data-name="${safeItemName}" data-delivery="${product.delivery_type || 'instant'}" data-instructions="${buyerInstr}">🛒 أضف للسلة</button>
                     </div>
                 </div>
             `;
@@ -2934,7 +2934,7 @@
                             <div style="background:rgba(241,196,15,0.1);border:1px solid rgba(241,196,15,0.3);border-radius:10px;padding:12px;margin-bottom:15px;color:#f1c40f;font-size:14px;" id="cartInstructionsLabel"></div>
                             <textarea id="cartBuyerDetails" placeholder="أدخل المعلومات المطلوبة..." style="width:100%;padding:15px;border:2px solid rgba(255,255,255,0.1);border-radius:12px;background:rgba(255,255,255,0.05);color:#fff;font-size:16px;font-family:'Tajawal',sans-serif;resize:none;height:100px;margin-bottom:15px;"></textarea>
                             <div style="display:flex;gap:10px;">
-                                <button onclick="submitCartWithDetails()" style="flex:1;padding:14px;background:linear-gradient(135deg,#00b894,#00cec9);border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:bold;cursor:pointer;font-family:'Tajawal',sans-serif;"> إضافة للسلة</button>
+                                <button onclick="submitCartWithDetails()" style="flex:1;padding:14px;background:linear-gradient(135deg,#00b894,#00cec9);border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:bold;cursor:pointer;font-family:'Tajawal',sans-serif;">🛒 إضافة للسلة</button>
                                 <button onclick="closeCartInputModal()" style="flex:1;padding:14px;background:rgba(255,255,255,0.1);border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:bold;cursor:pointer;font-family:'Tajawal',sans-serif;"> إلغاء</button>
                             </div>
                         </div>

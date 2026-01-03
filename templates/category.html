@@ -297,7 +297,7 @@
                             data-id="{{ item.id }}" 
                             data-name="{{ item.item_name }}"
                             onclick="addToCartFromBtn(this)">
-                         أضف للسلة
+                        🛒 أضف للسلة
                     </button>
                     {% endif %}
                 </div>
@@ -382,8 +382,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn-modal btn-secondary" onclick="closeManualModal()">إلغاء</button>
-                <button class="btn-modal btn-warning" onclick="confirmAddManual()"> إضافة للسلة</button>
+                <button class="btn-modal btn-secondary" onclick="closeManualModal()">❌ إلغاء</button>
+                <button class="btn-modal btn-warning" onclick="confirmAddManual()">🛒 إضافة للسلة</button>
             </div>
         </div>
     </div>
@@ -442,13 +442,13 @@
             });
             const data = await response.json();
             if (data.status === 'success') {
-                showToast(' تم إضافة ' + productName + ' للسلة');
+                showToast('🛒✨ تم إضافة ' + productName + ' للسلة');
                 setTimeout(() => location.reload(), 1000);
             } else {
-                showToast(' ' + (data.message || 'حدث خطأ'), 'error');
+                showToast('❌ ' + (data.message || 'حدث خطأ'), 'error');
             }
         } catch (error) {
-            showToast(' حدث خطأ في الاتصال', 'error');
+            showToast('📡 خطأ في الاتصال', 'error');
         }
     }
     (function() {

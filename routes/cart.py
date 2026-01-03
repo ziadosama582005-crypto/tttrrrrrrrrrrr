@@ -66,7 +66,7 @@ def api_cart_add():
         
         # منع إضافة منتج مباع
         if product.get('sold', False):
-            return jsonify({'status': 'error', 'message': 'عذراً، هذا المنتج تم بيعه! 🚫'})
+            return jsonify({'status': 'error', 'message': '❌ عذراً، هذا المنتج تم بيعه!'})
         
         # ✅ التحقق من الحجز (نظام جديد)
         now = datetime.utcnow()
@@ -87,7 +87,7 @@ def api_cart_add():
                 seconds = remaining % 60
                 return jsonify({
                     'status': 'error', 
-                    'message': f'⚠️ هذا المنتج محجوز لعميل آخر! حاول بعد {minutes}:{seconds:02d} دقيقة.'
+                    'message': f'🔒 هذا المنتج محجوز لعميل آخر! حاول بعد {minutes}:{seconds:02d} دقيقة.'
                 })
         
         cart = get_user_cart(user_id) or {}
@@ -158,7 +158,7 @@ def api_cart_add():
         
         return jsonify({
             'status': 'success',
-            'message': f'✅ تم حجز المنتج لك لمدة {reservation_minutes} دقائق! أكمل الشراء بسرعة 🔥',
+            'message': f'🛒✨ تم حجز المنتج لك لمدة {reservation_minutes} دقائق! أكمل الشراء بسرعة 🔥',
             'cart_count': len(cart['items']),
             'expires_at': reservation_time.isoformat() + 'Z'
         })
@@ -311,7 +311,7 @@ def api_cart_checkout():
                 clear_user_cart(user_id)
                 return jsonify({
                     'status': 'error', 
-                    'message': '⏰ انتهت مهلة الحجز (5 دقائق)! يرجى إضافة المنتجات للسلة مرة أخرى.'
+                    'message': '⏳ انتهت مهلة الحجز (5 دقائق)! يرجى إضافة المنتجات للسلة مرة أخرى.'
                 })
         
         # تصفية المنتجات المتاحة
