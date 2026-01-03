@@ -163,6 +163,9 @@ ENCRYPTED_FIELDS = [
     'phone',            # رقم الهاتف
     'address',          # العنوان
     'balance',          # الرصيد (كنص)
+    'hidden_data',      # بيانات المنتج السرية
+    'iban',             # رقم الآيبان للسحب
+    'wallet_number',    # رقم المحفظة الإلكترونية
 ]
 
 

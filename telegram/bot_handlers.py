@@ -47,6 +47,13 @@ except ImportError:
     notify_payment_pending = lambda *args, **kwargs: None
     notify_recharge_request = lambda *args, **kwargs: None
 
+# استيراد أدوات التشفير
+try:
+    from encryption_utils import encrypt_data, decrypt_data
+except ImportError:
+    encrypt_data = lambda x: x
+    decrypt_data = lambda x: x
+
 # دالة توليد كود التحقق
 def generate_verification_code():
     return str(random.randint(100000, 999999))
@@ -392,6 +399,9 @@ def confirm_add_product(message):
         product = temp_product_data.get(user_id)
         
         if product:
+            # تشفير البيانات السرية قبل الحفظ
+            encrypted_hidden = encrypt_data(product['hidden_data']) if product.get('hidden_data') else ''
+            
             # إضافة المنتج
             product_id = str(uuid.uuid4())  # رقم فريد لا يتكرر
             delivery_type = product.get('delivery_type', 'instant')
@@ -401,7 +411,7 @@ def confirm_add_product(message):
                 'price': str(product['price']),
                 'seller_id': str(ADMIN_ID),
                 'seller_name': 'المالك',
-                'hidden_data': product['hidden_data'],
+                'hidden_data': encrypted_hidden,
                 'category': product['category'],
                 'details': product['details'],
                 'image_url': product['image_url'],
@@ -416,7 +426,7 @@ def confirm_add_product(message):
                     'price': float(product['price']),
                     'seller_id': str(ADMIN_ID),
                     'seller_name': 'المالك',
-                    'hidden_data': item['hidden_data'],
+                    'hidden_data': encrypted_hidden,
                     'category': item['category'],
                     'details': item['details'],
                     'image_url': item['image_url'],
@@ -1386,8 +1396,9 @@ def claim_order(call):
                 except:
                     pass
     
-    # إرسال البيانات المخفية للمشرف على الخاص
-    hidden_info = order['hidden_data'] if order['hidden_data'] else "لا توجد بيانات مخفية لهذا المنتج."
+    # إرسال البيانات المخفية للمشرف على الخاص (فك التشفير)
+    raw_hidden = order['hidden_data'] if order['hidden_data'] else ""
+    hidden_info = decrypt_data(raw_hidden) if raw_hidden else "لا توجد بيانات مخفية لهذا المنتج."
     
     # إنشاء زر لتأكيد إتمام الطلب
     markup = types.InlineKeyboardMarkup()
@@ -1704,14 +1715,16 @@ def complete_manual_order(call):
         # إشعار المشتري بإكمال الطلب
         try:
             hidden_data = order.get('hidden_data', '')
-            if hidden_data:
+            # فك تشفير البيانات السرية قبل الإرسال للمشتري
+            decrypted_hidden = decrypt_data(hidden_data) if hidden_data else ''
+            if decrypted_hidden:
                 bot.send_message(
                     int(order.get('buyer_id')),
                     f"🎉 تم تنفيذ طلبك بنجاح!\n\n"
                     f"🆔 رقم الطلب: #{order_id}\n"
                     f"📦 المنتج: {order.get('item_name')}\n"
                     f"👨‍💼 تم التنفيذ بواسطة: {admin_name}\n\n"
-                    f"🔐 بيانات الاشتراك:\n{hidden_data}\n\n"
+                    f"🔐 بيانات الاشتراك:\n{decrypted_hidden}\n\n"
                     f"⚠️ احفظ هذه البيانات في مكان آمن!\n"
                     f"شكراً لتسوقك معنا! 💙"
                 )

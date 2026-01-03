@@ -771,7 +771,8 @@ def submit_withdraw():
                 return jsonify({'success': False, 'message': 'يجب إدخال نوع المحفظة ورقمها'}), 400
             
             withdraw_data['wallet_type'] = wallet_type
-            withdraw_data['wallet_number'] = wallet_number
+            # تشفير رقم المحفظة قبل الحفظ
+            withdraw_data['wallet_number'] = encrypt_data(wallet_number) if ENCRYPTION_AVAILABLE else wallet_number
             method_display = f"محفظة {wallet_type}"
         else:
             bank_name = data.get('bank_name', '').strip()
@@ -785,7 +786,8 @@ def submit_withdraw():
                 return jsonify({'success': False, 'message': 'رقم الآيبان غير صحيح. يجب أن يبدأ بـ SA ويكون 24 حرف'}), 400
             
             withdraw_data['bank_name'] = bank_name
-            withdraw_data['iban'] = iban
+            # تشفير الآيبان قبل الحفظ
+            withdraw_data['iban'] = encrypt_data(iban) if ENCRYPTION_AVAILABLE else iban
             method_display = f"حوالة بنكية - {bank_name}"
         
         # حفظ طلب السحب
@@ -824,9 +826,13 @@ def submit_withdraw():
                 logger.warning("لم يتم تعيين ADMIN_TELEGRAM_ID")
             
             if method == 'wallet':
-                details = f"محفظة {withdraw_data['wallet_type']}: {withdraw_data['wallet_number']}"
+                # فك تشفير رقم المحفظة للعرض
+                display_wallet = decrypt_data(withdraw_data['wallet_number']) if ENCRYPTION_AVAILABLE else withdraw_data['wallet_number']
+                details = f"محفظة {withdraw_data['wallet_type']}: {display_wallet}"
             else:
-                details = f"بنك {withdraw_data['bank_name']}\nIBAN: {withdraw_data['iban']}"
+                # فك تشفير الآيبان للعرض
+                display_iban = decrypt_data(withdraw_data['iban']) if ENCRYPTION_AVAILABLE else withdraw_data['iban']
+                details = f"بنك {withdraw_data['bank_name']}\nIBAN: {display_iban}"
             
             admin_message = f"""
 🔔 طلب سحب جديد!

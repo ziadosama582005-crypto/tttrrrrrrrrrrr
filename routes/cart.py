@@ -13,6 +13,7 @@ from security_utils import (
     require_session_user, get_session_user_id, verify_user_ownership,
     checkout_with_transaction, log_security_event, sanitize_error_message
 )
+from encryption_utils import decrypt_data
 
 # إنشاء Blueprint
 cart_bp = Blueprint('cart', __name__)
@@ -469,7 +470,9 @@ def api_cart_checkout():
                         msg += f"💰 {item['price']} ر.س\n"
                         msg += f"🆔 #{item['order_id']}\n"
                         if item.get('hidden_data'):
-                            msg += f"🔐 البيانات:\n{item['hidden_data']}\n"
+                            # فك تشفير البيانات السرية قبل الإرسال
+                            decrypted_data = decrypt_data(item['hidden_data'])
+                            msg += f"🔐 البيانات:\n{decrypted_data}\n"
                         msg += "─────────────\n"
                 
                 if manual_items:

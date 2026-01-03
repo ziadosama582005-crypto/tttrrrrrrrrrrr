@@ -1183,7 +1183,9 @@ def buy_item():
                 print(f"⚠️ فشل التحقق من الطلب: {verify_error}")
 
         # 5. إرسال المنتج للمشتري أو إشعار الأدمن
-        hidden_info = item.get('hidden_data', 'لا توجد بيانات')
+        # فك تشفير البيانات السرية قبل الإرسال
+        raw_hidden = item.get('hidden_data', '')
+        hidden_info = decrypt_data(raw_hidden) if raw_hidden else 'لا توجد بيانات'
         message_sent = False
         
         if delivery_type == 'instant':
@@ -1995,6 +1997,9 @@ def api_add_product():
         if not name or not price or not hidden_data:
             return {'status': 'error', 'message': 'بيانات غير كاملة'}
         
+        # تشفير البيانات السرية قبل الحفظ
+        encrypted_hidden_data = encrypt_data(hidden_data)
+        
         # إنشاء بيانات المنتج
         new_id = str(uuid.uuid4())
         item = {
@@ -2003,7 +2008,7 @@ def api_add_product():
             'price': float(price),
             'seller_id': str(ADMIN_ID),
             'seller_name': 'المالك',
-            'hidden_data': hidden_data,
+            'hidden_data': encrypted_hidden_data,
             'category': category,
             'details': details,
             'image_url': image,
@@ -2383,13 +2388,17 @@ def api_add_product_new():
         
         # إنشاء المنتج
         product_id = str(uuid.uuid4())
+        
+        # تشفير البيانات السرية قبل الحفظ
+        encrypted_hidden_data = encrypt_data(hidden_data) if hidden_data else ''
+        
         product_data = {
             'id': product_id,
             'item_name': name,
             'price': price,
             'category': category,
             'details': details,
-            'hidden_data': hidden_data,
+            'hidden_data': encrypted_hidden_data,
             'buyer_instructions': buyer_instructions,
             'image_url': image,
             'seller_id': ADMIN_ID,

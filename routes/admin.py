@@ -12,6 +12,7 @@ import uuid
 import os
 import logging
 from notifications import notify_owner, notify_all_admins, is_admin_or_owner
+from encryption_utils import encrypt_data, decrypt_data
 
 logger = logging.getLogger(__name__)
 
@@ -1236,13 +1237,17 @@ def api_add_product_new():
             return jsonify({'status': 'error', 'message': 'يجب تحديد ما تحتاجه من المشتري'})
         
         product_id = str(uuid.uuid4())
+        
+        # تشفير البيانات السرية قبل الحفظ
+        encrypted_hidden_data = encrypt_data(hidden_data) if hidden_data else ''
+        
         product_data = {
             'id': product_id,
             'item_name': name,
             'price': price,
             'category': category,
             'details': details,
-            'hidden_data': hidden_data,
+            'hidden_data': encrypted_hidden_data,
             'buyer_instructions': buyer_instructions,
             'image_url': image,
             'seller_id': ADMIN_ID,
