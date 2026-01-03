@@ -819,7 +819,9 @@ def submit_withdraw():
         
         # إرسال إشعار للأدمن
         try:
-            admin_id = os.environ.get('ADMIN_TELEGRAM_ID', '6696829459')
+            admin_id = os.environ.get('ADMIN_TELEGRAM_ID')
+            if not admin_id:
+                logger.warning("لم يتم تعيين ADMIN_TELEGRAM_ID")
             
             if method == 'wallet':
                 details = f"محفظة {withdraw_data['wallet_type']}: {withdraw_data['wallet_number']}"
