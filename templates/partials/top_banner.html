@@ -74,6 +74,9 @@
         padding-top: 70px;
     }
 </style>
+
+{% include 'partials/login_modal.html' %}
+
 <header class="simple-header">
     <a href="/" class="back-btn" title="الرجوع للرئيسية">
         ←
@@ -91,7 +94,9 @@
     
     function handleCartClick() {
         if (!currentUserId || currentUserId === '' || currentUserId === '0' || currentUserId === 'None') {
-            if (typeof showLoginModal === 'function') {
+            if (typeof openLoginModal === 'function') {
+                openLoginModal();
+            } else if (typeof showLoginModal === 'function') {
                 showLoginModal();
             } else {
                 window.location.href = '/?showLogin=1';
@@ -119,5 +124,3 @@
     }
     loadHeaderCart();
 </script>
-
-{% include 'partials/login_modal.html' %}
