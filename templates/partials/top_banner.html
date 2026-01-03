@@ -70,6 +70,102 @@
         color: #fff;
         font-weight: 600;
     }
+    /* نافذة تسجيل الدخول */
+    .banner-login-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+    }
+    .banner-login-modal-content {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        position: relative;
+        color: #2d3436;
+    }
+    .banner-close-modal {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        font-size: 28px;
+        cursor: pointer;
+        color: #636e72;
+    }
+    .banner-close-modal:hover {
+        color: #2d3436;
+    }
+    .banner-modal-logo {
+        font-size: 50px;
+        margin-bottom: 15px;
+    }
+    .banner-modal-title {
+        color: #6c5ce7;
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+    .banner-modal-text {
+        color: #636e72;
+        margin-bottom: 25px;
+        line-height: 1.6;
+    }
+    .banner-login-input {
+        width: 100%;
+        padding: 15px;
+        margin: 10px 0;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        font-size: 16px;
+        box-sizing: border-box;
+        font-family: 'Tajawal', sans-serif;
+    }
+    .banner-login-input:focus {
+        outline: none;
+        border-color: #6c5ce7;
+    }
+    .banner-login-btn {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 10px;
+        font-family: 'Tajawal', sans-serif;
+    }
+    .banner-login-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(108, 92, 231, 0.4);
+    }
+    .banner-help-text {
+        color: #636e72;
+        font-size: 14px;
+        margin-top: 15px;
+    }
+    .banner-help-text a {
+        color: #6c5ce7;
+        text-decoration: none;
+    }
+    .banner-error-message {
+        color: #e74c3c;
+        background: #ffe5e5;
+        padding: 10px;
+        border-radius: 8px;
+        margin: 10px 0;
+        display: none;
+    }
     body {
         padding-top: 70px;
     }
@@ -86,16 +182,82 @@
         <span class="cart-icon">🛒</span>
     </a>
 </header>
+
+<!-- نافذة تسجيل الدخول -->
+<div class="banner-login-modal" id="bannerLoginModal">
+    <div class="banner-login-modal-content">
+        <span class="banner-close-modal" onclick="closeBannerLoginModal()">×</span>
+        <div class="banner-modal-logo">🔐</div>
+        <h2 class="banner-modal-title">تسجيل الدخول</h2>
+        <p class="banner-modal-text">أدخل معرف تيليجرام الخاص بك والكود الذي ستحصل عليه من البوت</p>
+        <div id="bannerErrorMessage" class="banner-error-message"></div>
+        <input type="text" id="bannerTelegramId" class="banner-login-input" placeholder="معرف تيليجرام (Telegram ID)">
+        <input type="text" id="bannerVerificationCode" class="banner-login-input" placeholder="كود التحقق (من البوت)" maxlength="6">
+        <button class="banner-login-btn" onclick="submitBannerLogin()">تسجيل الدخول</button>
+        <p class="banner-help-text">
+            ليس لديك كود؟ <a href="#" onclick="showBannerCodeHelp(); return false;">احصل على كود من البوت</a>
+        </p>
+    </div>
+</div>
+
 <script>
     const currentUserId = '{{ user_id }}';
     
     function handleCartClick() {
         if (!currentUserId || currentUserId === '' || currentUserId === '0' || currentUserId === 'None') {
-            // توجيه للصفحة الرئيسية مع طلب فتح نافذة تسجيل الدخول
-            window.location.href = '/?showLogin=1';
+            showBannerLoginModal();
             return;
         }
         window.location.href = '/cart?user_id=' + currentUserId;
+    }
+    
+    function showBannerLoginModal() {
+        document.getElementById('bannerLoginModal').style.display = 'flex';
+    }
+    
+    function closeBannerLoginModal() {
+        document.getElementById('bannerLoginModal').style.display = 'none';
+        document.getElementById('bannerErrorMessage').style.display = 'none';
+        document.getElementById('bannerTelegramId').value = '';
+        document.getElementById('bannerVerificationCode').value = '';
+    }
+    
+    async function submitBannerLogin() {
+        const userId = document.getElementById('bannerTelegramId').value.trim();
+        const code = document.getElementById('bannerVerificationCode').value.trim();
+        const errorDiv = document.getElementById('bannerErrorMessage');
+        
+        if(!userId || !code) {
+            errorDiv.textContent = 'الرجاء إدخال الآيدي والكود';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
+        try {
+            const response = await fetch('/verify', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    user_id: userId,
+                    code: code
+                })
+            });
+            const data = await response.json();
+            if(data.success) {
+                closeBannerLoginModal();
+                window.location.href = '/cart?user_id=' + userId;
+            } else {
+                errorDiv.textContent = data.message;
+                errorDiv.style.display = 'block';
+            }
+        } catch(error) {
+            errorDiv.textContent = 'حدث خطأ! حاول مرة أخرى';
+            errorDiv.style.display = 'block';
+        }
+    }
+    
+    function showBannerCodeHelp() {
+        alert('للحصول على كود التحقق:\n\n1. افتح البوت في تيليجرام\n2. أرسل الأمر /code\n3. انسخ الكود المكون من 6 أرقام\n4. الصقه في الحقل أعلاه');
     }
     
     async function loadHeaderCart() {
