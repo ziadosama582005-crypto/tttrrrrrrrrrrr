@@ -308,7 +308,29 @@ def get_balance_api():
 
 @wallet_bp.route('/charge_balance', methods=['POST'])
 def charge_balance_api():
-    """شحن الرصيد باستخدام كود الشحن"""
+    """شحن الرصيد باستخدام كود الشحن - محمي من التخمين"""
+    # ✅ Rate Limiting يدوي (3 محاولات في الدقيقة)
+    from flask import request as req
+    client_ip = req.headers.get('X-Forwarded-For', req.remote_addr)
+    
+    # تخزين محاولات الشحن (في الذاكرة)
+    if not hasattr(charge_balance_api, 'attempts'):
+        charge_balance_api.attempts = {}
+    
+    current_time = time.time()
+    ip_key = f"charge_{client_ip}"
+    
+    # تنظيف المحاولات القديمة (أكثر من دقيقة)
+    charge_balance_api.attempts = {k: v for k, v in charge_balance_api.attempts.items() if current_time - v['time'] < 60}
+    
+    # فحص عدد المحاولات
+    if ip_key in charge_balance_api.attempts:
+        if charge_balance_api.attempts[ip_key]['count'] >= 3:
+            return jsonify({'success': False, 'message': '⏳ الرجاء الانتظار دقيقة قبل المحاولة مرة أخرى'}), 429
+        charge_balance_api.attempts[ip_key]['count'] += 1
+    else:
+        charge_balance_api.attempts[ip_key] = {'count': 1, 'time': current_time}
+    
     data = request.json
     key_code = data.get('charge_key', '').strip()
     

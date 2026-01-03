@@ -34,8 +34,8 @@ def init_cart(app_bot, admin_id, app_limiter):
 @cart_bp.route('/cart')
 def cart_page():
     """صفحة سلة التسوق"""
-    # دعم user_id من session أو query param
-    user_id = session.get('user_id') or request.args.get('user_id')
+    # ✅ من Session فقط - لا نقبل user_id من URL
+    user_id = session.get('user_id')
     if not user_id:
         return redirect('/')
     
@@ -171,12 +171,14 @@ def api_cart_add():
 
 
 @cart_bp.route('/api/cart/get')
+@require_session_user()
 def api_cart_get():
-    """جلب محتويات السلة"""
+    """جلب محتويات السلة - محمي بالجلسة"""
     try:
-        user_id = request.args.get('user_id')
+        # ✅ من Session فقط - لا نقبل user_id من URL
+        user_id = get_session_user_id()
         if not user_id:
-            return jsonify({'status': 'error', 'message': 'معرف المستخدم مطلوب'})
+            return jsonify({'status': 'error', 'message': 'يرجى تسجيل الدخول'}), 401
         
         cart = get_user_cart(str(user_id)) or {}
         
@@ -559,9 +561,11 @@ def api_cart_checkout():
 
 
 @cart_bp.route('/api/cart/count')
+@require_session_user()
 def api_cart_count():
-    """جلب عدد منتجات السلة"""
-    user_id = request.args.get('user_id')
+    """جلب عدد منتجات السلة - محمي بالجلسة"""
+    # ✅ من Session فقط
+    user_id = get_session_user_id()
     if not user_id:
         return jsonify({'count': 0})
     

@@ -442,7 +442,8 @@
         }
         
         try {
-            const response = await fetch('/api/cart/get?user_id=' + userId);
+            // ✅ بدون user_id في الرابط - السيرفر يقرأه من الجلسة
+            const response = await fetch('/api/cart/get');
             const data = await response.json();
             document.getElementById('loadingDiv').style.display = 'none';
             document.getElementById('cartContent').style.display = 'block';

@@ -91,7 +91,8 @@
         const userId = '{{ current_user_id or user_id or current_user or "" }}';
         if (!userId || userId === '' || userId === '0' || userId === 'None') return;
         
-        fetch('/api/cart/get?user_id=' + userId)
+        // ✅ بدون user_id في الرابط - السيرفر يقرأه من الجلسة
+        fetch('/api/cart/get')
             .then(r => r.json())
             .then(data => {
                 if (data.status === 'success' && data.cart && data.cart.items) {
