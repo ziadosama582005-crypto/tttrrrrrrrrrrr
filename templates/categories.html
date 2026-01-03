@@ -629,7 +629,7 @@
         </div>
         {% else %}
         <div class="empty-state">
-            <div class="empty-state-icon">📂</div>
+            <div class="empty-state-icon"></div>
             <h2>لا توجد فئات</h2>
             <p>سيتم إضافة الفئات قريباً</p>
         </div>
@@ -1387,7 +1387,7 @@
                     emptyMsg = document.createElement('div');
                     emptyMsg.id = 'emptyFilterMsg';
                     emptyMsg.style.cssText = 'text-align: center; padding: 40px; color: #888; grid-column: 1 / -1;';
-                    emptyMsg.innerHTML = '<div style="font-size: 50px; margin-bottom: 15px;">📂</div><p>لا توجد فئات من هذا النوع</p>';
+                    emptyMsg.innerHTML = '<div style="font-size: 50px; margin-bottom: 15px;"></div><p>لا توجد فئات من هذا النوع</p>';
                     grid.appendChild(emptyMsg);
                 }
                 emptyMsg.style.display = 'block';
