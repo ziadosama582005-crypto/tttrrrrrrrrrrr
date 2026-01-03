@@ -78,7 +78,7 @@
     <a href="/" class="back-btn" title="الرجوع للرئيسية">
         ←
     </a>
-    <a href="/cart?user_id={{ user_id }}" class="cart-widget" title="السلة">
+    <a href="#" class="cart-widget" onclick="handleCartClick(); return false;" title="السلة">
         <div class="cart-info">
             <span class="cart-count" id="headerCartCount">0 منتج</span>
             <span class="cart-total" id="headerCartTotal">0 ر.س</span>
@@ -87,9 +87,20 @@
     </a>
 </header>
 <script>
+    const currentUserId = '{{ user_id }}';
+    
+    function handleCartClick() {
+        if (!currentUserId || currentUserId === '' || currentUserId === '0' || currentUserId === 'None') {
+            // توجيه للصفحة الرئيسية مع طلب فتح نافذة تسجيل الدخول
+            window.location.href = '/?showLogin=1';
+            return;
+        }
+        window.location.href = '/cart?user_id=' + currentUserId;
+    }
+    
     async function loadHeaderCart() {
         const userId = '{{ user_id }}';
-        if (!userId) return;
+        if (!userId || userId === '' || userId === 'None') return;
         try {
             const response = await fetch('/api/cart/get?user_id=' + userId);
             const data = await response.json();

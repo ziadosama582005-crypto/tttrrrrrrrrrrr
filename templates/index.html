@@ -2915,6 +2915,14 @@
             loadCategoriesUI(); 
             loadDynamicTabs();  
             initFloatingNav();
+            
+            // التحقق من طلب فتح نافذة تسجيل الدخول
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('showLogin') === '1') {
+                showLoginModal();
+                // حذف المعامل من الرابط
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
         });
         async function loadCategoriesUI() {
             try {
