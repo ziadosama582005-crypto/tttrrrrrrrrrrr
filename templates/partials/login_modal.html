@@ -4,18 +4,18 @@
         <span class="close-btn" onclick="closeLoginModal()">&times;</span>
         <div id="step1" class="step active">
             <div class="modal-header">
-                <div class="modal-icon">🔐</div>
+                <div class="modal-icon"></div>
                 <h2>دخول المتجر</h2>
                 <p id="loginSubtitle">أدخل رقم Telegram ID الخاص بك</p>
             </div>
             <div id="telegramSection" class="login-section active">
                 <form id="userIdForm">
                     <div class="form-group">
-                        <label for="userId">🆔 رقم Telegram ID</label>
+                        <label for="userId">رقم Telegram ID</label>
                         <input type="text" id="userId" placeholder="مثال: 123456789" inputmode="numeric">
                     </div>
                     <div class="switch-method">
-                        <a onclick="switchToEmail()">📧 التسجيل بالبريد الإلكتروني</a>
+                        <a onclick="switchToEmail()">التسجيل بالبريد الإلكتروني</a>
                     </div>
                     <button type="submit" id="sendCodeBtn">📤 إرسال كود التحقق</button>
                 </form>
@@ -23,11 +23,11 @@
             <div id="emailSection" class="login-section">
                 <form id="emailForm">
                     <div class="form-group">
-                        <label for="loginEmail">📧 البريد الإلكتروني</label>
+                        <label for="loginEmail">البريد الإلكتروني</label>
                         <input type="email" id="loginEmail" placeholder="example@email.com" dir="ltr">
                     </div>
                     <div class="switch-method">
-                        <a onclick="switchToTelegram()">🆔 التسجيل بـ Telegram ID</a>
+                        <a onclick="switchToTelegram()">التسجيل بـ Telegram ID</a>
                     </div>
                     <button type="submit" id="sendCodeEmailBtn">📤 إرسال كود التحقق</button>
                 </form>
@@ -49,7 +49,7 @@
             <div class="timer">⏱️ <span id="countdown">2:00</span></div>
             <form id="codeForm">
                 <div class="form-group">
-                    <label for="verifyCode">🔐 كود التحقق (6 أرقام)</label>
+                    <label for="verifyCode">كود التحقق (6 أرقام)</label>
                     <input type="text" id="verifyCode" class="code-input" placeholder="000000" maxlength="6" required inputmode="numeric">
                 </div>
                 <button type="submit" id="verifyBtn">✅ تأكيد الدخول</button>
@@ -66,7 +66,7 @@
             </div>
             <form id="twoFAForm">
                 <div class="form-group">
-                    <label for="twoFACode">🔐 كود المصادقة (6 أرقام)</label>
+                    <label for="twoFACode">كود المصادقة (6 أرقام)</label>
                     <input type="text" id="twoFACode" class="code-input" placeholder="000000" maxlength="6" required inputmode="numeric">
                 </div>
                 <button type="submit" id="verify2FABtn">✅ تأكيد الدخول</button>
@@ -466,7 +466,7 @@
 
             if (data.success) {
                 if (data.requires_2fa) {
-                    successDiv.textContent = '🔐 مطلوب كود المصادقة الثنائية';
+                    successDiv.textContent = 'مطلوب كود المصادقة الثنائية';
                     successDiv.style.display = 'block';
                     clearInterval(countdownInterval);
                     setTimeout(() => {
