@@ -393,13 +393,30 @@
     const currentUserIdValue = '{{ current_user_id }}';
     const currentUserId = currentUserIdValue ? parseInt(currentUserIdValue) : 0;
     let currentManualProduct = { id: '', name: '' };
+    
+    function checkLogin() {
+        if (!currentUserId || currentUserId === 0) {
+            if (typeof openLoginModal === 'function') {
+                openLoginModal();
+            } else if (typeof showLoginModal === 'function') {
+                showLoginModal();
+            } else {
+                window.location.href = '/?showLogin=1';
+            }
+            return false;
+        }
+        return true;
+    }
+    
     function openManualModalFromBtn(btn) {
+        if (!checkLogin()) return;
         const productId = btn.dataset.id;
         const productName = btn.dataset.name;
         const instructions = btn.dataset.instructions;
         openManualModal(productId, productName, instructions);
     }
     function addToCartFromBtn(btn) {
+        if (!checkLogin()) return;
         const productId = btn.dataset.id;
         const productName = btn.dataset.name;
         addToCart(productId, productName, '');
