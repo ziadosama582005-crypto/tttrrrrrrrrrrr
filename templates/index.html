@@ -1870,9 +1870,10 @@
         <!-- يمين الشاشة: البحث وحسابي -->
         <div class="header-right">
             <button class="header-btn" onclick="openSearchOverlay()" title="بحث">
-                بحث
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             </button>
             <button class="header-btn account-btn" onclick="handleAccountClick()" title="حسابي">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 <span>حسابي</span>
             </button>
         </div>
@@ -1895,7 +1896,7 @@
     </header>
     
     <!-- زر فتح القائمة الجانبية (مخفي) -->
-    <button class="menu-toggle-btn" onclick="toggleSidebar()">☰</button>
+    <button class="menu-toggle-btn" onclick="toggleSidebar()"></button>
     
     <!-- الخلفية المظللة -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
@@ -1904,7 +1905,7 @@
     <div class="sidebar" id="sidebar">
         <!-- رأس القائمة مع معلومات المستخدم -->
         <div class="sidebar-header">
-            <button class="sidebar-close" onclick="closeSidebar()">✕</button>
+            <button class="sidebar-close" onclick="closeSidebar()">×</button>
             {% if profile_photo %}
             <img src="{{ profile_photo }}" class="sidebar-avatar-img" alt="صورة البروفايل" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
             <div class="sidebar-avatar" style="display: none;"></div>
@@ -1986,7 +1987,7 @@
     <!-- تبويبات ديناميكية من Firebase -->
     <div id="dynamicTabsSection">
         <div style="text-align: center; padding: 20px; color: #888;">
-            <h3>⏳ جاري تحميل التبويبات...</h3>
+            <h3>جاري تحميل التبويبات...</h3>
         </div>
         <div class="dynamic-tabs-container" id="dynamicTabsContainer">
             <!-- سيتم تحميل التبويبات ديناميكياً -->
@@ -1998,7 +1999,7 @@
     </div>
 
     <div class="categories-header">
-        <h3>💎 الأقسام</h3>
+        <h3>الأقسام</h3>
         <small onclick="filterCategory('all')">عرض الكل</small>
     </div>
 
@@ -2009,7 +2010,7 @@
     <!-- نافذة تسجيل الدخول المنبثقة -->
     <div class="login-modal" id="loginModal">
         <div class="login-modal-content">
-            <span class="close-modal" onclick="closeLoginModal()">✕</span>
+            <span class="close-modal" onclick="closeLoginModal()">×</span>
             <div class="modal-logo"></div>
             <h2 class="modal-title">تسجيل الدخول</h2>
             <p class="modal-text">أدخل معرف تيليجرام الخاص بك والكود الذي ستحصل عليه من البوت</p>
@@ -2742,7 +2743,7 @@
                     'https://cdn-icons-png.flaticon.com/512/2087/2087815.png'
                 ];
                 
-                console.log('🎨 رسم الأقسام:', categories.length);
+                console.log(' رسم الأقسام:', categories.length);
                 
                 if(categories.length === 0) {
                     container.innerHTML = '<p style="text-align:center; color:#888; padding: 20px;">لا توجد أقسام</p>';
@@ -2994,7 +2995,7 @@
             // إظهار حالة التحميل
             const confirmBtn = document.querySelector('#buyModal .modal-btn-confirm');
             const originalText = confirmBtn.textContent;
-            confirmBtn.textContent = '⏳ جاري الشراء...';
+            confirmBtn.textContent = ' جاري الشراء...';
             confirmBtn.disabled = true;
 
             fetch('/buy', {
@@ -3192,7 +3193,7 @@
                 return;
             }
             
-            console.log('🎨 رسم التبويبات...');
+            console.log(' رسم التبويبات...');
             container.innerHTML = '';
             
             allDynamicTabs.forEach(tabName => {
@@ -3231,7 +3232,7 @@
                     console.error(' لم يتم العثور على dynamicContentContainer');
                     return;
                 }
-                contentContainer.innerHTML = '<div class="tab-loading">⏳ جاري التحميل...</div>';
+                contentContainer.innerHTML = '<div class="tab-loading"> جاري التحميل...</div>';
                 
                 // جلب البيانات
                 const url = '/api/tabs/data/' + encodeURIComponent(tabName) + '?limit=50';
@@ -3269,7 +3270,7 @@
                 return;
             }
             
-            console.log('🎨 رسم بيانات tab:', tabName, 'عدد العناصر:', items ? items.length : 0);
+            console.log(' رسم بيانات tab:', tabName, 'عدد العناصر:', items ? items.length : 0);
             
             if (!items || items.length === 0) {
                 contentContainer.innerHTML = '<div class="tab-empty">📭 لا توجد بيانات في هذا القسم</div>';
