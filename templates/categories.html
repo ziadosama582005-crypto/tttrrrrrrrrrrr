@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>المتجر الرقمي - الفئات</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         * {
             margin: 0;
@@ -510,75 +511,7 @@
     </style>
 </head>
 <body data-logged-in="{{ 'true' if is_logged_in else 'false' }}">
-    <!-- الهيدر الرئيسي -->
-    <header class="main-header">
-        <!-- يمين: البحث وحسابي -->
-        <div class="header-right">
-            <button class="header-btn" onclick="openSearch()" title="بحث">
-                🔍
-            </button>
-            <button class="header-btn account-btn" id="headerAccountBtn" onclick="handleAccountClick()" title="حسابي">
-                <span id="headerAccountIcon">👤</span> <span id="headerAccountText">حسابي</span>
-            </button>
-        </div>
-        
-        <!-- وسط: الشعار -->
-        <div class="header-center">
-            <div class="header-logo">
-                🛒 المتجر
-            </div>
-        </div>
-        
-        <!-- يسار: القائمة -->
-        <div class="header-left">
-            <button class="header-btn menu-btn" onclick="openSideMenu()" title="القائمة">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-        </div>
-    </header>
-    
-    <!-- القائمة الجانبية -->
-    <div class="side-menu-overlay" id="sideMenuOverlay" onclick="closeSideMenu()"></div>
-    <div class="side-menu" id="sideMenu">
-        <div class="side-menu-header">
-            <h3>📋 القائمة</h3>
-            <button class="close-menu-btn" onclick="closeSideMenu()">×</button>
-        </div>
-        <div class="side-menu-content">
-            <a href="/" class="menu-item">
-                <span>🏠</span>
-                <span>الرئيسية</span>
-            </a>
-            <div class="menu-item" id="accountMenuItem" onclick="handleAccountClick();" style="cursor: pointer;">
-                <span id="accountIcon">👤</span>
-                <span id="accountText">حسابي</span>
-            </div>
-            <div class="menu-item" onclick="goToPageOrLogin('/cart', 'السلة');" style="cursor: pointer;">
-                <span>🛒</span>
-                <span>السلة</span>
-            </div>
-            <div class="menu-item" onclick="goToPageOrLogin('/wallet', 'المحفظة');" style="cursor: pointer;">
-                <span>💰</span>
-                <span>المحفظة</span>
-            </div>
-            <div class="menu-divider"></div>
-            <div class="menu-item" onclick="goToPageOrLogin('/my_purchases', 'مشترياتي');" style="cursor: pointer;">
-                <span>📦</span>
-                <span>مشترياتي</span>
-            </div>
-            <div class="menu-item" onclick="openTelegramBot(); closeSideMenu();" style="cursor: pointer;">
-                <span>💬</span>
-                <span>الدعم الفني</span>
-            </div>
-            <div class="menu-divider"></div>
-            <div class="menu-item" onclick="openTelegramBot(); closeSideMenu();" style="cursor: pointer;">
-                <span>📱</span>
-                <span>تيليجرام</span>
-            </div>
-        </div>
-    </div>
+    {% include 'partials/top_banner.html' %}
     
     <!-- صندوق البحث -->
     <div class="search-overlay" id="searchOverlay">
@@ -1411,17 +1344,32 @@
         
         // ====== دوال الهيدر والقائمة والبحث ======
         
-        // فتح القائمة الجانبية
+        // فتح القائمة الجانبية (متوافق مع الهيدر الموحد)
         function openSideMenu() {
-            document.getElementById('sideMenu').classList.add('show');
-            document.getElementById('sideMenuOverlay').classList.add('show');
+            if (typeof toggleSidebar === 'function') {
+                toggleSidebar();
+            } else {
+                const sb = document.getElementById('sidebar');
+                const ov = document.getElementById('sidebarOverlay');
+                if (sb) sb.classList.add('open');
+                if (ov) ov.classList.add('open');
+            }
             document.body.style.overflow = 'hidden';
         }
         
-        // إغلاق القائمة الجانبية
+        // إغلاق القائمة الجانبية (متوافق مع الهيدر الموحد)
         function closeSideMenu() {
-            document.getElementById('sideMenu').classList.remove('show');
-            document.getElementById('sideMenuOverlay').classList.remove('show');
+            if (typeof toggleSidebar === 'function') {
+                const sb = document.getElementById('sidebar');
+                if (sb && sb.classList.contains('open')) {
+                    toggleSidebar();
+                }
+            } else {
+                const sb = document.getElementById('sidebar');
+                const ov = document.getElementById('sidebarOverlay');
+                if (sb) sb.classList.remove('open');
+                if (ov) ov.classList.remove('open');
+            }
             document.body.style.overflow = '';
         }
         
