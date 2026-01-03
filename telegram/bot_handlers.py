@@ -35,10 +35,17 @@ import telebot
 
 # استيراد نظام الإشعارات
 try:
-    from notifications import notify_new_charge, notify_owner
+    from notifications import (
+        notify_new_charge, notify_owner,
+        notify_invoice_created, notify_payment_pending,
+        notify_recharge_request
+    )
 except ImportError:
     notify_new_charge = lambda *args, **kwargs: None
     notify_owner = lambda *args, **kwargs: None
+    notify_invoice_created = lambda *args, **kwargs: None
+    notify_payment_pending = lambda *args, **kwargs: None
+    notify_recharge_request = lambda *args, **kwargs: None
 
 # دالة توليد كود التحقق
 def generate_verification_code():
@@ -839,6 +846,17 @@ def create_edfapay_invoice(user_id, amount, user_name):
             except Exception as e:
                 print(f"⚠️ خطأ في حفظ الطلب في Firebase: {e}")
             
+            # ✅ إشعار المالك بطلب شحن جديد
+            try:
+                notify_recharge_request(
+                    user_id=user_id,
+                    amount=amount,
+                    order_id=order_id,
+                    username=user_name
+                )
+            except:
+                pass
+            
             return {
                 'success': True,
                 'payment_url': payment_url,
@@ -1063,6 +1081,18 @@ def handle_user_state_message(message):
             except Exception as e:
                 print(f"⚠️ خطأ في حفظ الفاتورة: {e}")
             
+            # ✅ إشعار المالك بإنشاء فاتورة جديدة
+            try:
+                notify_invoice_created(
+                    merchant_id=user_id,
+                    merchant_name=merchant_name,
+                    amount=amount,
+                    invoice_id=invoice_id,
+                    customer_phone=None
+                )
+            except:
+                pass
+            
             # إرسال رابط الفاتورة للتاجر
             bot.send_message(
                 message.chat.id,
@@ -1268,6 +1298,18 @@ def create_customer_invoice(merchant_id, merchant_name, amount, customer_phone, 
                 })
             except Exception as e:
                 print(f"⚠️ خطأ في حفظ الفاتورة في Firebase: {e}")
+            
+            # ✅ إشعار المالك بإنشاء فاتورة تاجر جديدة
+            try:
+                notify_invoice_created(
+                    merchant_id=merchant_id,
+                    merchant_name=merchant_name,
+                    amount=amount,
+                    invoice_id=invoice_id,
+                    customer_phone=phone
+                )
+            except:
+                pass
             
             return {
                 'success': True,

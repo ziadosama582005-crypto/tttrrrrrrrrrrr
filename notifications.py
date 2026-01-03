@@ -200,3 +200,110 @@ def notify_product_sold(product_name, price, buyer_id, buyer_name=None):
         f"🆔 <b>ID:</b> <code>{buyer_id}</code>"
     )
     return notify_owner(message)
+
+
+# ===================== إشعارات الفواتير والدفع =====================
+
+def notify_invoice_created(merchant_id, merchant_name, amount, invoice_id, customer_phone=None):
+    """إشعار بإنشاء فاتورة جديدة"""
+    message = (
+        f"🧾 <b>تم إنشاء فاتورة جديدة!</b>\n\n"
+        f"👤 <b>التاجر:</b> {merchant_name}\n"
+        f"🆔 <b>آيدي:</b> <code>{merchant_id}</code>\n"
+        f"💰 <b>المبلغ:</b> {amount} ريال\n"
+        f"📋 <b>الفاتورة:</b> <code>{invoice_id}</code>\n"
+        f"📱 <b>رقم العميل:</b> {customer_phone or 'لم يُحدد بعد'}"
+    )
+    return notify_owner(message)
+
+
+def notify_payment_pending(user_id, amount, order_id, payment_type='شحن رصيد', username=None, invoice_id=None, customer_phone=None):
+    """إشعار بعملية دفع معلقة"""
+    if payment_type == 'فاتورة تاجر':
+        message = (
+            f"⏳ <b>عملية دفع معلقة!</b>\n\n"
+            f"📍 <b>النوع:</b> {payment_type}\n"
+            f"👤 <b>التاجر:</b> {username or user_id}\n"
+            f"🆔 <b>آيدي:</b> <code>{user_id}</code>\n"
+            f"💰 <b>المبلغ:</b> {amount} ريال\n"
+            f"📋 <b>الفاتورة:</b> <code>{invoice_id or order_id}</code>\n"
+            f"📱 <b>رقم العميل:</b> {customer_phone or 'غير محدد'}\n"
+            f"🔗 <b>الطلب:</b> <code>{order_id}</code>"
+        )
+    else:
+        message = (
+            f"⏳ <b>عملية دفع معلقة!</b>\n\n"
+            f"📍 <b>النوع:</b> {payment_type}\n"
+            f"👤 <b>المستخدم:</b> {username or user_id}\n"
+            f"🆔 <b>آيدي:</b> <code>{user_id}</code>\n"
+            f"💰 <b>المبلغ:</b> {amount} ريال\n"
+            f"🔗 <b>الطلب:</b> <code>{order_id}</code>"
+        )
+    return notify_owner(message)
+
+
+def notify_payment_success(user_id, amount, order_id, trans_id=None, payment_type='شحن رصيد', username=None, invoice_id=None, customer_phone=None, new_balance=None):
+    """إشعار بنجاح عملية الدفع"""
+    if payment_type == 'فاتورة تاجر':
+        message = (
+            f"🧾 <b>دفع فاتورة تاجر!</b>\n\n"
+            f"👤 <b>التاجر:</b> {username or user_id}\n"
+            f"🆔 <b>آيدي:</b> <code>{user_id}</code>\n"
+            f"💰 <b>المبلغ:</b> {amount} ريال\n"
+            f"📋 <b>الفاتورة:</b> <code>{invoice_id or order_id}</code>\n"
+            f"📱 <b>رقم العميل:</b> {customer_phone or 'غير محدد'}\n"
+            f"🔗 <b>EdfaPay:</b> <code>{trans_id or 'N/A'}</code>"
+        )
+    else:
+        message = (
+            f"💳 <b>دفعة جديدة ناجحة!</b>\n\n"
+            f"👤 <b>المستخدم:</b> {username or user_id}\n"
+            f"🆔 <b>آيدي:</b> <code>{user_id}</code>\n"
+            f"💰 <b>المبلغ:</b> {amount} ريال\n"
+            f"🔗 <b>الطلب:</b> <code>{order_id}</code>\n"
+            f"🔗 <b>EdfaPay:</b> <code>{trans_id or 'N/A'}</code>"
+        )
+    
+    if new_balance is not None:
+        message += f"\n💵 <b>الرصيد الجديد:</b> {new_balance} ريال"
+    
+    return notify_owner(message)
+
+
+def notify_payment_failed(user_id, amount, order_id, reason=None, payment_type='شحن رصيد', username=None, invoice_id=None, customer_phone=None):
+    """إشعار بفشل عملية الدفع"""
+    clean_reason = str(reason or 'غير محدد').replace('_', ' ').replace('*', '').replace('`', '')[:100]
+    
+    if payment_type == 'فاتورة تاجر':
+        message = (
+            f"❌ <b>فشل دفع فاتورة تاجر!</b>\n\n"
+            f"👤 <b>التاجر:</b> {username or user_id}\n"
+            f"🆔 <b>آيدي:</b> <code>{user_id}</code>\n"
+            f"💰 <b>المبلغ:</b> {amount} ريال\n"
+            f"📋 <b>الفاتورة:</b> <code>{invoice_id or order_id}</code>\n"
+            f"📱 <b>رقم العميل:</b> {customer_phone or 'غير محدد'}\n"
+            f"❗ <b>السبب:</b> {clean_reason}"
+        )
+    else:
+        message = (
+            f"❌ <b>فشلت عملية الدفع!</b>\n\n"
+            f"👤 <b>المستخدم:</b> {username or user_id}\n"
+            f"🆔 <b>آيدي:</b> <code>{user_id}</code>\n"
+            f"💰 <b>المبلغ:</b> {amount} ريال\n"
+            f"🔗 <b>الطلب:</b> <code>{order_id}</code>\n"
+            f"❗ <b>السبب:</b> {clean_reason}"
+        )
+    return notify_owner(message)
+
+
+def notify_recharge_request(user_id, amount, order_id, username=None):
+    """إشعار بطلب شحن رصيد جديد (عند إنشاء الفاتورة)"""
+    message = (
+        f"🔔 <b>طلب شحن جديد!</b>\n\n"
+        f"👤 <b>المستخدم:</b> {username or user_id}\n"
+        f"🆔 <b>آيدي:</b> <code>{user_id}</code>\n"
+        f"💰 <b>المبلغ:</b> {amount} ريال\n"
+        f"📋 <b>رقم الطلب:</b> <code>{order_id}</code>\n\n"
+        f"⏳ في انتظار الدفع..."
+    )
+    return notify_owner(message)

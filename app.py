@@ -54,7 +54,9 @@ from utils import sanitize, regenerate_session, generate_code, validate_phone
 from notifications import (
     notify_owner, notify_all_admins, notify_new_charge,
     notify_withdrawal_request, notify_new_purchase, notify_new_order,
-    notify_new_user, notify_product_sold
+    notify_new_user, notify_product_sold,
+    notify_invoice_created, notify_payment_pending,
+    notify_payment_success, notify_payment_failed, notify_recharge_request
 )
 
 # استيراد أدوات التشفير
@@ -1551,16 +1553,16 @@ _محاولة اختراق واضحة!_
                     # إشعار المالك (مفصّل للحماية والتوثيق)
                     try:
                         merchant_name = merchant_invoices.get(invoice_id, {}).get('merchant_name', 'غير معروف')
-                        bot.send_message(
-                            ADMIN_ID,
-                            f"🧾 *دفع فاتورة تاجر!*\n\n"
-                            f"👤 التاجر: {merchant_name}\n"
-                            f"🆔 آيدي: `{user_id}`\n"
-                            f"💰 المبلغ: {pay_amount} ريال\n"
-                            f"📋 الفاتورة: `{invoice_id}`\n"
-                            f"📱 رقم العميل: `{customer_phone}`\n"
-                            f"🔗 EdfaPay: `{trans_id}`",
-                            parse_mode="Markdown"
+                        notify_payment_success(
+                            user_id=user_id,
+                            amount=pay_amount,
+                            order_id=order_id,
+                            trans_id=trans_id,
+                            payment_type='فاتورة تاجر',
+                            username=merchant_name,
+                            invoice_id=invoice_id,
+                            customer_phone=customer_phone,
+                            new_balance=new_balance
                         )
                     except:
                         pass
@@ -1582,14 +1584,13 @@ _محاولة اختراق واضحة!_
                     
                     # إشعار المالك
                     try:
-                        bot.send_message(
-                            ADMIN_ID,
-                            f"💳 *دفعة جديدة ناجحة!*\n\n"
-                            f"👤 المستخدم: `{user_id}`\n"
-                            f"💰 المبلغ: {pay_amount} ريال\n"
-                            f"📋 الطلب: `{order_id}`\n"
-                            f"🔗 EdfaPay: `{trans_id}`",
-                            parse_mode="Markdown"
+                        notify_payment_success(
+                            user_id=user_id,
+                            amount=pay_amount,
+                            order_id=order_id,
+                            trans_id=trans_id,
+                            payment_type='شحن رصيد',
+                            new_balance=new_balance
                         )
                     except:
                         pass
@@ -1657,7 +1658,6 @@ _محاولة اختراق واضحة!_
             # إشعار المالك بالفشل
             try:
                 raw_reason = data.get('decline_reason', status)
-                clean_reason = str(raw_reason).replace('_', ' ').replace('*', '').replace('`', '')[:100]
                 
                 # جلب بيانات إضافية للمالك
                 merchant_id = payment_data.get('user_id', 'غير محدد') if payment_data else 'غير محدد'
@@ -1669,22 +1669,29 @@ _محاولة اختراق واضحة!_
                 if invoice_id and invoice_id in merchant_invoices:
                     customer_phone = merchant_invoices[invoice_id].get('customer_phone', 'غير محدد')
                 
+                # جلب اسم التاجر
+                merchant_name = ''
+                if invoice_id and invoice_id in merchant_invoices:
+                    merchant_name = merchant_invoices[invoice_id].get('merchant_name', '')
+                
                 if is_merchant_inv:
-                    bot.send_message(
-                        ADMIN_ID,
-                        f"❌ فشل دفع فاتورة تاجر\n\n"
-                        f"👤 التاجر: {merchant_id}\n"
-                        f"🧾 الفاتورة: {invoice_id}\n"
-                        f"📱 رقم العميل: {customer_phone}\n"
-                        f"❗ السبب: {clean_reason}"
+                    notify_payment_failed(
+                        user_id=merchant_id,
+                        amount=payment_data.get('amount', 0) if payment_data else 0,
+                        order_id=order_id,
+                        reason=raw_reason,
+                        payment_type='فاتورة تاجر',
+                        username=merchant_name,
+                        invoice_id=invoice_id,
+                        customer_phone=customer_phone
                     )
                 else:
-                    bot.send_message(
-                        ADMIN_ID,
-                        f"❌ عملية شحن مرفوضة\n\n"
-                        f"👤 المستخدم: {merchant_id}\n"
-                        f"📋 الطلب: {order_id}\n"
-                        f"❗ السبب: {clean_reason}"
+                    notify_payment_failed(
+                        user_id=merchant_id,
+                        amount=payment_data.get('amount', 0) if payment_data else 0,
+                        order_id=order_id,
+                        reason=raw_reason,
+                        payment_type='شحن رصيد'
                     )
             except:
                 pass
@@ -1694,6 +1701,43 @@ _محاولة اختراق واضحة!_
         # 3️⃣ حالة معلقة
         elif status_upper in PENDING_STATUSES:
             print(f"⏳ EdfaPay: عملية معلقة - {status}")
+            
+            # إشعار المالك بالعملية المعلقة
+            try:
+                payment_data = pending_payments.get(order_id)
+                if not payment_data:
+                    try:
+                        doc = db.collection('pending_payments').document(order_id).get()
+                        if doc.exists:
+                            payment_data = doc.to_dict()
+                    except:
+                        pass
+                
+                if payment_data:
+                    user_id = payment_data.get('user_id', '')
+                    pay_amount = payment_data.get('amount', 0)
+                    is_merchant_invoice = payment_data.get('is_merchant_invoice', False)
+                    invoice_id = payment_data.get('invoice_id', '')
+                    
+                    # جلب بيانات إضافية
+                    customer_phone = 'غير محدد'
+                    merchant_name = ''
+                    if invoice_id and invoice_id in merchant_invoices:
+                        customer_phone = merchant_invoices[invoice_id].get('customer_phone', 'غير محدد')
+                        merchant_name = merchant_invoices[invoice_id].get('merchant_name', '')
+                    
+                    notify_payment_pending(
+                        user_id=user_id,
+                        amount=pay_amount,
+                        order_id=order_id,
+                        payment_type='فاتورة تاجر' if is_merchant_invoice else 'شحن رصيد',
+                        username=merchant_name if is_merchant_invoice else None,
+                        invoice_id=invoice_id,
+                        customer_phone=customer_phone if is_merchant_invoice else None
+                    )
+            except:
+                pass
+            
             return jsonify({'status': 'success', 'message': f'Payment pending: {status}'})
         
         # 4️⃣ حالة غير معروفة
