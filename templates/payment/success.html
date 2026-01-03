@@ -42,15 +42,15 @@
             font-weight: bold;
             transition: transform 0.3s;
         }
-        .btn:hover { transform: scale(1.05); }
+        .btn:hover { transform: scale(1.05); cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="icon">✅</div>
         <h1>تم الدفع بنجاح!</h1>
-        <p>تم شحن رصيدك بنجاح.<br>يمكنك الآن العودة للبوت والتسوق.</p>
-        <a href="https://t.me/{{ bot_username }}" class="btn">العودة للبوت</a>
+        <p>تمت عملية الدفع بنجاح.<br>يمكنك إغلاق هذه الصفحة الآن.</p>
+        <button class="btn" onclick="window.close(); setTimeout(function(){ location.href='about:blank'; }, 100);">إغلاق الصفحة</button>
     </div>
 </body>
 </html>
