@@ -1320,101 +1320,6 @@
         .order-info strong {
             color: var(--text-color);
         }
-        .login-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .login-modal-content {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-            position: relative;
-            color: #2d3436;
-        }
-        .close-modal {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            font-size: 28px;
-            cursor: pointer;
-            color: #636e72;
-        }
-        .close-modal:hover {
-            color: #2d3436;
-        }
-        .modal-logo {
-            font-size: 50px;
-            margin-bottom: 15px;
-        }
-        .modal-title {
-            color: #6c5ce7;
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        .modal-text {
-            color: #636e72;
-            margin-bottom: 25px;
-            line-height: 1.6;
-        }
-        .login-input {
-            width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            font-size: 16px;
-            box-sizing: border-box;
-            font-family: 'Tajawal', sans-serif;
-        }
-        .login-input:focus {
-            outline: none;
-            border-color: #6c5ce7;
-        }
-        .login-btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-            font-family: 'Tajawal', sans-serif;
-        }
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(108, 92, 231, 0.4);
-        }
-        .help-text {
-            color: #636e72;
-            font-size: 14px;
-            margin-top: 15px;
-        }
-        .help-text a {
-            color: #6c5ce7;
-            text-decoration: none;
-        }
-        .error-message {
-            color: #e74c3c;
-            background: #ffe5e5;
-            padding: 10px;
-            border-radius: 8px;
-            margin: 10px 0;
-            display: none;
-        }
         .sidebar-overlay {
             position: fixed;
             top: 0;
@@ -1863,21 +1768,9 @@
     </div>
     <div class="categories-grid" id="categoriesContainer">
     </div>
-    <div class="login-modal" id="loginModal">
-        <div class="login-modal-content">
-            <span class="close-modal" onclick="closeLoginModal()">×</span>
-            <div class="modal-logo"></div>
-            <h2 class="modal-title">تسجيل الدخول</h2>
-            <p class="modal-text">أدخل معرف تيليجرام الخاص بك والكود الذي ستحصل عليه من البوت</p>
-            <div id="errorMessage" class="error-message"></div>
-            <input type="text" id="telegramId" class="login-input" placeholder="معرف تيليجرام (Telegram ID)">
-            <input type="text" id="verificationCode" class="login-input" placeholder="كود التحقق (من البوت)" maxlength="6">
-            <button class="login-btn" onclick="submitLogin()">تسجيل الدخول</button>
-            <p class="help-text">
-                ليس لديك كود؟ <a href="#" onclick="showCodeHelp(); return false;">احصل على كود من البوت</a>
-            </p>
-        </div>
-    </div>
+    
+    {% include 'partials/login_modal.html' %}
+    
     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
         <h3 style="margin: 0;">السوق</h3>
         <span id="categoryFilter" style="color: #6c5ce7; font-size: 14px; font-weight: bold;"></span>
@@ -2248,51 +2141,6 @@
             const arrow = document.getElementById("accountArrow");
             content.classList.toggle("open");
             arrow.classList.toggle("open");
-        }
-        function showLoginModal() {
-            const modal = document.getElementById('loginModal');
-            modal.style.display = 'flex';
-        }
-        function closeLoginModal() {
-            const modal = document.getElementById('loginModal');
-            modal.style.display = 'none';
-            document.getElementById('errorMessage').style.display = 'none';
-            document.getElementById('telegramId').value = '';
-            document.getElementById('verificationCode').value = '';
-        }
-        async function submitLogin() {
-            const userId = document.getElementById('telegramId').value.trim();
-            const code = document.getElementById('verificationCode').value.trim();
-            const errorDiv = document.getElementById('errorMessage');
-            if(!userId || !code) {
-                errorDiv.textContent = 'الرجاء إدخال الآيدي والكود';
-                errorDiv.style.display = 'block';
-                return;
-            }
-            try {
-                const response = await fetch('/verify', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        user_id: userId,
-                        code: code
-                    })
-                });
-                const data = await response.json();
-                if(data.success) {
-                    closeLoginModal();
-                    location.reload();
-                } else {
-                    errorDiv.textContent = data.message;
-                    errorDiv.style.display = 'block';
-                }
-            } catch(error) {
-                errorDiv.textContent = 'حدث خطأ! حاول مرة أخرى';
-                errorDiv.style.display = 'block';
-            }
-        }
-        function showCodeHelp() {
-            alert('للحصول على كود التحقق:\\n\\n افتح البوت في تيليجرام\\n أرسل الأمر /code\\n انسخ الكود المكون من 6 أرقام\\n الصقه في الحقل أعلاه');
         }
         async function logout() {
             if(confirm('هل تريد تسجيل الخروج؟')) {
@@ -2915,13 +2763,6 @@
             loadCategoriesUI(); 
             loadDynamicTabs();  
             initFloatingNav();
-            
-            // التحقق من طلب فتح نافذة تسجيل الدخول
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('showLogin') === '1') {
-                showLoginModal();
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
         });
         async function loadCategoriesUI() {
             try {
