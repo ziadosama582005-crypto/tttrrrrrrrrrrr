@@ -105,18 +105,18 @@
   .side-menu {
     position: fixed;
     top: 0;
-    right: -280px;
+    left: -280px;
     width: 280px;
     height: 100%;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     z-index: 1001;
-    transition: right 0.3s ease;
+    transition: left 0.3s ease;
     overflow-y: auto;
-    border-left: 1px solid rgba(108, 92, 231, 0.3);
+    border-right: 1px solid rgba(108, 92, 231, 0.3);
   }
   
   .side-menu.show {
-    right: 0;
+    left: 0;
   }
   
   .side-menu-header {
@@ -292,25 +292,28 @@
 
 <!-- الهيدر -->
 <header class="main-header">
+  <!-- يمين: البحث وحسابي -->
   <div class="header-right">
-    <button class="header-btn menu-btn" onclick="toggleSideMenu()">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
-    <a href="/profile" class="header-btn account-btn">
+    <button class="header-btn" onclick="openSearch()" title="بحث">🔍</button>
+    <a href="/profile" class="header-btn account-btn" title="حسابي">
       👤 <span>حسابي</span>
     </a>
   </div>
   
+  <!-- وسط: الشعار -->
   <div class="header-center">
     <a href="/" class="header-logo">
       🛒 المتجر
     </a>
   </div>
   
+  <!-- يسار: القائمة -->
   <div class="header-left">
-    <button class="header-btn" onclick="openSearch()">🔍</button>
+    <button class="header-btn menu-btn" onclick="toggleSideMenu()" title="القائمة">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
   </div>
 </header>
 
