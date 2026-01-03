@@ -7,6 +7,7 @@ from firebase_utils import (
     get_products_by_category, get_product_by_id
 )
 from extensions import BOT_USERNAME
+from config import CONTACT_BOT_URL, CONTACT_WHATSAPP
 import json
 
 web_bp = Blueprint('web', __name__)
@@ -52,7 +53,9 @@ def index():
                          profile_photo=profile_photo,
                          is_logged_in=is_logged_in,
                          cart_count=cart_count,
-                         bot_username=BOT_USERNAME)
+                         bot_username=BOT_USERNAME,
+                         contact_bot_url=CONTACT_BOT_URL,
+                         contact_whatsapp=CONTACT_WHATSAPP)
 
 @web_bp.route('/t/<category_id>')
 def category_products(category_id):

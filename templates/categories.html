@@ -478,6 +478,11 @@
                 <span>الدعم الفني</span>
             </div>
             <div class="menu-divider"></div>
+            {% if contact_whatsapp %}
+            <div class="menu-item" onclick="window.open('https://wa.me/{{ contact_whatsapp }}', '_blank'); closeSideMenu();" style="cursor: pointer;">
+                <span>واتساب</span>
+            </div>
+            {% endif %}
             <div class="menu-item" onclick="openTelegramBot(); closeSideMenu();" style="cursor: pointer;">
                 <span>تيليجرام</span>
             </div>
@@ -1245,9 +1250,15 @@
             }
         }
         var botUsername = '{{ bot_username | default("") }}';
+        var contactBotUrl = '{{ contact_bot_url | default("") }}';
         function openTelegramBot() {
-            var username = botUsername || 'your_bot';
-            window.open('https://t.me/' + username, '_blank');
+            if (contactBotUrl) {
+                window.open(contactBotUrl, '_blank');
+            } else if (botUsername) {
+                window.open('https://t.me/' + botUsername, '_blank');
+            } else {
+                window.open('https://t.me/awedjabot', '_blank');
+            }
         }
         var originalLoginSuccess = window.onLoginSuccess;
         window.onLoginSuccess = function() {

@@ -15,6 +15,10 @@ ADMIN_ID = int(os.environ.get("ADMIN_ID", 123456789))
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "default_token_123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefgh")
 SITE_URL = os.environ.get("SITE_URL", "http://localhost:5000")
 
+# === إعدادات التواصل ===
+CONTACT_BOT_URL = os.environ.get("CONTACT_BOT_URL", "https://t.me/awedjabot")
+CONTACT_WHATSAPP = os.environ.get("CONTACT_WHATSAPP", "")
+
 # === إعدادات بوابة الدفع EdfaPay ===
 EDFAPAY_MERCHANT_ID = os.environ.get("EDFAPAY_MERCHANT_ID", "")
 EDFAPAY_PASSWORD = os.environ.get("EDFAPAY_PASSWORD", "")

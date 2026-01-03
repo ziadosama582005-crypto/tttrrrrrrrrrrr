@@ -28,7 +28,8 @@ from extensions import (
 )
 from config import (
     EDFAPAY_API_URL, SESSION_CONFIG, IS_PRODUCTION,
-    RATE_LIMIT_DEFAULT, DEFAULT_CATEGORIES, CART_EXPIRY_HOURS
+    RATE_LIMIT_DEFAULT, DEFAULT_CATEGORIES, CART_EXPIRY_HOURS,
+    CONTACT_BOT_URL, CONTACT_WHATSAPP
 )
 from firebase_utils import (
     query_where, get_balance, add_balance, deduct_balance,
@@ -940,7 +941,9 @@ def index():
                          user_name=user_name,
                          profile_photo=profile_photo,
                          is_logged_in=is_logged_in,
-                         cart_count=cart_count)
+                         cart_count=cart_count,
+                         contact_bot_url=CONTACT_BOT_URL,
+                         contact_whatsapp=CONTACT_WHATSAPP)
 
 
 # ====== Web Routes - تم نقلها إلى routes/web_routes.py ======

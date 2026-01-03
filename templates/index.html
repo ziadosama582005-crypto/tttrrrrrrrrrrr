@@ -1806,10 +1806,12 @@
         <div class="sidebar-divider"></div>
         <div class="sidebar-section">
             <div class="sidebar-section-title">المساعدة</div>
-            <div class="sidebar-menu-item" onclick="window.open('https://t.me/awedjabot', '_blank');">
-                <span class="sidebar-menu-text">تواصل معنا</span>
+            {% if contact_whatsapp %}
+            <div class="sidebar-menu-item" onclick="window.open('https://wa.me/{{ contact_whatsapp }}', '_blank');">
+                <span class="sidebar-menu-text">واتساب</span>
             </div>
-            <div class="sidebar-menu-item" onclick="window.open('https://t.me/awedjabot', '_blank');">
+            {% endif %}
+            <div class="sidebar-menu-item" onclick="window.open('{{ contact_bot_url|default('https://t.me/awedjabot') }}', '_blank');">
                 <span class="sidebar-menu-text">البوت</span>
             </div>
         </div>
