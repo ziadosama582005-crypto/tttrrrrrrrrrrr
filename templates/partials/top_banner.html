@@ -90,7 +90,7 @@
     </a>
 </header>
 <script>
-    const currentUserId = '{{ user_id }}';
+    const currentUserId = '{{ current_user_id or user_id or current_user or "" }}';
     
     function handleCartClick() {
         if (!currentUserId || currentUserId === '' || currentUserId === '0' || currentUserId === 'None') {
@@ -107,8 +107,8 @@
     }
     
     async function loadHeaderCart() {
-        const userId = '{{ user_id }}';
-        if (!userId || userId === '' || userId === 'None') return;
+        const userId = currentUserId;
+        if (!userId || userId === '' || userId === '0' || userId === 'None') return;
         try {
             const response = await fetch('/api/cart/get?user_id=' + userId);
             const data = await response.json();
