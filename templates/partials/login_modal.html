@@ -285,7 +285,7 @@
 <script>
     let countdownInterval;
     let secondsLeft = 120;
-    let currentUserId = '';
+    let loginFormUserId = '';
 
     function openLoginModal() {
         document.getElementById('loginModal').classList.add('show');
@@ -356,7 +356,7 @@
             return;
         }
 
-        currentUserId = userId;
+        loginFormUserId = userId;
         btn.disabled = true;
         btn.innerHTML = '⏳ جاري الإرسال...';
         errorDiv.style.display = 'none';
@@ -413,7 +413,7 @@
             const data = await response.json();
 
             if (data.success) {
-                currentUserId = data.user_id;
+                loginFormUserId = data.user_id;
                 document.getElementById('step1').classList.remove('active');
                 document.getElementById('step2').classList.add('active');
                 startCountdown();
@@ -455,7 +455,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    user_id: currentUserId,
+                    user_id: loginFormUserId,
                     code: code 
                 })
             });
