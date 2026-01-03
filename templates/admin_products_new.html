@@ -1,10 +1,7 @@
 {% extends "admin_base.html" %}
-
 {% block title %}إدارة المنتجات{% endblock %}
-
 {% block extra_css %}
 <style>
-    /* الإحصائيات */
     .stats {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -28,8 +25,6 @@
         color: var(--muted);
         margin-top: 5px;
     }
-    
-    /* شبكة المنتجات */
     .products-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -46,7 +41,6 @@
     }
     .product-card:hover { transform: translateY(-5px); }
     .product-card.sold-card { opacity: 0.7; }
-    
     .product-image {
         height: 120px;
         background: linear-gradient(135deg, var(--primary), #a29bfe);
@@ -107,8 +101,6 @@
         transition: transform 0.2s;
     }
     .delete-btn:hover { transform: scale(1.05); }
-    
-    /* النوافذ المنبثقة */
     .modal {
         display: none;
         position: fixed;
@@ -148,8 +140,6 @@
         justify-content: flex-end;
         border-top: 1px solid rgba(255,255,255,0.1);
     }
-    
-    /* الحقول */
     .form-group {
         margin-bottom: 15px;
     }
@@ -186,8 +176,6 @@
         color: var(--muted);
         font-size: 12px;
     }
-    
-    /* حالة فارغة */
     .empty-state {
         text-align: center;
         padding: 40px;
@@ -197,8 +185,6 @@
         font-size: 50px;
         margin-bottom: 15px;
     }
-    
-    /* رسائل التنبيه */
     .alert {
         padding: 15px 20px;
         border-radius: 12px;
@@ -208,12 +194,10 @@
     .alert.show { display: block; animation: fadeIn 0.3s; }
     .alert-success { background: rgba(0, 184, 148, 0.2); border: 1px solid var(--success); color: var(--success); }
     .alert-error { background: rgba(231, 76, 60, 0.2); border: 1px solid var(--danger); color: var(--danger); }
-    
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(-10px); }
         to { opacity: 1; transform: translateY(0); }
     }
-    
     .section-title {
         font-size: 16px;
         margin: 20px 0 15px;
@@ -225,7 +209,6 @@
     }
 </style>
 {% endblock %}
-
 {% block content %}
 <div class="top-bar">
     <h1> إدارة المنتجات</h1>
@@ -234,12 +217,8 @@
         <button class="btn btn-secondary btn-sm" onclick="loadProducts()"> تحديث</button>
     </div>
 </div>
-
-<!-- رسائل التنبيه -->
 <div id="alertSuccess" class="alert alert-success"></div>
 <div id="alertError" class="alert alert-error"></div>
-
-<!-- الإحصائيات -->
 <div class="stats">
     <div class="stat-card-mini">
         <div class="stat-number" id="totalProducts">0</div>
@@ -254,24 +233,18 @@
         <div class="stat-label">تم بيعها</div>
     </div>
 </div>
-
-<!-- المنتجات المتاحة -->
 <h2 class="section-title"> المنتجات المتاحة</h2>
 <div id="availableGrid" class="products-grid">
     <div class="loading">
         <div class="spinner"></div>
     </div>
 </div>
-
-<!-- المنتجات المباعة -->
 <h2 class="section-title"> المنتجات المباعة</h2>
 <div id="soldGrid" class="products-grid">
     <div class="loading">
         <div class="spinner"></div>
     </div>
 </div>
-
-<!-- نافذة إضافة منتج -->
 <div id="addModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -286,7 +259,6 @@
                     <option value="manual">👨‍💼 تسليم يدوي (المشتري يكتب طلبه)</option>
                 </select>
             </div>
-            
             <div id="commonFields" style="display: none;">
                 <div class="form-group">
                     <label> اسم المنتج *</label>
@@ -311,7 +283,6 @@
                     <input type="url" id="productImage" placeholder="https://example.com/image.jpg">
                 </div>
             </div>
-            
             <div id="instantFields" style="display: none;">
                 <div class="form-group" style="background: rgba(46, 204, 113, 0.1); padding: 15px; border-radius: 10px; border: 1px solid rgba(46, 204, 113, 0.3);">
                     <label> البيانات السرية (إيميل/باسورد) *</label>
@@ -319,7 +290,6 @@
                     <small> هذه البيانات ستُرسل تلقائياً للمشتري فور الشراء</small>
                 </div>
             </div>
-            
             <div id="manualFields" style="display: none;">
                 <div class="form-group" style="background: rgba(241, 196, 15, 0.1); padding: 15px; border-radius: 10px; border: 1px solid rgba(241, 196, 15, 0.3);">
                     <label> ماذا تحتاج من المشتري؟ *</label>
@@ -334,8 +304,6 @@
         </div>
     </div>
 </div>
-
-<!-- نافذة تأكيد الحذف -->
 <div id="deleteModal" class="modal">
     <div class="modal-content" style="max-width: 400px;">
         <div class="modal-header" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
@@ -353,22 +321,18 @@
     </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script>
     const ADMIN_ID = '{{ admin_id }}';
     let productToDelete = null;
-    
     document.addEventListener('DOMContentLoaded', () => {
         loadProducts();
         loadCategoriesForSelect();
     });
-    
     async function loadCategoriesForSelect() {
         try {
             const response = await fetch('/api/admin/get_categories');
             const data = await response.json();
-            
             if(data.status === 'success') {
                 const select = document.getElementById('productCategory');
                 select.innerHTML = '<option value="">-- اختر الفئة --</option>';
@@ -380,12 +344,10 @@
             console.error('خطأ في تحميل الأقسام:', error);
         }
     }
-    
     async function loadProducts() {
         try {
             const response = await fetch('/api/admin/get_products');
             const data = await response.json();
-            
             if(data.status === 'success') {
                 renderProducts(data.available, data.sold);
                 updateStats(data.available.length, data.sold.length);
@@ -396,11 +358,9 @@
             showAlert('error', 'خطأ في الاتصال بالسيرفر');
         }
     }
-    
     function renderProducts(available, sold) {
         const availableGrid = document.getElementById('availableGrid');
         const soldGrid = document.getElementById('soldGrid');
-        
         if(available.length === 0) {
             availableGrid.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1;">
@@ -426,7 +386,6 @@
                 </div>
             `).join('');
         }
-        
         if(sold.length === 0) {
             soldGrid.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1;">
@@ -454,19 +413,16 @@
             `).join('');
         }
     }
-    
     function updateStats(available, sold) {
         document.getElementById('totalProducts').textContent = available + sold;
         document.getElementById('availableProducts').textContent = available;
         document.getElementById('soldProducts').textContent = sold;
     }
-    
     function toggleDeliveryFields() {
         const deliveryType = document.getElementById('productDeliveryType').value;
         const commonFields = document.getElementById('commonFields');
         const instantFields = document.getElementById('instantFields');
         const manualFields = document.getElementById('manualFields');
-        
         if(deliveryType === '') {
             commonFields.style.display = 'none';
             instantFields.style.display = 'none';
@@ -481,11 +437,9 @@
             manualFields.style.display = 'block';
         }
     }
-    
     function openAddModal() {
         document.getElementById('addModal').classList.add('active');
     }
-    
     function closeAddModal() {
         document.getElementById('addModal').classList.remove('active');
         document.getElementById('productDeliveryType').value = '';
@@ -500,7 +454,6 @@
         document.getElementById('instantFields').style.display = 'none';
         document.getElementById('manualFields').style.display = 'none';
     }
-    
     async function submitProduct() {
         const deliveryType = document.getElementById('productDeliveryType').value;
         const name = document.getElementById('productName').value.trim();
@@ -508,20 +461,16 @@
         const category = document.getElementById('productCategory').value;
         const details = document.getElementById('productDetails').value.trim();
         const image = document.getElementById('productImage').value.trim();
-        
         if(!deliveryType) {
             showAlert('error', 'الرجاء اختيار نوع التسليم');
             return;
         }
-        
         if(!name || !price || !category) {
             showAlert('error', 'الرجاء ملء جميع الحقول المطلوبة');
             return;
         }
-        
         let hiddenData = '';
         let buyerInstructions = '';
-        
         if(deliveryType === 'instant') {
             hiddenData = document.getElementById('productHiddenData').value.trim();
             if(!hiddenData) {
@@ -535,7 +484,6 @@
                 return;
             }
         }
-        
         try {
             const response = await fetch('/api/admin/add_product_new', {
                 method: 'POST',
@@ -551,9 +499,7 @@
                     delivery_type: deliveryType
                 })
             });
-            
             const data = await response.json();
-            
             if(data.status === 'success') {
                 showAlert('success', ' تم إضافة المنتج بنجاح!');
                 closeAddModal();
@@ -565,30 +511,24 @@
             showAlert('error', 'خطأ في الاتصال بالسيرفر');
         }
     }
-    
     function openDeleteModal(productId, productName) {
         productToDelete = productId;
         document.getElementById('deleteProductName').textContent = productName;
         document.getElementById('deleteModal').classList.add('active');
     }
-    
     function closeDeleteModal() {
         document.getElementById('deleteModal').classList.remove('active');
         productToDelete = null;
     }
-    
     async function confirmDelete() {
         if(!productToDelete) return;
-        
         try {
             const response = await fetch('/api/admin/delete_product', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ product_id: productToDelete })
             });
-            
             const data = await response.json();
-            
             if(data.status === 'success') {
                 showAlert('success', ' تم حذف المنتج بنجاح!');
                 closeDeleteModal();
@@ -600,17 +540,14 @@
             showAlert('error', 'خطأ في الاتصال بالسيرفر');
         }
     }
-    
     function showAlert(type, message) {
         const alertEl = document.getElementById(type === 'success' ? 'alertSuccess' : 'alertError');
         alertEl.textContent = message;
         alertEl.classList.add('show');
-        
         setTimeout(() => {
             alertEl.classList.remove('show');
         }, 4000);
     }
-    
     window.onclick = function(event) {
         if(event.target.classList.contains('modal')) {
             event.target.classList.remove('active');

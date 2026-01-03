@@ -1,7 +1,5 @@
 {% extends 'admin_base.html' %}
-
 {% block title %}إدارة المشرفين - لوحة التحكم{% endblock %}
-
 {% block content %}
 <div class="top-bar">
     <h1> إدارة المشرفين</h1>
@@ -11,8 +9,6 @@
         </button>
     </div>
 </div>
-
-<!-- إحصائيات -->
 <div class="stats-grid">
     <div class="stat-card">
         <div class="icon">👑</div>
@@ -25,8 +21,6 @@
         <div class="label">المشرفين</div>
     </div>
 </div>
-
-<!-- المالك -->
 <div class="card">
     <div class="card-header">
         <span class="card-title">👑 المالك الرئيسي</span>
@@ -44,8 +38,6 @@
         </div>
     </div>
 </div>
-
-<!-- قائمة المشرفين -->
 <div class="card">
     <div class="card-header">
         <span class="card-title">👨‍💼 المشرفين</span>
@@ -57,8 +49,6 @@
         </div>
     </div>
 </div>
-
-<!-- Modal إضافة مشرف -->
 <div class="modal-overlay" id="addModal" onclick="closeAddModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -86,7 +76,6 @@
         </div>
     </div>
 </div>
-
 <style>
     .owner-info {
         background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 165, 0, 0.1));
@@ -118,7 +107,6 @@
         background: rgba(0,0,0,0.2);
         border-radius: 8px;
     }
-    
     .admin-card {
         background: rgba(255,255,255,0.05);
         border: 1px solid rgba(108, 92, 231, 0.2);
@@ -166,7 +154,6 @@
         font-size: 12px;
         color: var(--muted);
     }
-    
     .empty-state {
         text-align: center;
         padding: 40px;
@@ -176,8 +163,6 @@
         font-size: 50px;
         margin-bottom: 15px;
     }
-    
-    /* Modal */
     .modal-overlay {
         display: none;
         position: fixed;
@@ -278,22 +263,16 @@
         font-size: 11px;
     }
 </style>
-
 {% endblock %}
-
 {% block extra_js %}
 <script>
     let admins = [];
-    
-    // تحميل المشرفين
     async function loadAdmins() {
         const container = document.getElementById('adminsList');
         container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
-        
         try {
             const res = await fetch('/api/admin/managers/list');
             const data = await res.json();
-            
             if (data.status === 'success') {
                 admins = data.admins || [];
                 document.getElementById('adminsCount').textContent = admins.length;
@@ -305,11 +284,8 @@
             container.innerHTML = '<div class="empty-state"><div class="icon"></div><p>حدث خطأ في الاتصال</p></div>';
         }
     }
-    
-    // عرض المشرفين
     function renderAdmins() {
         const container = document.getElementById('adminsList');
-        
         if (admins.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
@@ -320,7 +296,6 @@
             `;
             return;
         }
-        
         let html = '';
         admins.forEach(admin => {
             const date = admin.added_at ? new Date(admin.added_at).toLocaleDateString('ar-SA') : '-';
@@ -345,14 +320,10 @@
         });
         container.innerHTML = html;
     }
-    
-    // فتح Modal الإضافة
     function openAddModal() {
         document.getElementById('addModal').classList.add('show');
         document.getElementById('newAdminId').focus();
     }
-    
-    // إغلاق Modal
     function closeAddModal(e) {
         if (e && e.target !== e.currentTarget) return;
         document.getElementById('addModal').classList.remove('show');
@@ -360,32 +331,25 @@
         document.getElementById('newAdminName').value = '';
         document.getElementById('newAdminNote').value = '';
     }
-    
-    // إضافة مشرف
     async function addAdmin() {
         const telegramId = document.getElementById('newAdminId').value.trim();
         const name = document.getElementById('newAdminName').value.trim();
         const note = document.getElementById('newAdminNote').value.trim();
-        
         if (!telegramId) {
             showToast('أدخل Telegram ID', 'error');
             return;
         }
-        
         if (!/^\d+$/.test(telegramId)) {
             showToast('ID يجب أن يكون أرقام فقط', 'error');
             return;
         }
-        
         try {
             const res = await fetch('/api/admin/managers/add', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ telegram_id: telegramId, name, note })
             });
-            
             const data = await res.json();
-            
             if (data.status === 'success') {
                 showToast(' تمت إضافة المشرف بنجاح', 'success');
                 closeAddModal();
@@ -397,20 +361,15 @@
             showToast('حدث خطأ في الاتصال', 'error');
         }
     }
-    
-    // حذف مشرف
     async function deleteAdmin(id, name) {
         if (!confirm(`هل تريد حذف المشرف "${name}"؟`)) return;
-        
         try {
             const res = await fetch('/api/admin/managers/delete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ admin_id: id })
             });
-            
             const data = await res.json();
-            
             if (data.status === 'success') {
                 showToast(' تم حذف المشرف', 'success');
                 loadAdmins();
@@ -421,8 +380,6 @@
             showToast('حدث خطأ في الاتصال', 'error');
         }
     }
-    
-    // تحميل عند فتح الصفحة
     document.addEventListener('DOMContentLoaded', loadAdmins);
 </script>
 {% endblock %}

@@ -1,7 +1,5 @@
 {% extends "admin_base.html" %}
-
 {% block title %}لوحة التحكم - نظرة عامة{% endblock %}
-
 {% block content %}
 <div class="top-bar">
     <h1> نظرة عامة</h1>
@@ -9,8 +7,6 @@
         <button class="btn btn-secondary btn-sm" onclick="loadAllStats()"> تحديث</button>
     </div>
 </div>
-
-<!-- إحصائيات رئيسية -->
 <div class="stats-grid">
     <div class="stat-card">
         <div class="icon"></div>
@@ -53,10 +49,7 @@
         <div class="label">فواتير معلقة</div>
     </div>
 </div>
-
-<!-- صف البطاقات -->
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
-    <!-- آخر الطلبات -->
     <div class="card">
         <div class="card-header">
             <span class="card-title"> آخر الطلبات</span>
@@ -78,8 +71,6 @@
             </table>
         </div>
     </div>
-
-    <!-- أعلى المنتجات في السلة -->
     <div class="card">
         <div class="card-header">
             <span class="card-title"> أكثر المنتجات إضافة للسلة</span>
@@ -102,10 +93,7 @@
         </div>
     </div>
 </div>
-
-<!-- صف ثاني -->
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-top: 20px;">
-    <!-- أعلى العملاء برصيد -->
     <div class="card">
         <div class="card-header">
             <span class="card-title"> العملاء الأعلى رصيداً</span>
@@ -126,8 +114,6 @@
             </table>
         </div>
     </div>
-
-    <!-- كروت الشحن -->
     <div class="card">
         <div class="card-header">
             <span class="card-title"> كروت الشحن</span>
@@ -154,8 +140,6 @@
         </div>
     </div>
 </div>
-
-<!-- Modal توليد كروت -->
 <div id="generateModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center;">
     <div class="card" style="width: 90%; max-width: 400px; margin: 0;">
         <div class="card-header">
@@ -178,19 +162,14 @@
     </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script>
-    // تحميل جميع الإحصائيات
     async function loadAllStats() {
         try {
             const res = await fetch('/api/admin/dashboard_stats');
             const data = await res.json();
-            
             if (data.status === 'success') {
                 const s = data.stats;
-                
-                // الإحصائيات الرئيسية
                 document.getElementById('totalUsers').textContent = s.total_users || 0;
                 document.getElementById('totalBalance').textContent = (s.total_balance || 0).toFixed(2) + ' ر.س';
                 document.getElementById('totalProducts').textContent = s.total_products || 0;
@@ -199,19 +178,11 @@
                 document.getElementById('totalRevenue').textContent = (s.total_revenue || 0).toFixed(2) + ' ر.س';
                 document.getElementById('activeKeys').textContent = s.active_keys || 0;
                 document.getElementById('pendingInvoices').textContent = s.pending_invoices || 0;
-                
-                // كروت الشحن
                 document.getElementById('activeKeysCard').textContent = s.active_keys || 0;
                 document.getElementById('usedKeysCard').textContent = s.used_keys || 0;
                 document.getElementById('totalKeysCard').textContent = (s.active_keys || 0) + (s.used_keys || 0);
-                
-                // آخر الطلبات
                 loadRecentOrders(s.recent_orders || []);
-                
-                // أعلى المنتجات
                 loadTopCartProducts(s.top_cart_products || []);
-                
-                // أعلى العملاء
                 loadTopCustomers(s.users_list || []);
             }
         } catch (e) {
@@ -219,14 +190,12 @@
             showToast('فشل في تحميل الإحصائيات', 'error');
         }
     }
-    
     function loadRecentOrders(orders) {
         const tbody = document.getElementById('recentOrders');
         if (!orders.length) {
             tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--muted);">لا توجد طلبات</td></tr>';
             return;
         }
-        
         tbody.innerHTML = orders.slice(0, 8).map(o => `
             <tr>
                 <td>${o.item_name || 'منتج'}</td>
@@ -236,14 +205,12 @@
             </tr>
         `).join('');
     }
-    
     function loadTopCartProducts(products) {
         const tbody = document.getElementById('topCartProducts');
         if (!products.length) {
             tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--muted);">لا توجد بيانات</td></tr>';
             return;
         }
-        
         tbody.innerHTML = products.slice(0, 6).map(p => {
             const rate = p.add_count > 0 ? ((p.purchase_count / p.add_count) * 100).toFixed(1) : 0;
             return `
@@ -256,18 +223,13 @@
             `;
         }).join('');
     }
-    
     function loadTopCustomers(users) {
         const tbody = document.getElementById('topCustomers');
-        
-        // ترتيب حسب الرصيد
         const sorted = users.sort((a, b) => (b.balance || 0) - (a.balance || 0)).slice(0, 6);
-        
         if (!sorted.length) {
             tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--muted);">لا يوجد عملاء</td></tr>';
             return;
         }
-        
         tbody.innerHTML = sorted.map(u => `
             <tr style="cursor: pointer;" onclick="window.location.href='/admin/customers?search=${u.id}'">
                 <td>${u.name || 'مستخدم'}</td>
@@ -276,7 +238,6 @@
             </tr>
         `).join('');
     }
-    
     function formatDate(dateStr) {
         if (!dateStr) return '-';
         try {
@@ -286,21 +247,16 @@
             return dateStr;
         }
     }
-    
-    // Modal توليد الكروت
     function openGenerateModal() {
         document.getElementById('generateModal').style.display = 'flex';
     }
-    
     function closeGenerateModal() {
         document.getElementById('generateModal').style.display = 'none';
         document.getElementById('generatedKeys').style.display = 'none';
     }
-    
     async function generateKeys() {
         const amount = parseFloat(document.getElementById('keyAmount').value);
         const count = parseInt(document.getElementById('keyCount').value);
-        
         if (!amount || amount <= 0) {
             showToast('أدخل قيمة صحيحة', 'error');
             return;
@@ -309,20 +265,15 @@
             showToast('أدخل عدد صحيح (1-100)', 'error');
             return;
         }
-        
         try {
             const res = await fetch('/api/generate_keys', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({amount, count})
             });
-            
             const data = await res.json();
-            
             if (data.status === 'success') {
                 showToast(`تم توليد ${data.keys.length} كرت بنجاح`, 'success');
-                
-                // عرض الكروت
                 const keysDiv = document.getElementById('generatedKeys');
                 keysDiv.innerHTML = data.keys.map(k => `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 5px; margin-bottom: 5px;">
@@ -331,8 +282,6 @@
                     </div>
                 `).join('');
                 keysDiv.style.display = 'block';
-                
-                // تحديث الإحصائيات
                 loadAllStats();
             } else {
                 showToast(data.message || 'فشل التوليد', 'error');
@@ -341,13 +290,10 @@
             showToast('خطأ في الاتصال', 'error');
         }
     }
-    
     function copyKey(key) {
         navigator.clipboard.writeText(key);
         showToast('تم النسخ!', 'success');
     }
-    
-    // تحميل عند فتح الصفحة
     document.addEventListener('DOMContentLoaded', loadAllStats);
 </script>
 {% endblock %}

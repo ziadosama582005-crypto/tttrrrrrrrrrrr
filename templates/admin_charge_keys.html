@@ -1,7 +1,5 @@
 {% extends "admin_base.html" %}
-
 {% block title %}كروت الشحن - لوحة التحكم{% endblock %}
-
 {% block content %}
 <div class="top-bar">
     <h1> إدارة كروت الشحن</h1>
@@ -10,8 +8,6 @@
         <button class="btn btn-secondary" onclick="loadKeys()"> تحديث</button>
     </div>
 </div>
-
-<!-- الإحصائيات -->
 <div class="stats-grid">
     <div class="stat-card">
         <div class="icon"></div>
@@ -34,8 +30,6 @@
         <div class="label">القيمة الإجمالية</div>
     </div>
 </div>
-
-<!-- الفلترة -->
 <div class="card">
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
         <select id="statusFilter" style="padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
@@ -50,8 +44,6 @@
                style="flex: 1; min-width: 150px; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
     </div>
 </div>
-
-<!-- جدول الكروت -->
 <div class="card">
     <div class="card-header">
         <span class="card-title"> قائمة الكروت</span>
@@ -79,31 +71,24 @@
         </table>
     </div>
 </div>
-
-<!-- Modal إنشاء كروت -->
 <div id="generateModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto;">
     <div style="max-width: 400px; margin: 80px auto; padding: 20px;">
         <div class="card">
             <h2 style="margin-bottom: 20px;">➕ إنشاء كروت شحن</h2>
-            
             <div style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 5px; color: var(--muted);">القيمة (ر.س)</label>
                 <input type="number" id="keyAmount" value="10" min="1" step="0.5"
                        style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
             </div>
-            
             <div style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 5px; color: var(--muted);">عدد الكروت</label>
                 <input type="number" id="keyCount" value="5" min="1" max="100"
                        style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
             </div>
-            
             <div style="display: flex; gap: 10px;">
                 <button class="btn btn-primary" style="flex: 1;" onclick="generateKeys()"> إنشاء</button>
                 <button class="btn btn-secondary" onclick="closeModal()"> إلغاء</button>
             </div>
-            
-            <!-- نتيجة الإنشاء -->
             <div id="generatedResult" style="display: none; margin-top: 20px; padding: 15px; background: rgba(0,184,148,0.1); border-radius: 10px; border: 1px solid rgba(0,184,148,0.3);">
                 <h4 style="color: var(--success); margin-bottom: 10px;"> تم إنشاء الكروت!</h4>
                 <div id="generatedKeys" style="font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto;"></div>
@@ -113,20 +98,16 @@
     </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script>
     let allKeys = [];
     let generatedKeysText = '';
-
     async function loadKeys() {
         const tbody = document.getElementById('keysTable');
         tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
-        
         try {
             const res = await fetch('/api/admin/get_charge_keys');
             const data = await res.json();
-            
             if (data.status === 'success') {
                 allKeys = data.keys || [];
                 updateStats();
@@ -139,18 +120,15 @@
             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #e74c3c;"> خطأ في الاتصال</td></tr>';
         }
     }
-
     function updateStats() {
         const active = allKeys.filter(k => !k.used).length;
         const used = allKeys.filter(k => k.used).length;
         const totalValue = allKeys.filter(k => !k.used).reduce((sum, k) => sum + (k.amount || 0), 0);
-        
         document.getElementById('totalKeys').textContent = allKeys.length;
         document.getElementById('activeKeys').textContent = active;
         document.getElementById('usedKeys').textContent = used;
         document.getElementById('totalValue').textContent = totalValue.toFixed(2) + ' ر.س';
     }
-
     function updateAmountFilter() {
         const amounts = [...new Set(allKeys.map(k => k.amount))].sort((a, b) => a - b);
         const filter = document.getElementById('amountFilter');
@@ -159,13 +137,11 @@
             filter.innerHTML += `<option value="${a}">${a} ر.س</option>`;
         });
     }
-
     function renderKeys() {
         const tbody = document.getElementById('keysTable');
         const statusFilter = document.getElementById('statusFilter').value;
         const amountFilter = document.getElementById('amountFilter').value;
         const search = document.getElementById('searchInput').value.toLowerCase();
-        
         let filtered = allKeys.filter(k => {
             if (statusFilter === 'active' && k.used) return false;
             if (statusFilter === 'used' && !k.used) return false;
@@ -173,21 +149,16 @@
             if (search && !(k.key || '').toLowerCase().includes(search)) return false;
             return true;
         });
-        
         document.getElementById('keysCountLabel').textContent = `${filtered.length} كرت`;
-        
         if (filtered.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--muted);">لا يوجد كروت</td></tr>';
             return;
         }
-        
         tbody.innerHTML = filtered.map(k => {
             const statusBadge = k.used
                 ? '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(100,100,100,0.3); color: var(--muted);"> مستخدم</span>'
                 : '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(0,184,148,0.2); color: var(--success);"> نشط</span>';
-            
             const date = k.created_at ? new Date(k.created_at).toLocaleDateString('ar-SA') : '-';
-            
             return `
                 <tr style="${k.used ? 'opacity: 0.6;' : ''}">
                     <td>
@@ -205,25 +176,20 @@
             `;
         }).join('');
     }
-
     function showGenerateModal() {
         document.getElementById('generateModal').style.display = 'block';
         document.getElementById('generatedResult').style.display = 'none';
     }
-
     function closeModal() {
         document.getElementById('generateModal').style.display = 'none';
     }
-
     async function generateKeys() {
         const amount = parseFloat(document.getElementById('keyAmount').value);
         const count = parseInt(document.getElementById('keyCount').value);
-        
         if (!amount || amount <= 0 || !count || count <= 0 || count > 100) {
             showToast('قيم غير صالحة', 'error');
             return;
         }
-        
         try {
             const res = await fetch('/api/generate_keys', {
                 method: 'POST',
@@ -231,16 +197,13 @@
                 body: JSON.stringify({ amount, count })
             });
             const data = await res.json();
-            
             if (data.success || data.status === 'success') {
                 const keys = data.keys || [];
                 generatedKeysText = keys.join('\n');
-                
                 document.getElementById('generatedKeys').innerHTML = keys.map(k => 
                     `<div style="padding: 5px; border-bottom: 1px solid rgba(255,255,255,0.1);">${k}</div>`
                 ).join('');
                 document.getElementById('generatedResult').style.display = 'block';
-                
                 showToast(` تم إنشاء ${keys.length} كرت`);
                 loadKeys();
             } else {
@@ -250,22 +213,18 @@
             showToast('خطأ في الاتصال', 'error');
         }
     }
-
     function copyKeys() {
         navigator.clipboard.writeText(generatedKeysText).then(() => {
             showToast(' تم نسخ الكروت');
         });
     }
-
     function copyKey(key) {
         navigator.clipboard.writeText(key).then(() => {
             showToast(' تم نسخ الكود');
         });
     }
-
     async function deleteKey(keyId) {
         if (!confirm('هل تريد حذف هذا الكرت؟')) return;
-        
         try {
             const res = await fetch('/api/admin/delete_charge_key', {
                 method: 'POST',
@@ -273,7 +232,6 @@
                 body: JSON.stringify({ key_id: keyId })
             });
             const data = await res.json();
-            
             if (data.status === 'success') {
                 showToast(' تم الحذف');
                 loadKeys();
@@ -284,12 +242,9 @@
             showToast('خطأ في الاتصال', 'error');
         }
     }
-
-    // Filters
     document.getElementById('statusFilter').addEventListener('change', renderKeys);
     document.getElementById('amountFilter').addEventListener('change', renderKeys);
     document.getElementById('searchInput').addEventListener('input', renderKeys);
-
     loadKeys();
 </script>
 {% endblock %}

@@ -1,7 +1,5 @@
 {% extends "admin_base.html" %}
-
 {% block title %}إدارة الأقسام{% endblock %}
-
 {% block extra_css %}
 <style>
     .categories-grid {
@@ -9,7 +7,6 @@
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 20px;
     }
-    
     .category-card {
         background: var(--card);
         border-radius: 15px;
@@ -20,18 +17,15 @@
         transition: all 0.3s;
         border: 1px solid rgba(108, 92, 231, 0.2);
     }
-    
     .category-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
-    
     .category-header {
         display: flex;
         align-items: center;
         gap: 15px;
     }
-    
     .category-image {
         width: 60px;
         height: 60px;
@@ -39,22 +33,18 @@
         object-fit: cover;
         background: rgba(255,255,255,0.1);
     }
-    
     .category-info {
         flex: 1;
     }
-    
     .category-name {
         font-size: 18px;
         font-weight: bold;
         margin-bottom: 5px;
     }
-    
     .category-count {
         font-size: 14px;
         color: var(--muted);
     }
-    
     .category-order {
         background: var(--primary);
         color: white;
@@ -67,18 +57,14 @@
         font-weight: bold;
         font-size: 14px;
     }
-    
     .category-actions {
         display: flex;
         gap: 10px;
     }
-    
     .category-actions .btn {
         flex: 1;
         justify-content: center;
     }
-    
-    /* إعدادات الأعمدة */
     .settings-card {
         background: var(--card);
         border-radius: 15px;
@@ -86,17 +72,14 @@
         margin-bottom: 20px;
         border: 1px solid rgba(108, 92, 231, 0.2);
     }
-    
     .settings-card h3 {
         margin-bottom: 15px;
         font-size: 16px;
     }
-    
     .columns-selector {
         display: flex;
         gap: 10px;
     }
-    
     .column-btn {
         flex: 1;
         padding: 12px;
@@ -109,14 +92,11 @@
         transition: all 0.3s;
         font-family: 'Tajawal', sans-serif;
     }
-    
     .column-btn.active,
     .column-btn:hover {
         border-color: var(--primary);
         background: rgba(108, 92, 231, 0.2);
     }
-    
-    /* النوافذ المنبثقة */
     .modal {
         display: none;
         position: fixed;
@@ -156,8 +136,6 @@
         justify-content: flex-end;
         border-top: 1px solid rgba(255,255,255,0.1);
     }
-    
-    /* الحقول */
     .form-group {
         margin-bottom: 15px;
     }
@@ -182,7 +160,6 @@
         outline: none;
         border-color: var(--primary);
     }
-    
     .image-preview {
         margin-top: 10px;
     }
@@ -190,7 +167,6 @@
         max-width: 100px;
         border-radius: 10px;
     }
-    
     .empty-state {
         text-align: center;
         padding: 40px;
@@ -200,7 +176,6 @@
         font-size: 50px;
         margin-bottom: 15px;
     }
-    
     .alert {
         position: fixed;
         bottom: 20px;
@@ -220,7 +195,6 @@
     }
     .alert.success { background: var(--success); }
     .alert.error { background: var(--danger); }
-    
     @media (max-width: 768px) {
         .alert {
             right: 20px;
@@ -232,7 +206,6 @@
     }
 </style>
 {% endblock %}
-
 {% block content %}
 <div class="top-bar">
     <h1> إدارة الأقسام</h1>
@@ -241,8 +214,6 @@
         <button class="btn btn-secondary btn-sm" onclick="loadCategories()"> تحديث</button>
     </div>
 </div>
-
-<!-- إعدادات عرض الأقسام -->
 <div class="settings-card">
     <h3> ترتيب عرض الأقسام في الموقع</h3>
     <div class="columns-selector">
@@ -257,15 +228,11 @@
         </button>
     </div>
 </div>
-
-<!-- الأقسام -->
 <div id="categoriesGrid" class="categories-grid">
     <div class="loading">
         <div class="spinner"></div>
     </div>
 </div>
-
-<!-- نافذة إضافة/تعديل قسم -->
 <div id="categoryModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -296,8 +263,6 @@
         </div>
     </div>
 </div>
-
-<!-- نافذة تأكيد الحذف -->
 <div id="deleteModal" class="modal">
     <div class="modal-content" style="max-width: 400px;">
         <div class="modal-header" style="background: linear-gradient(135deg, var(--danger), #c0392b);">
@@ -314,21 +279,17 @@
         </div>
     </div>
 </div>
-
 <div id="alertBox" class="alert"></div>
 {% endblock %}
-
 {% block extra_js %}
 <script>
     let categoryToDelete = null;
     let isEditMode = false;
     let currentColumns = 3;
-    
     document.addEventListener('DOMContentLoaded', () => {
         loadCategories();
         loadDisplaySettings();
     });
-    
     async function loadDisplaySettings() {
         try {
             const response = await fetch('/api/admin/get_display_settings');
@@ -341,7 +302,6 @@
             console.log('استخدام الإعدادات الافتراضية');
         }
     }
-    
     function updateColumnsUI() {
         document.querySelectorAll('.column-btn').forEach(btn => {
             btn.classList.remove('active');
@@ -350,7 +310,6 @@
             }
         });
     }
-    
     async function setColumns(cols) {
         try {
             const response = await fetch('/api/admin/set_display_settings', {
@@ -370,12 +329,10 @@
             showAlert('error', 'خطأ في الاتصال');
         }
     }
-    
     async function loadCategories() {
         try {
             const response = await fetch('/api/admin/get_categories');
             const data = await response.json();
-            
             if(data.status === 'success') {
                 renderCategories(data.categories);
             } else {
@@ -385,10 +342,8 @@
             showAlert('error', 'خطأ في الاتصال بالسيرفر');
         }
     }
-    
     function renderCategories(categories) {
         const grid = document.getElementById('categoriesGrid');
-        
         if(categories.length === 0) {
             grid.innerHTML = `
                 <div class="empty-state" style="grid-column: 1/-1;">
@@ -399,7 +354,6 @@
             `;
             return;
         }
-        
         grid.innerHTML = categories.map(cat => `
             <div class="category-card" data-id="${cat.id}">
                 <div class="category-header">
@@ -426,7 +380,6 @@
             </div>
         `).join('');
     }
-    
     function openAddModal() {
         isEditMode = false;
         document.getElementById('modalTitle').textContent = '➕ إضافة قسم جديد';
@@ -437,7 +390,6 @@
         document.getElementById('imagePreview').innerHTML = '';
         document.getElementById('categoryModal').classList.add('active');
     }
-    
     function openEditModal(id, name, imageUrl, deliveryType) {
         isEditMode = true;
         document.getElementById('modalTitle').textContent = ' تعديل القسم';
@@ -448,11 +400,9 @@
         previewImage();
         document.getElementById('categoryModal').classList.add('active');
     }
-    
     function closeModal() {
         document.getElementById('categoryModal').classList.remove('active');
     }
-    
     function previewImage() {
         const url = document.getElementById('categoryImage').value;
         const preview = document.getElementById('imagePreview');
@@ -462,32 +412,26 @@
             preview.innerHTML = '';
         }
     }
-    
     async function saveCategory() {
         const name = document.getElementById('categoryName').value.trim();
         const imageUrl = document.getElementById('categoryImage').value.trim();
         const deliveryType = document.getElementById('categoryDeliveryType').value;
         const editId = document.getElementById('editCategoryId').value;
-        
         if(!name) {
             showAlert('error', 'اسم القسم مطلوب');
             return;
         }
-        
         try {
             let endpoint = isEditMode ? '/api/admin/update_category' : '/api/admin/add_category';
             let body = isEditMode 
                 ? { id: editId, name: name, image_url: imageUrl, delivery_type: deliveryType }
                 : { name: name, image_url: imageUrl, delivery_type: deliveryType };
-            
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(body)
             });
-            
             const data = await response.json();
-            
             if(data.status === 'success') {
                 showAlert('success', isEditMode ? ' تم تعديل القسم!' : ' تم إضافة القسم!');
                 closeModal();
@@ -499,7 +443,6 @@
             showAlert('error', 'خطأ في الاتصال');
         }
     }
-    
     function openDeleteModal(id, name, productCount) {
         if(productCount > 0) {
             showAlert('error', `لا يمكن حذف القسم - يوجد ${productCount} منتج فيه`);
@@ -509,24 +452,19 @@
         document.getElementById('deleteCategoryName').textContent = name;
         document.getElementById('deleteModal').classList.add('active');
     }
-    
     function closeDeleteModal() {
         document.getElementById('deleteModal').classList.remove('active');
         categoryToDelete = null;
     }
-    
     async function confirmDelete() {
         if(!categoryToDelete) return;
-        
         try {
             const response = await fetch('/api/admin/delete_category', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ id: categoryToDelete })
             });
-            
             const data = await response.json();
-            
             if(data.status === 'success') {
                 showAlert('success', ' تم حذف القسم!');
                 closeDeleteModal();
@@ -538,14 +476,12 @@
             showAlert('error', 'خطأ في الاتصال');
         }
     }
-    
     function showAlert(type, message) {
         const alertEl = document.getElementById('alertBox');
         alertEl.textContent = message;
         alertEl.className = 'alert ' + type + ' show';
         setTimeout(() => alertEl.classList.remove('show'), 4000);
     }
-    
     window.onclick = function(event) {
         if(event.target.classList.contains('modal')) {
             event.target.classList.remove('active');

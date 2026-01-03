@@ -206,7 +206,6 @@
             <div class="merchant-name">{{ merchant_name }}</div>
             <div class="invoice-id">رقم الفاتورة: {{ invoice_id }}</div>
         </div>
-        
         <div class="amount-section">
             <div class="amount-label">المبلغ المطلوب</div>
             <div class="amount-value">
@@ -214,12 +213,10 @@
                 <span class="amount-currency">ريال</span>
             </div>
         </div>
-        
         <div class="timer-section">
             <div class="timer-label"> الوقت المتبقي للدفع</div>
             <div class="timer-value" id="countdown" data-remaining="{{ remaining_seconds }}">00:00:00</div>
         </div>
-        
         <form id="paymentForm" action="/invoice/{{ invoice_id }}/pay" method="POST">
             <div class="form-group">
                 <label class="form-label"> رقم الجوال</label>
@@ -260,18 +257,15 @@
                 <input type="hidden" name="full_phone" id="fullPhone">
                 <div class="error-msg" id="phoneError">الرجاء إدخال رقم جوال صحيح</div>
             </div>
-            
             <button type="submit" class="pay-btn" id="payBtn">
                 <span class="loading" id="loading">⏳ </span>
                  ادفع الآن
             </button>
         </form>
-        
         <div class="secure-note">
              <span>دفع آمن</span> عبر بوابة EdfaPay
         </div>
     </div>
-    
     <script>
         const form = document.getElementById('paymentForm');
         const phoneInput = document.getElementById('phoneInput');
@@ -280,51 +274,36 @@
         const phoneError = document.getElementById('phoneError');
         const payBtn = document.getElementById('payBtn');
         const loading = document.getElementById('loading');
-        
         phoneInput.addEventListener('input', function() {
             phoneError.style.display = 'none';
-            // إزالة الصفر من البداية تلقائياً
             if (this.value.startsWith('0')) {
                 this.value = this.value.substring(1);
             }
         });
-        
         form.addEventListener('submit', function(e) {
             let phone = phoneInput.value.trim();
             const countryCode = countrySelect.value;
-            
-            // إزالة الصفر من البداية
             if (phone.startsWith('0')) {
                 phone = phone.substring(1);
             }
-            
-            // التحقق من أن الرقم أرقام فقط
             if (!/^[0-9]+$/.test(phone)) {
                 e.preventDefault();
                 phoneError.textContent = 'الرجاء إدخال أرقام فقط';
                 phoneError.style.display = 'block';
                 return;
             }
-            
-            // التحقق من طول الرقم
             if (phone.length < 7 || phone.length > 11) {
                 e.preventDefault();
                 phoneError.textContent = 'الرجاء إدخال رقم جوال صحيح';
                 phoneError.style.display = 'block';
                 return;
             }
-            
-            // دمج رمز الدولة مع الرقم
             fullPhoneInput.value = countryCode + phone;
-            
             payBtn.disabled = true;
             loading.classList.add('show');
         });
-        
-        // العداد التنازلي
         const countdownEl = document.getElementById('countdown');
         let remainingSeconds = parseInt(countdownEl.dataset.remaining) || 0;
-        
         function updateCountdown() {
             if (remainingSeconds <= 0) {
                 countdownEl.textContent = 'انتهت الصلاحية';
@@ -333,24 +312,18 @@
                 payBtn.textContent = ' انتهت صلاحية الفاتورة';
                 return;
             }
-            
             const hours = Math.floor(remainingSeconds / 3600);
             const minutes = Math.floor((remainingSeconds % 3600) / 60);
             const seconds = remainingSeconds % 60;
-            
             countdownEl.textContent = 
                 String(hours).padStart(2, '0') + ':' +
                 String(minutes).padStart(2, '0') + ':' +
                 String(seconds).padStart(2, '0');
-            
-            // تغيير اللون للأحمر إذا أقل من 5 دقائق
             if (remainingSeconds < 300) {
                 countdownEl.classList.add('timer-expired');
             }
-            
             remainingSeconds--;
         }
-        
         updateCountdown();
         setInterval(updateCountdown, 1000);
     </script>

@@ -25,8 +25,6 @@
             padding-bottom: 100px;
             padding-top: 10px;
         }
-        
-        /* العداد التنازلي */
         .timer-bar {
             background: linear-gradient(135deg, rgba(231, 76, 60, 0.2), rgba(241, 196, 15, 0.2));
             padding: 12px 20px;
@@ -42,15 +40,11 @@
             color: #e74c3c;
             font-size: 16px;
         }
-        
-        /* المحتوى */
         .content {
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
         }
-        
-        /* السلة فارغة */
         .empty-cart {
             text-align: center;
             padding: 60px 20px;
@@ -79,8 +73,6 @@
             transform: translateY(-3px);
             box-shadow: 0 10px 30px rgba(108, 92, 231, 0.4);
         }
-        
-        /* منتج في السلة */
         .cart-item {
             background: var(--card-bg);
             border-radius: 16px;
@@ -174,8 +166,6 @@
             color: white;
             transform: scale(1.1);
         }
-        
-        /* الملخص */
         .cart-summary {
             background: linear-gradient(135deg, var(--card-bg), rgba(108, 92, 231, 0.1));
             border-radius: 20px;
@@ -241,8 +231,6 @@
             margin-top: 15px;
             font-size: 14px;
         }
-        
-        /* زر الشراء */
         .checkout-btn {
             width: 100%;
             padding: 18px;
@@ -282,8 +270,6 @@
             font-family: 'Tajawal', sans-serif;
             transition: all 0.3s;
         }
-        
-        /* نافذة التأكيد */
         .modal {
             display: none;
             position: fixed;
@@ -372,8 +358,6 @@
             background: rgba(255,255,255,0.1);
             color: white;
         }
-        
-        /* التوست */
         .toast {
             position: fixed;
             bottom: 100px;
@@ -398,8 +382,6 @@
         .toast.error {
             border-left: 4px solid var(--red);
         }
-        
-        /* التحميل */
         .loading {
             text-align: center;
             padding: 40px;
@@ -423,19 +405,14 @@
         <span class="timer-text"> تنتهي السلة خلال: </span>
         <span class="timer-countdown" id="timerCountdown">--:--:--</span>
     </div>
-    
     <div class="content">
         <div class="loading" id="loadingDiv">
             <div class="spinner"></div>
             <p>جاري تحميل السلة...</p>
         </div>
-        
         <div id="cartContent" style="display: none;">
-            <!-- سيتم ملؤها بـ JavaScript -->
         </div>
     </div>
-    
-    <!-- نافذة التأكيد -->
     <div class="modal" id="confirmModal">
         <div class="modal-content">
             <div class="modal-icon"></div>
@@ -449,8 +426,6 @@
             </div>
         </div>
     </div>
-    
-    <!-- نافذة النجاح -->
     <div class="modal" id="successModal">
         <div class="modal-content">
             <div class="modal-icon"></div>
@@ -459,44 +434,33 @@
             <button class="modal-btn btn-confirm" onclick="window.location.href='/my_purchases'" style="width: 100%;"> عرض مشترياتي</button>
         </div>
     </div>
-    
-    <!-- توست -->
     <div class="toast" id="toast"></div>
-    
     <script>
         const userId = '{{ user_id }}';
         const userBalanceValue = '{{ balance }}';
         const userBalance = userBalanceValue ? parseFloat(userBalanceValue) : 0;
         let cartData = null;
         let countdownInterval = null;
-        let isLoadingCart = false;  // منع الطلبات المتكررة
-        let lastLoadTime = 0;       // آخر وقت تحميل
-        
-        // تحميل السلة مع حماية من الطلبات المتكررة
+        let isLoadingCart = false; 
+        let lastLoadTime = 0;      
         async function loadCart() {
-            // منع الطلبات المتكررة (مرة واحدة كل 5 ثواني كحد أدنى)
             const now = Date.now();
             if (isLoadingCart || (now - lastLoadTime) < 5000) {
                 console.log('⏳ تم تخطي الطلب - التحميل قيد التنفيذ أو تم التحميل مؤخراً');
                 return;
             }
-            
             isLoadingCart = true;
             lastLoadTime = now;
-            
             try {
                 const response = await fetch('/api/cart/get?user_id=' + userId);
                 const data = await response.json();
-                
                 document.getElementById('loadingDiv').style.display = 'none';
                 document.getElementById('cartContent').style.display = 'block';
-                
                 if (data.status === 'success') {
                     cartData = data.cart;
                     renderCart();
                     startCountdown(data.cart.expires_at);
                 } else {
-                    // إيقاف العداد عند السلة الفارغة
                     if (countdownInterval) {
                         clearInterval(countdownInterval);
                         countdownInterval = null;
@@ -511,21 +475,16 @@
                 isLoadingCart = false;
             }
         }
-        
-        // عرض السلة
         function renderCart() {
             const content = document.getElementById('cartContent');
-            
             if (!cartData || !cartData.items || cartData.items.length === 0) {
                 renderEmptyCart();
                 return;
             }
-            
             let html = '';
             let total = 0;
             let availableCount = 0;
             let hasUnavailable = false;
-            
             cartData.items.forEach((item, index) => {
                 const statusClass = item.sold ? 'unavailable' : (item.price_changed ? 'price-changed' : '');
                 const statusBadge = item.sold ? 
@@ -533,14 +492,12 @@
                     (item.price_changed ? 
                         '<span class="item-status status-price-changed"> تغير السعر</span>' : 
                         '<span class="item-status status-available"> متاح</span>');
-                
                 if (!item.sold) {
                     total += item.current_price || item.price;
                     availableCount++;
                 } else {
                     hasUnavailable = true;
                 }
-                
                 html += `
                     <div class="cart-item ${statusClass}" data-id="${item.product_id}">
                         <div class="item-image">
@@ -561,11 +518,8 @@
                     </div>
                 `;
             });
-            
-            // الملخص
             const balanceAfter = userBalance - total;
             const canCheckout = balanceAfter >= 0 && availableCount > 0;
-            
             html += `
                 <div class="cart-summary">
                     <div class="summary-title"> ملخص الطلب</div>
@@ -598,11 +552,8 @@
                     </button>
                 </div>
             `;
-            
             content.innerHTML = html;
         }
-        
-        // سلة فارغة
         function renderEmptyCart() {
             document.getElementById('timerBar').style.display = 'none';
             document.getElementById('cartContent').innerHTML = `
@@ -613,8 +564,6 @@
                 </div>
             `;
         }
-        
-        // حذف منتج
         async function removeItem(productId) {
             try {
                 const response = await fetch('/api/cart/remove', {
@@ -623,7 +572,6 @@
                     body: JSON.stringify({ user_id: userId, product_id: productId })
                 });
                 const data = await response.json();
-                
                 if (data.status === 'success') {
                     showToast('تم حذف المنتج من السلة', 'success');
                     loadCart();
@@ -634,14 +582,10 @@
                 showToast('حدث خطأ في الاتصال', 'error');
             }
         }
-        
-        // نافذة التأكيد
         function showConfirmModal() {
             if (!cartData || !cartData.items) return;
-            
             const availableItems = cartData.items.filter(i => !i.sold);
             let total = 0;
-            
             let itemsHtml = '';
             availableItems.forEach(item => {
                 const price = item.current_price || item.price;
@@ -653,24 +597,18 @@
                     </div>
                 `;
             });
-            
             document.getElementById('modalItems').innerHTML = itemsHtml;
             document.getElementById('modalTotal').innerHTML = `الإجمالي: ${total.toFixed(2)} ر.س`;
             document.getElementById('confirmModal').classList.add('show');
         }
-        
         function closeModal() {
             document.getElementById('confirmModal').classList.remove('show');
         }
-        
-        // تنفيذ الشراء
         async function processCheckout() {
             closeModal();
-            
             const checkoutBtn = document.querySelector('.checkout-btn');
             checkoutBtn.textContent = '⏳ جاري الشراء...';
             checkoutBtn.disabled = true;
-            
             try {
                 const response = await fetch('/api/cart/checkout', {
                     method: 'POST',
@@ -678,7 +616,6 @@
                     body: JSON.stringify({ user_id: userId })
                 });
                 const data = await response.json();
-                
                 if (data.status === 'success') {
                     document.getElementById('successText').innerHTML = `
                         تم شراء ${data.purchased_count} منتج بنجاح!<br>
@@ -696,61 +633,43 @@
                 checkoutBtn.disabled = false;
             }
         }
-        
-        // العداد التنازلي
         function startCountdown(expiresAt) {
             if (!expiresAt) return;
-            
-            // إيقاف أي عداد سابق
             if (countdownInterval) {
                 clearInterval(countdownInterval);
                 countdownInterval = null;
             }
-            
             document.getElementById('timerBar').style.display = 'block';
-            
             function updateTimer() {
                 const now = new Date().getTime();
                 const expiry = new Date(expiresAt).getTime();
                 const diff = expiry - now;
-                
                 if (diff <= 0) {
                     document.getElementById('timerCountdown').textContent = 'انتهت!';
                     if (countdownInterval) {
                         clearInterval(countdownInterval);
                         countdownInterval = null;
                     }
-                    // تحميل السلة مرة واحدة فقط عند الانتهاء
                     setTimeout(() => loadCart(), 1000);
                     return;
                 }
-                
                 const hours = Math.floor(diff / (1000 * 60 * 60));
                 const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                
                 document.getElementById('timerCountdown').textContent = 
                     `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
             }
-            
             updateTimer();
             countdownInterval = setInterval(updateTimer, 1000);
         }
-        
-        // التوست
         function showToast(message, type) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
             toast.className = 'toast ' + type + ' show';
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
-        
-        // تحميل السلة عند فتح الصفحة
         window.addEventListener('DOMContentLoaded', loadCart);
-
-        // إعداد بيانات الفئات للـ sidebar
         window.categoriesData = [];
     </script>
 </body>
 </html>
-

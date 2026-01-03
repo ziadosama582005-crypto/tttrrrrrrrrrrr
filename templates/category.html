@@ -1,13 +1,10 @@
 {% extends "base.html" %}
-
 {% block title %}{{ category.name }} - المتجر الرقمي{% endblock %}
-
 {% block extra_css %}
 <style>
     body {
         padding-top: 70px;
     }
-    
     .page-header {
         background: linear-gradient(135deg, rgba(108, 92, 231, 0.2), rgba(100, 200, 255, 0.1));
         padding: 25px 20px;
@@ -15,19 +12,16 @@
         border-bottom: 1px solid rgba(108, 92, 231, 0.3);
         margin-bottom: 20px;
     }
-    
     .page-header h1 {
         font-size: 24px;
         color: var(--primary);
         margin: 0;
     }
-    
     .page-header .count {
         color: var(--text-muted);
         font-size: 14px;
         margin-top: 5px;
     }
-    
     .section-title {
         font-size: 20px;
         margin: 25px 0 15px;
@@ -35,15 +29,12 @@
         border-bottom: 2px solid var(--border-color);
         padding-bottom: 10px;
     }
-    
-    /* شبكة المنتجات */
     .products-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 20px;
         margin-bottom: 30px;
     }
-    
     .product-card {
         background: var(--card-bg);
         border: 1px solid var(--border-color);
@@ -54,13 +45,11 @@
         display: flex;
         flex-direction: column;
     }
-    
     .product-card:hover {
         border-color: var(--primary);
         transform: translateY(-5px);
         box-shadow: 0 10px 30px rgba(108, 92, 231, 0.2);
     }
-    
     .product-image {
         width: 100%;
         height: 150px;
@@ -71,13 +60,11 @@
         font-size: 48px;
         overflow: hidden;
     }
-    
     .product-image img {
         width: 100%;
         height: 100%;
         object-fit: cover;
     }
-    
     .product-content {
         padding: 15px;
         flex: 1;
@@ -85,7 +72,6 @@
         flex-direction: column;
         justify-content: space-between;
     }
-    
     .product-name {
         font-size: 14px;
         font-weight: bold;
@@ -94,14 +80,12 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
-    
     .product-price {
         font-size: 16px;
         color: var(--primary);
         font-weight: bold;
         margin-bottom: 10px;
     }
-    
     .product-badge {
         display: inline-block;
         padding: 3px 8px;
@@ -117,7 +101,6 @@
         background: rgba(46, 204, 113, 0.2);
         color: #2ecc71;
     }
-    
     .product-btn {
         background: var(--primary);
         color: white;
@@ -131,29 +114,23 @@
         transition: all 0.3s;
         width: 100%;
     }
-    
     .product-btn:hover {
         background: #5f3dc4;
         transform: scale(1.02);
     }
-    
     .product-btn.manual-btn {
         background: #f39c12;
     }
     .product-btn.manual-btn:hover {
         background: #e67e22;
     }
-    
     .product-btn.sold-btn {
         background: var(--green);
     }
-    
     .product-btn:disabled {
         background: #555;
         cursor: not-allowed;
     }
-    
-    /* Modal للمتطلبات */
     .modal-overlay {
         display: none;
         position: fixed;
@@ -259,8 +236,6 @@
         background: #f39c12;
         color: white;
     }
-    
-    /* التذييل */
     .footer {
         text-align: center;
         padding: 20px;
@@ -268,33 +243,26 @@
         border-top: 1px solid var(--border-color);
         margin-top: 40px;
     }
-    
     @media (max-width: 768px) {
         .products-grid {
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 12px;
         }
-        
         .product-image {
             height: 120px;
         }
-        
         .product-content {
             padding: 12px;
         }
     }
 </style>
 {% endblock %}
-
 {% block content %}
-    <!-- عنوان الصفحة -->
     <div class="page-header">
         <h1> {{ category.name }}</h1>
         <div class="count">{{ items|length }} منتج متاح</div>
     </div>
-    
     <div class="container">
-        <!-- المنتجات المتاحة -->
         {% if items %}
         <h3 class="section-title"> المنتجات المتاحة</h3>
         <div class="products-grid">
@@ -304,7 +272,6 @@
                     {% if item.image_url %}
                     <img src="{{ item.image_url }}" alt="{{ item.item_name }}">
                     {% else %}
-                    
                     {% endif %}
                 </div>
                 <div class="product-content">
@@ -345,8 +312,6 @@
             <a href="/" class="btn btn-primary" style="display: inline-block; margin-top: 20px;">العودة للفئات</a>
         </div>
         {% endif %}
-        
-        <!-- المنتجات المباعة -->
         {% if sold_items %}
         <h3 class="section-title" style="color: #888;"> المنتجات المباعة ({{ sold_items|length }})</h3>
         <div class="products-grid">
@@ -356,7 +321,6 @@
                     {% if item.image_url %}
                     <img src="{{ item.image_url }}" alt="{{ item.item_name }}" style="opacity: 0.5;">
                     {% else %}
-                    
                     {% endif %}
                 </div>
                 <div class="product-content">
@@ -372,15 +336,12 @@
             {% endfor %}
         </div>
         {% endif %}
-        
-        <!-- مشتريات المستخدم -->
         {% if my_purchases %}
         <h3 class="section-title" style="color: var(--green);"> مشترياتي من هذه الفئة ({{ my_purchases|length }})</h3>
         <div class="products-grid">
             {% for purchase in my_purchases %}
             <div class="product-card" style="border-color: var(--green);">
                 <div class="product-image" style="background: linear-gradient(135deg, var(--green) 0%, #00a86b 100%);">
-                    
                 </div>
                 <div class="product-content">
                     <div>
@@ -396,13 +357,9 @@
         </div>
         {% endif %}
     </div>
-    
-    <!-- التذييل -->
     <div class="footer">
         <p>© 2025 متجر رقمي. جميع الحقوق محفوظة</p>
     </div>
-    
-    <!-- Modal للمنتجات اليدوية -->
     <div class="modal-overlay" id="manualModal" onclick="closeManualModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
@@ -431,32 +388,22 @@
         </div>
     </div>
 {% endblock %}
-
 {% block extra_js %}
 <script>
-    // تعيين المتغيرات من Flask/Jinja2
     const currentUserIdValue = '{{ current_user_id }}';
     const currentUserId = currentUserIdValue ? parseInt(currentUserIdValue) : 0;
-    
-    // متغيرات للمنتج اليدوي الحالي
     let currentManualProduct = { id: '', name: '' };
-    
-    // فتح Modal من الزر (باستخدام data attributes)
     function openManualModalFromBtn(btn) {
         const productId = btn.dataset.id;
         const productName = btn.dataset.name;
         const instructions = btn.dataset.instructions;
         openManualModal(productId, productName, instructions);
     }
-    
-    // إضافة للسلة من الزر
     function addToCartFromBtn(btn) {
         const productId = btn.dataset.id;
         const productName = btn.dataset.name;
         addToCart(productId, productName, '');
     }
-    
-    // فتح Modal للمنتج اليدوي
     function openManualModal(productId, productName, instructions) {
         currentManualProduct = { id: productId, name: productName };
         document.getElementById('modalProductName').textContent = productName;
@@ -464,31 +411,23 @@
         document.getElementById('buyerDetails').value = '';
         document.getElementById('manualModal').classList.add('show');
     }
-    
-    // إغلاق Modal
     function closeManualModal(e) {
         if (e && e.target !== e.currentTarget) return;
         document.getElementById('manualModal').classList.remove('show');
     }
-    
-    // تأكيد إضافة المنتج اليدوي
     function confirmAddManual() {
         const buyerDetails = document.getElementById('buyerDetails').value.trim();
-        
         if (!buyerDetails) {
             alert(' يجب إدخال المتطلبات المطلوبة!');
             return;
         }
-        
         if (buyerDetails.length < 3) {
             alert(' المتطلبات قصيرة جداً!');
             return;
         }
-        
         addToCart(currentManualProduct.id, currentManualProduct.name, buyerDetails);
         closeManualModal();
     }
-    
     async function addToCart(productId, productName, buyerDetails) {
         try {
             const response = await fetch('/api/cart/add', {
@@ -500,9 +439,7 @@
                     buyer_details: buyerDetails || ''
                 })
             });
-            
             const data = await response.json();
-            
             if (data.status === 'success') {
                 showToast(' تم إضافة ' + productName + ' للسلة');
                 setTimeout(() => location.reload(), 1000);
@@ -513,8 +450,6 @@
             showToast(' حدث خطأ في الاتصال', 'error');
         }
     }
-
-    // إعداد بيانات الفئات للـ sidebar
     (function() {
         var jsonStr = '{{ categories_json|safe }}';
         try {

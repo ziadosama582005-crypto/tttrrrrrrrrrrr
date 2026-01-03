@@ -69,16 +69,12 @@
         <button class="btn" onclick="window.close(); setTimeout(function(){ location.href='about:blank'; }, 100);">إغلاق الصفحة</button>
     </div>
     <script>
-        // التحقق من الحالة بعد 3 ثواني
         setTimeout(function() {
             var orderId = '{{ order_id }}';
             if (orderId) {
-                // إعادة تحميل الصفحة للتحقق من Firebase
                 window.location.reload();
             }
         }, 3000);
-        
-        // بعد 10 ثواني، توجيه للبوت
         setTimeout(function() {
             document.getElementById('status-msg').innerHTML = '<p> تم إرسال طلبك - تحقق من البوت</p>';
         }, 10000);

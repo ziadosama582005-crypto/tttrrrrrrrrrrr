@@ -51,7 +51,6 @@
     }
     .btn-primary { background: var(--primary); }
     .btn-secondary { background: rgba(255,255,255,0.12); }
-
     .card {
       background: var(--card);
       border: 1px solid rgba(108, 92, 231, 0.25);
@@ -79,7 +78,6 @@
       background: rgba(0,0,0,0.18);
     }
     .hint { color: var(--muted); font-size: 12px; line-height: 1.6; }
-
     .alert {
       display:none;
       margin-top: 12px;
@@ -90,7 +88,6 @@
     .alert.show { display:block; }
     .alert.success { border-color: rgba(0,184,148,0.6); color: #b7ffe7; }
     .alert.error { border-color: rgba(231,76,60,0.6); color: #ffd1cc; }
-
     .actions { display:flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
   </style>
 </head>
@@ -102,7 +99,6 @@
         <a class="btn btn-secondary" href="/admin/products">🔙 رجوع</a>
       </div>
     </div>
-
     <div class="card">
       <div class="row">
         <div class="switch">
@@ -112,28 +108,23 @@
             <div class="hint">إذا كان مطفي، لن يظهر شيء فوق الهيدر.</div>
           </div>
         </div>
-
         <div class="field">
           <label> النص</label>
           <input id="text" type="text" maxlength="200" placeholder="مثال: خصم اليوم 20%" value="{{ header_settings.text }}" />
           <div class="hint">ملاحظة: لن يظهر الشريط إذا النص فاضي.</div>
         </div>
-
         <div class="field">
           <label> الرابط (اختياري)</label>
           <input id="link_url" type="url" maxlength="500" placeholder="https://example.com" value="{{ header_settings.link_url }}" />
           <div class="hint">إذا حطّيت رابط، النص يصير قابل للنقر.</div>
         </div>
       </div>
-
       <div class="actions">
         <button class="btn btn-primary" onclick="saveSettings()">💾 حفظ</button>
       </div>
-
       <div id="alert" class="alert"></div>
     </div>
   </div>
-
   <script>
     function showAlert(type, msg) {
       const el = document.getElementById('alert');
@@ -141,25 +132,21 @@
       el.textContent = msg;
       setTimeout(() => { el.className = 'alert'; }, 3000);
     }
-
     async function saveSettings() {
       const enabled = document.getElementById('enabled').checked;
       const text = document.getElementById('text').value || '';
       const link_url = document.getElementById('link_url').value || '';
-
       try {
         const res = await fetch('/api/admin/set_header_settings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ enabled, text, link_url })
         });
-
         const data = await res.json().catch(() => ({}));
         if (!res.ok || data.status !== 'success') {
           showAlert('error', data.message || 'فشل الحفظ');
           return;
         }
-
         showAlert('success', 'تم الحفظ  (قد تحتاج تحديث الصفحة لرؤية التغيير)');
       } catch (e) {
         showAlert('error', 'خطأ في الاتصال');

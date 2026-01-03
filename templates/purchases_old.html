@@ -22,16 +22,12 @@
             min-height: 100vh;
             padding-top: 10px;
         }
-        
-        /* المحتوى */
         .page-content {
             padding: 20px;
             max-width: 800px;
             margin: 0 auto;
             padding-bottom: 40px;
         }
-        
-        /* بطاقة المشتريات الجديدة */
         .purchase-card {
             background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
             border-radius: 20px;
@@ -110,8 +106,6 @@
         .card-badge.completed {
             background: linear-gradient(135deg, #00b894, #00cec9);
         }
-        
-        /* زر بيانات الطلب */
         .view-details-btn {
             width: 100%;
             background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
@@ -133,8 +127,6 @@
             background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
             color: white;
         }
-        
-        /* النافذة المنبثقة (Modal) */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -208,8 +200,6 @@
         .modal-body {
             padding: 20px;
         }
-        
-        /* أقسام النافذة */
         .modal-section {
             background: rgba(255, 255, 255, 0.03);
             border-radius: 16px;
@@ -232,8 +222,6 @@
             font-size: 15px;
             line-height: 1.6;
         }
-        
-        /* بيانات الاشتراك في النافذة */
         .hidden-data-box {
             background: linear-gradient(135deg, rgba(0, 184, 148, 0.1), rgba(85, 239, 196, 0.05));
             border: 2px dashed #00b894;
@@ -274,8 +262,6 @@
             transform: scale(1.02);
             box-shadow: 0 5px 20px rgba(0, 184, 148, 0.4);
         }
-        
-        /* معلومات الطلب */
         .order-info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -302,8 +288,6 @@
         .order-info-value.category {
             color: #a29bfe;
         }
-        
-        /* رسالة فارغة */
         .empty-state {
             text-align: center;
             padding: 80px 20px;
@@ -332,8 +316,6 @@
             transform: translateY(-3px);
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         }
-        
-        /* Toast */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -382,8 +364,6 @@
                      بيانات الطلب
                 </button>
             </div>
-            
-            <!-- Modal للطلب -->
             <div class="modal-overlay" id="modal-{{ loop.index }}" onclick="closeModalOnOverlay(event, {{ loop.index }})">
                 <div class="modal-content" onclick="event.stopPropagation()">
                     <div class="modal-header">
@@ -391,7 +371,6 @@
                         <button class="close-btn" onclick="closeModal({{ loop.index }})">✕</button>
                     </div>
                     <div class="modal-body">
-                        <!-- معلومات الطلب -->
                         <div class="modal-section">
                             <div class="section-title"> معلومات الطلب</div>
                             <div class="order-info-grid">
@@ -420,17 +399,13 @@
                                 </div>
                             </div>
                         </div>
-                        
                         {% if purchase.get('details') %}
-                        <!-- الوصف -->
                         <div class="modal-section">
                             <div class="section-title"> وصف المنتج</div>
                             <div class="section-content">{{ purchase.get('details') }}</div>
                         </div>
                         {% endif %}
-                        
                         {% if purchase.get('hidden_data') %}
-                        <!-- بيانات الاشتراك -->
                         <div class="modal-section">
                             <div class="section-title"> بيانات الاشتراك</div>
                             <div class="hidden-data-box">
@@ -453,33 +428,23 @@
             </div>
         {% endif %}
     </div>
-    
-    <!-- Toast -->
     <div class="toast" id="toast"> تم نسخ البيانات!</div>
-    
     <script>
-        // فتح النافذة
         function openModal(index) {
             const modal = document.getElementById('modal-' + index);
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
-        
-        // إغلاق النافذة
         function closeModal(index) {
             const modal = document.getElementById('modal-' + index);
             modal.classList.remove('active');
             document.body.style.overflow = 'auto';
         }
-        
-        // إغلاق عند الضغط على الخلفية
         function closeModalOnOverlay(event, index) {
             if (event.target.classList.contains('modal-overlay')) {
                 closeModal(index);
             }
         }
-        
-        // إغلاق بزر Escape
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 document.querySelectorAll('.modal-overlay.active').forEach(modal => {
@@ -488,16 +453,12 @@
                 document.body.style.overflow = 'auto';
             }
         });
-        
-        // نسخ البيانات
         function copyData(index) {
             const textElement = document.getElementById('data-' + index);
             const text = textElement.innerText || textElement.textContent;
-            
             navigator.clipboard.writeText(text).then(() => {
                 showToast();
             }).catch(() => {
-                // Fallback
                 const textArea = document.createElement('textarea');
                 textArea.value = text;
                 textArea.style.position = 'fixed';
@@ -513,8 +474,6 @@
                 document.body.removeChild(textArea);
             });
         }
-        
-        // إظهار Toast
         function showToast() {
             const toast = document.getElementById('toast');
             toast.classList.add('show');
@@ -522,8 +481,6 @@
                 toast.classList.remove('show');
             }, 2000);
         }
-
-        // إعداد بيانات الفئات للـ sidebar
         window.categoriesData = [];
     </script>
 </body>

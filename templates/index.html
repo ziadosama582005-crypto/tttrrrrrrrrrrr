@@ -13,7 +13,7 @@
             --bg-color: #1a1a2e;
             --card-bg: #16213e;
             --text-color: #ffffff;
-            --active-color: #f1c40f; /* اللون الأصفر */
+            --active-color: #f1c40f; 
             --nav-bg: #0f3460;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -22,10 +22,8 @@
             background: var(--bg-color); 
             color: var(--text-color); 
             margin: 0; 
-            padding: 0 16px 120px 16px; /* لا padding من الأعلى */
+            padding: 0 16px 120px 16px; 
         }
-
-        /* --- تصميم البار السفلي العائم (Floating Bottom Nav) --- */
         .floating-bottom-nav {
             position: fixed;
             bottom: 12px;
@@ -44,7 +42,6 @@
             padding: 0 8px;
             backdrop-filter: blur(15px);
         }
-
         .floating-nav-item {
             display: flex;
             flex-direction: column;
@@ -58,21 +55,17 @@
             height: 100%;
             max-width: 80px;
         }
-
         .floating-nav-icon {
             font-size: 20px;
             margin-bottom: 2px;
             transition: all 0.25s;
         }
-
         .floating-nav-label {
             font-size: 9px;
             font-weight: 600;
             transition: all 0.25s;
             white-space: nowrap;
         }
-
-        /* الشارة (Badge) للإشعارات */
         .nav-badge {
             position: absolute;
             top: 6px;
@@ -92,38 +85,29 @@
             box-shadow: 0 2px 6px rgba(231, 76, 60, 0.5);
             animation: pulse-badge 2s infinite;
         }
-        
         .nav-badge.hidden {
             display: none;
         }
-        
         @keyframes pulse-badge {
             0%, 100% { transform: translateX(12px) scale(1); }
             50% { transform: translateX(12px) scale(1.1); }
         }
-
-        /* الرصيد تحت الأيقونة */
         .nav-balance {
             font-size: 8px;
             color: #55efc4;
             font-weight: bold;
             margin-top: -1px;
         }
-
-        /* التأثير عند التفعيل */
         .floating-nav-item.active {
             color: #f1c40f;
         }
-
         .floating-nav-item.active .floating-nav-icon {
             font-size: 22px;
             filter: drop-shadow(0 0 8px rgba(241, 196, 15, 0.6));
         }
-
         .floating-nav-item.active .floating-nav-label {
             color: #f1c40f;
         }
-        
         .floating-nav-item.active::after {
             content: '';
             position: absolute;
@@ -133,17 +117,12 @@
             background: linear-gradient(90deg, #f1c40f, #f39c12);
             border-radius: 2px;
         }
-
-        /* تأثير التحوم */
         .floating-nav-item:hover:not(.active) {
             color: #a29bfe;
         }
-
         .floating-nav-item:hover:not(.active) .floating-nav-icon {
             transform: translateY(-2px);
         }
-        
-        /* تحسين للشاشات الصغيرة */
         @media (max-width: 360px) {
             .floating-bottom-nav {
                 width: 96%;
@@ -163,8 +142,6 @@
                 height: 14px;
             }
         }
-        
-        /* --- أقسام الصفحة (Views) --- */
         .view-section {
             display: none;
             animation: fadeIn 0.3s ease;
@@ -176,8 +153,6 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        /* --- تبويبات نوع التسليم --- */
         .delivery-tabs {
             display: flex;
             gap: 10px;
@@ -212,8 +187,6 @@
         .delivery-tab-icon {
             margin-left: 8px;
         }
-
-        /* --- تبويبات ديناميكية من Firebase --- */
         .dynamic-tabs-container {
             display: flex;
             gap: 8px;
@@ -258,8 +231,6 @@
             border-color: #6c5ce7;
             box-shadow: 0 4px 12px rgba(108, 92, 231, 0.5);
         }
-
-        /* --- أزرار التبويبات فوق الفئات --- */
         .tab-filter-btn {
             padding: 10px 16px;
             background: rgba(108, 92, 231, 0.15);
@@ -289,7 +260,6 @@
             border-color: #6c5ce7;
             box-shadow: 0 4px 12px rgba(108, 92, 231, 0.5);
         }
-
         .dynamic-content {
             display: none;
             animation: fadeIn 0.3s ease;
@@ -301,13 +271,11 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
         .tab-loading {
             text-align: center;
             padding: 20px;
             color: #888;
         }
-
         .tab-error {
             background: rgba(231, 76, 60, 0.1);
             border: 1px solid rgba(231, 76, 60, 0.3);
@@ -317,14 +285,11 @@
             text-align: center;
             margin: 10px 0;
         }
-
         .tab-empty {
             text-align: center;
             padding: 30px 15px;
             color: #888;
         }
-
-        /* --- باقي التصاميم السابقة --- */
         .card { background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; }
         .card { background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
@@ -332,8 +297,6 @@
         button { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
         .item-card { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #444; }
         .buy-btn { background: var(--green); width: auto; padding: 8px 20px; font-size: 0.9rem; }
-        
-        /* تصميم بطاقات المنتجات الجديد - عريض */
         .product-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -400,9 +363,8 @@
             flex-direction: column;
         }
         .product-category {
-            display: none; /* مخفي لأنه موجود في البادج */
+            display: none; 
         }
-        /* شارة نوع التسليم */
         .delivery-badge {
             font-size: 10px;
             font-weight: bold;
@@ -502,8 +464,6 @@
             cursor: not-allowed;
             font-size: 11px;
         }
-        
-        /* مودال تفاصيل المنتج */
         .pdm-overlay {
             display: none;
             position: fixed;
@@ -634,7 +594,6 @@
         .pdm-btn:hover {
             transform: scale(1.02);
         }
-        
         .product-footer {
             display: flex;
             justify-content: space-between;
@@ -689,8 +648,6 @@
             font-size: 11px;
             font-weight: bold;
         }
-        
-        /* المنتجات المباعة */
         .sold-product {
             opacity: 0.7;
             position: relative;
@@ -729,8 +686,6 @@
             border-radius: 8px;
             border-left: 3px solid #e74c3c;
         }
-        
-        /* نافذة التأكيد */
         .modal {
             display: none;
             position: fixed;
@@ -846,8 +801,6 @@
             transform: scale(1.05);
             box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
         }
-        
-        /* نافذة النجاح */
         .success-modal .modal-header {
             background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
         }
@@ -879,8 +832,6 @@
             border: 2px dashed #00b894;
             margin: 20px 0;
         }
-        
-        /* نافذة التحذير */
         .warning-modal .modal-header {
             background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
             padding: 18px;
@@ -984,8 +935,6 @@
             min-width: 28px;
             text-align: center;
         }
-        
-        /* حاوية الفئات - الشبكة */
         .categories-grid {
             display: grid;
             grid-template-columns: repeat(var(--cat-cols, 3), 1fr);
@@ -993,12 +942,9 @@
             padding: 5px;
             margin-bottom: 20px;
         }
-        
         .categories-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
         .categories-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
         .categories-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
-
-        /* كرت الفئة */
         .cat-card {
             position: relative;
             border-radius: 12px;
@@ -1014,12 +960,9 @@
             justify-content: center;
             align-items: center;
         }
-
         .cat-card:active {
             transform: scale(0.95);
         }
-
-        /* الألوان الخلفية (تدرجات خفيفة) */
         .bg-all { background: linear-gradient(180deg, #2d2d2d 0%, #3a2d44 100%); border-bottom: 2px solid #6c5ce7; }
         .bg-netflix { background: linear-gradient(180deg, #2d2d2d 0%, #3a1a1a 100%); border-bottom: 2px solid #e50914; }
         .bg-shahid { background: linear-gradient(180deg, #2d2d2d 0%, #2a3a3a 100%); border-bottom: 2px solid #00b8a9; }
@@ -1027,8 +970,6 @@
         .bg-osn { background: linear-gradient(180deg, #2d2d2d 0%, #3a2a1a 100%); border-bottom: 2px solid #f39c12; }
         .bg-video { background: linear-gradient(180deg, #2d2d2d 0%, #2a1a3a 100%); border-bottom: 2px solid #9b59b6; }
         .bg-other { background: linear-gradient(180deg, #2d2d2d 0%, #442a2a 100%); border-bottom: 2px solid #e17055; }
-
-        /* الأيقونة */
         .cat-icon {
             font-size: 28px;
             margin-bottom: 8px;
@@ -1036,21 +977,17 @@
             height: 40px;
             object-fit: contain;
         }
-        
         .cat-icon.emoji {
             font-size: 28px;
             width: auto;
             height: auto;
         }
-
-        /* العنوان */
         .cat-title {
             color: #fff;
             font-size: 13px;
             font-weight: bold;
             white-space: nowrap;
         }
-        
         .categories-header {
             display: flex;
             justify-content: space-between;
@@ -1058,24 +995,18 @@
             padding: 0 10px;
             margin-bottom: 10px;
         }
-        
         .categories-header h3 {
             margin: 0;
         }
-        
         .categories-header small {
             color: #6c5ce7;
             cursor: pointer;
         }
-        
-        /* صف الأزرار العلوية */
         .top-buttons-row {
             display: flex;
             gap: 10px;
             margin-bottom: 16px;
         }
-        
-        /* زر حسابي */
         .account-btn {
             background: linear-gradient(135deg, #6c5ce7, #a29bfe);
             color: white;
@@ -1110,8 +1041,6 @@
         .arrow.open {
             transform: rotate(180deg);
         }
-        
-        /* زر شحن الكود */
         .charge-btn {
             background: linear-gradient(135deg, #00b894, #55efc4);
             color: white;
@@ -1132,8 +1061,6 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4);
         }
-        
-        /* أزرار الشحن السريع */
         .quick-charge-row {
             display: flex;
             gap: 8px;
@@ -1166,8 +1093,6 @@
             opacity: 0.8;
             margin-top: 2px;
         }
-        
-        /* نافذة شحن الكود */
         .charge-modal {
             display: none;
             position: fixed;
@@ -1233,8 +1158,6 @@
             font-size: 14px;
             cursor: pointer;
         }
-        
-        /* محتوى حسابي والشحن */
         .account-content {
             max-height: 0;
             overflow: hidden;
@@ -1276,7 +1199,6 @@
             color: #00b894;
             font-size: 22px;
         }
-        
         .logout-btn {
             width: 100%;
             padding: 12px;
@@ -1295,8 +1217,6 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
         }
-        
-        /* زر الطلبات */
         .orders-btn {
             width: 100%;
             padding: 12px;
@@ -1315,8 +1235,6 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
         }
-        
-        /* قسم الطلبات */
         .orders-section {
             max-height: 0;
             overflow: hidden;
@@ -1402,8 +1320,6 @@
         .order-info strong {
             color: var(--text-color);
         }
-        
-        /* نافذة تسجيل الدخول المنبثقة */
         .login-modal {
             display: none;
             position: fixed;
@@ -1499,8 +1415,6 @@
             margin: 10px 0;
             display: none;
         }
-        
-        /* ========== القائمة الجانبية ========== */
         .sidebar-overlay {
             position: fixed;
             top: 0;
@@ -1517,7 +1431,6 @@
             opacity: 1;
             visibility: visible;
         }
-        
         .sidebar {
             position: fixed;
             top: 0;
@@ -1533,7 +1446,6 @@
         .sidebar.active {
             right: 0;
         }
-        
         .sidebar-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 25px 20px;
@@ -1604,7 +1516,6 @@
             font-weight: bold;
             font-size: 15px;
         }
-        
         .sidebar-section {
             padding: 15px;
         }
@@ -1617,7 +1528,6 @@
             padding-right: 5px;
             letter-spacing: 1px;
         }
-        
         .sidebar-menu-item {
             display: flex;
             align-items: center;
@@ -1657,7 +1567,6 @@
             border-radius: 10px;
             font-weight: bold;
         }
-        
         .sidebar-categories {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -1692,13 +1601,11 @@
             color: rgba(255, 255, 255, 0.8);
             font-weight: 500;
         }
-        
         .sidebar-divider {
             height: 1px;
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
             margin: 10px 15px;
         }
-        
         .sidebar-footer {
             padding: 15px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -1725,8 +1632,6 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
         }
-        
-        /* زر فتح القائمة */
         .menu-toggle-btn {
             position: fixed;
             top: 15px;
@@ -1750,13 +1655,9 @@
             transform: scale(1.1);
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
         }
-        
-        /* إخفاء زر القائمة العائم القديم */
         .menu-toggle-btn {
             display: none !important;
         }
-        
-        /* الهيدر الرئيسي */
         .main-header {
             position: fixed;
             top: 0;
@@ -1772,20 +1673,17 @@
             z-index: 999;
             box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
         }
-        
         .header-right {
             display: flex;
             align-items: center;
             gap: 10px;
             margin-right: 10px;
         }
-        
         .header-center {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
         }
-        
         .header-logo {
             font-size: 22px;
             font-weight: bold;
@@ -1795,12 +1693,10 @@
             gap: 8px;
             text-decoration: none;
         }
-        
         .header-left {
             display: flex;
             align-items: center;
         }
-        
         .header-btn {
             background: rgba(108, 92, 231, 0.2);
             border: 1px solid rgba(108, 92, 231, 0.4);
@@ -1815,25 +1711,21 @@
             transition: all 0.3s;
             font-size: 18px;
         }
-        
         .header-btn:hover {
             background: rgba(108, 92, 231, 0.4);
             border-color: #6c5ce7;
             transform: scale(1.05);
         }
-        
         .header-btn.account-btn {
             width: auto;
             padding: 0 14px;
             gap: 6px;
             font-size: 14px;
         }
-        
         .header-btn.menu-btn {
             flex-direction: column;
             gap: 4px;
         }
-        
         .header-btn.menu-btn span {
             width: 18px;
             height: 2px;
@@ -1841,33 +1733,26 @@
             border-radius: 2px;
             transition: all 0.3s;
         }
-        
         @media (max-width: 480px) {
             .header-btn.account-btn {
                 padding: 6;
                 width: 30px;
                 font-size: 0px;
             }
-            
             .header-btn.account-btn span:last-child {
                 display: none;
             }
-            
             .header-logo {
                 font-size: 18px;
             }
         }
-        
-        /* تعديل padding للـ body لتجنب التداخل مع الهيدر */
         body {
             padding-top: 70px !important;
         }
     </style>
 </head>
 <body>
-    <!-- الهيدر الرئيسي -->
     <header class="main-header">
-        <!-- يمين الشاشة: البحث وحسابي -->
         <div class="header-right">
             <button class="header-btn" onclick="openSearchOverlay()" title="بحث">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -1877,15 +1762,11 @@
                 <span>حسابي</span>
             </button>
         </div>
-        
-        <!-- وسط: الشعار -->
         <div class="header-center">
             <a href="/" class="header-logo">
                 المتجر
             </a>
         </div>
-        
-        <!-- يسار الشاشة: القائمة -->
         <div class="header-left">
             <button class="header-btn menu-btn" onclick="toggleSidebar()" title="القائمة">
                 <span></span>
@@ -1894,16 +1775,9 @@
             </button>
         </div>
     </header>
-    
-    <!-- زر فتح القائمة الجانبية (مخفي) -->
     <button class="menu-toggle-btn" onclick="toggleSidebar()"></button>
-    
-    <!-- الخلفية المظللة -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-    
-    <!-- القائمة الجانبية -->
     <div class="sidebar" id="sidebar">
-        <!-- رأس القائمة مع معلومات المستخدم -->
         <div class="sidebar-header">
             <button class="sidebar-close" onclick="closeSidebar()">×</button>
             {% if profile_photo %}
@@ -1916,8 +1790,6 @@
             <div class="sidebar-user-id">ID: <span id="sidebarUserId">{{ current_user_id }}</span></div>
             <div class="sidebar-balance"><span id="sidebarBalance">{{ balance }}</span> ريال</div>
         </div>
-        
-        <!-- روابط سريعة -->
         <div class="sidebar-section">
             <div class="sidebar-section-title">القائمة الرئيسية</div>
             <div class="sidebar-menu-item active" onclick="scrollToSection('top'); closeSidebar();">
@@ -1931,10 +1803,7 @@
                 {% if my_purchases %}<span class="sidebar-menu-badge">{{ my_purchases|length }}</span>{% endif %}
             </div>
         </div>
-        
         <div class="sidebar-divider"></div>
-        
-        <!-- المساعدة والتواصل -->
         <div class="sidebar-section">
             <div class="sidebar-section-title">المساعدة</div>
             <div class="sidebar-menu-item" onclick="window.open('https://wa.me/966504104956', '_blank');">
@@ -1944,8 +1813,6 @@
                 <span class="sidebar-menu-text">البوت</span>
             </div>
         </div>
-        
-        <!-- زر تسجيل الخروج - يظهر فقط للمسجلين -->
         {% if current_user %}
         <div class="sidebar-footer">
             <button class="sidebar-logout-btn" onclick="logout()">
@@ -1954,8 +1821,6 @@
         </div>
         {% endif %}
     </div>
-    
-    <!-- تبويبات نوع التسليم -->
     <div class="delivery-tabs" style="background: linear-gradient(135deg, #6c5ce7, #a29bfe) !important; padding: 15px !important; border-radius: 15px !important; margin: 20px 0 !important; display: flex !important; gap: 10px !important;">
         <button class="delivery-tab active" id="tabInstant" onclick="switchDeliveryTab('instant')" style="flex: 1; padding: 12px; border: none; border-radius: 10px; background: white; color: #6c5ce7; font-weight: bold; font-size: 14px; cursor: pointer;">
              تسليم فوري
@@ -1964,8 +1829,6 @@
              تسليم يدوي
         </button>
     </div>
-
-    <!-- تبويبات فوق الفئات -->
     <div style="display: flex !important; gap: 8px !important; overflow-x: auto !important; padding: 15px 0 !important; margin-bottom: 15px !important; background: rgba(108, 92, 231, 0.1) !important; border-radius: 12px !important;">
         <button class="tab-filter-btn active" onclick="filterCategoryByDelivery('all')" style="padding: 10px 16px; background: linear-gradient(135deg, #6c5ce7, #a29bfe); border: none; border-radius: 20px; color: white; font-weight: bold; white-space: nowrap; cursor: pointer;">
              الكل
@@ -1983,56 +1846,40 @@
              الأحدث
         </button>
     </div>
-
-    <!-- تبويبات ديناميكية من Firebase -->
     <div id="dynamicTabsSection">
         <div style="text-align: center; padding: 20px; color: #888;">
             <h3>جاري تحميل التبويبات...</h3>
         </div>
         <div class="dynamic-tabs-container" id="dynamicTabsContainer">
-            <!-- سيتم تحميل التبويبات ديناميكياً -->
         </div>
-        
         <div id="dynamicContentContainer">
-            <!-- محتوى التبويبات سيتم تحميله هنا -->
         </div>
     </div>
-
     <div class="categories-header">
         <h3>الأقسام</h3>
         <small onclick="filterCategory('all')">عرض الكل</small>
     </div>
-
     <div class="categories-grid" id="categoriesContainer">
-        <!-- سيتم تحميل الأقسام ديناميكياً -->
     </div>
-    
-    <!-- نافذة تسجيل الدخول المنبثقة -->
     <div class="login-modal" id="loginModal">
         <div class="login-modal-content">
             <span class="close-modal" onclick="closeLoginModal()">×</span>
             <div class="modal-logo"></div>
             <h2 class="modal-title">تسجيل الدخول</h2>
             <p class="modal-text">أدخل معرف تيليجرام الخاص بك والكود الذي ستحصل عليه من البوت</p>
-            
             <div id="errorMessage" class="error-message"></div>
-            
             <input type="text" id="telegramId" class="login-input" placeholder="معرف تيليجرام (Telegram ID)">
             <input type="text" id="verificationCode" class="login-input" placeholder="كود التحقق (من البوت)" maxlength="6">
-            
             <button class="login-btn" onclick="submitLogin()">تسجيل الدخول</button>
-            
             <p class="help-text">
                 ليس لديك كود؟ <a href="#" onclick="showCodeHelp(); return false;">احصل على كود من البوت</a>
             </p>
         </div>
     </div>
-
     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
         <h3 style="margin: 0;">السوق</h3>
         <span id="categoryFilter" style="color: #6c5ce7; font-size: 14px; font-weight: bold;"></span>
     </div>
-    <!-- نافذة التأكيد -->
     <div id="buyModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -2054,8 +1901,6 @@
                     </div>
                 </div>
                 <div class="modal-details" id="modalProductDetails"></div>
-                
-                <!-- حقل إدخال المشتري للتسليم اليدوي -->
                 <div id="buyerInputSection" style="display: none; margin-top: 15px;">
                     <div style="background: rgba(243, 156, 18, 0.1); border: 1px solid rgba(243, 156, 18, 0.3); border-radius: 10px; padding: 15px;">
                         <label style="color: #f39c12; font-weight: bold; display: block; margin-bottom: 10px;">
@@ -2064,7 +1909,6 @@
                         <textarea id="buyerInputDetails" placeholder="اكتب هنا..." style="width: 100%; min-height: 80px; padding: 12px; border: 1px solid rgba(243, 156, 18, 0.5); border-radius: 8px; background: rgba(0,0,0,0.2); color: #fff; font-size: 14px; resize: vertical;"></textarea>
                     </div>
                 </div>
-                
                 <div id="deliveryTypeNote" style="text-align: center; color: #00b894; font-size: 14px; margin-top: 15px;">
                      سيتم تسليم الحساب فوراً بعد الشراء
                 </div>
@@ -2075,8 +1919,6 @@
             </div>
         </div>
     </div>
-    
-    <!-- نافذة النجاح -->
     <div id="successModal" class="modal">
         <div class="modal-content success-modal">
             <div class="modal-header" style="background: linear-gradient(135deg, #00b894, #00cec9);">
@@ -2110,8 +1952,6 @@
             </div>
         </div>
     </div>
-    
-    <!-- نافذة الرصيد غير كافٍ -->
     <div id="warningModal" class="modal">
         <div class="modal-content warning-modal">
             <div class="modal-header">
@@ -2149,7 +1989,6 @@
             </div>
         </div>
     </div>
-    
     <div id="market" class="product-grid">
         {% for item in items %}
         <div class="product-card {% if item.get('sold') %}sold-product{% endif %}">
@@ -2160,7 +1999,6 @@
                 {% if item.get('image_url') %}
                 <img src="{{ item.image_url }}" alt="{{ item.item_name }}">
                 {% else %}
-                
                 {% endif %}
             </div>
             {% if item.get('category') %}
@@ -2189,8 +2027,6 @@
         </div>
         {% endfor %}
     </div>
-
-    <!-- قسم المنتجات المباعة -->
     {% if sold_items %}
     <div id="soldSection" style="margin-top: 30px;">
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
@@ -2198,7 +2034,6 @@
             <span style="background: #e74c3c; color: white; padding: 3px 10px; border-radius: 15px; font-size: 12px;">{{ sold_items|length }}</span>
             <span id="soldCategoryFilter" style="color: #e74c3c; font-size: 14px; font-weight: bold;"></span>
         </div>
-        
         <div class="product-grid" id="soldProductsGrid">
             {% for item in sold_items %}
             <div class="product-card sold-product sold-item-card" data-category="{{ item.get('category', '') }}" style="opacity: 0.7;">
@@ -2207,7 +2042,6 @@
                     {% if item.get('image_url') %}
                     <img src="{{ item.image_url }}" alt="{{ item.item_name }}" style="filter: grayscale(50%);">
                     {% else %}
-                    
                     {% endif %}
                 </div>
                 {% if item.get('category') %}
@@ -2232,7 +2066,6 @@
         </div>
     </div>
     {% endif %}
-
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
@@ -2241,19 +2074,13 @@
         let userBalance = userBalanceValue ? parseFloat(userBalanceValue) : 0;
         const currentUserIdValue = '{{ current_user_id }}';
         let currentUserId = currentUserIdValue ? parseInt(currentUserIdValue) : 0;
-
-        // التحقق من أننا داخل Telegram Web App
         const isTelegramWebApp = tg.initData !== '';
-        
-        // دالة لتحديث الرصيد في الشريط السفلي
         function updateNavBalance(balance) {
             const navBalanceEl = document.getElementById('navBalance');
             if(navBalanceEl) {
                 navBalanceEl.textContent = balance + ' ر.س';
             }
         }
-        
-        // دالة لتحديث شارة الطلبات
         function updateOrdersBadge(count) {
             const badge = document.getElementById('ordersBadge');
             if(badge) {
@@ -2265,8 +2092,6 @@
                 }
             }
         }
-        
-        // جلب عدد الطلبات
         async function fetchOrdersCount() {
             if(!currentUserId || currentUserId == 0) return;
             try {
@@ -2279,15 +2104,10 @@
                 console.log('Error fetching orders count');
             }
         }
-        
-        // عرض بيانات المستخدم
         if(user && user.id) {
-            // مستخدم Telegram Web App
             document.getElementById("userName").innerText = user.first_name + (user.last_name ? ' ' + user.last_name : '');
             document.getElementById("userId").innerText = user.id;
             currentUserId = user.id;
-            
-            // جلب الرصيد الحقيقي من السيرفر
             fetch('/get_balance?user_id=' + user.id)
                 .then(r => r.json())
                 .then(data => {
@@ -2295,53 +2115,36 @@
                     document.getElementById("balance").innerText = userBalance;
                     updateNavBalance(userBalance);
                 });
-            
-            // جلب عدد الطلبات
             fetchOrdersCount();
         } else if(currentUserId && currentUserId != 0) {
-            // مستخدم مسجل دخول عبر الرابط المؤقت أو الجلسة
             updateNavBalance(userBalance);
-            
-            // جلب عدد الطلبات
             fetchOrdersCount();
         }
-        
-        // دالة لفتح/إغلاق قسم شحن الكود
         function toggleCharge() {
-            // التحقق من تسجيل الدخول
             if(!isTelegramWebApp && (!currentUserId || currentUserId == 0)) {
                 showLoginModal();
                 return;
             }
-            
-            // إغلاق قسم حسابي إذا كان مفتوحاً
             const accountContent = document.getElementById("accountContent");
             const accountArrow = document.getElementById("accountArrow");
             if(accountContent.classList.contains("open")) {
                 accountContent.classList.remove("open");
                 accountArrow.classList.remove("open");
             }
-            
-            // فتح/إغلاق قسم الشحن
             const chargeContent = document.getElementById("chargeContent");
             const chargeArrow = document.getElementById("chargeArrow");
             chargeContent.classList.toggle("open");
             chargeArrow.classList.toggle("open");
         }
-        
-        // دالة نسخ للحافظة (للأزرار)
         function copyToClipboard(amount) {
-            // يمكنك تغيير هذا لاحقاً لفتح رابط الدفع
             alert('شراء رصيد ' + amount + ' ريال - سيتم إضافة الرابط قريباً');
         }
-        
         async function submitChargeCode() {
             const code = document.getElementById('chargeCodeInput').value.trim();
             if(!code) {
                 alert(' الرجاء إدخال كود الشحن');
                 return;
             }
-            
             try {
                 const response = await fetch('/charge_balance', {
                     method: 'POST',
@@ -2351,7 +2154,6 @@
                         charge_key: code
                     })
                 });
-                
                 const result = await response.json();
                 if(result.success) {
                     alert(' ' + result.message);
@@ -2367,13 +2169,9 @@
                 alert(' حدث خطأ في الاتصال');
             }
         }
-        
-        // ========== دوال الهيدر ==========
         function openSearchOverlay() {
-            // البحث - يمكن تخصيصه لاحقاً
             const searchTerm = prompt('ابحث عن منتج:');
             if(searchTerm && searchTerm.trim()) {
-                // البحث في المنتجات
                 const products = document.querySelectorAll('.product-card');
                 let found = false;
                 products.forEach(card => {
@@ -2390,18 +2188,13 @@
                 }
             }
         }
-        
         function handleAccountClick() {
-            // إذا كان المستخدم غير مسجل دخول
             if(!isTelegramWebApp && (!currentUserId || currentUserId == 0)) {
                 showLoginModal();
                 return;
             }
-            // إذا كان مسجل دخول، انتقل لصفحة الملف الشخصي
             window.location.href = '/profile';
         }
-        
-        // ========== دوال القائمة الجانبية ==========
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -2409,7 +2202,6 @@
             overlay.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
-        
         function closeSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -2417,7 +2209,6 @@
             overlay.classList.remove('active');
             document.body.style.overflow = 'auto';
         }
-        
         function scrollToSection(sectionId) {
             let element;
             switch(sectionId) {
@@ -2440,38 +2231,26 @@
                 element.scrollIntoView({behavior: 'smooth', block: 'start'});
             }
         }
-        
-        // دالة لفتح/إغلاق قسم حسابي
         function toggleAccount() {
-            // إذا كان المستخدم في متصفح عادي وغير مسجل دخول
             if(!isTelegramWebApp && (!currentUserId || currentUserId == 0)) {
-                // توجيهه لصفحة تسجيل الدخول المدمجة
                 showLoginModal();
                 return;
             }
-            
-            // إغلاق قسم الشحن إذا كان مفتوحاً
             const chargeContent = document.getElementById("chargeContent");
             const chargeArrow = document.getElementById("chargeArrow");
             if(chargeContent.classList.contains("open")) {
                 chargeContent.classList.remove("open");
                 chargeArrow.classList.remove("open");
             }
-            
-            // إذا كان مسجل دخول، افتح/أغلق القسم
             const content = document.getElementById("accountContent");
             const arrow = document.getElementById("accountArrow");
             content.classList.toggle("open");
             arrow.classList.toggle("open");
         }
-        
-        // دالة لعرض نافذة تسجيل الدخول
         function showLoginModal() {
             const modal = document.getElementById('loginModal');
             modal.style.display = 'flex';
         }
-        
-        // دالة لإغلاق النافذة
         function closeLoginModal() {
             const modal = document.getElementById('loginModal');
             modal.style.display = 'none';
@@ -2479,20 +2258,15 @@
             document.getElementById('telegramId').value = '';
             document.getElementById('verificationCode').value = '';
         }
-        
-        // دالة لإرسال بيانات تسجيل الدخول
         async function submitLogin() {
             const userId = document.getElementById('telegramId').value.trim();
             const code = document.getElementById('verificationCode').value.trim();
             const errorDiv = document.getElementById('errorMessage');
-            
-            // التحقق من إدخال البيانات
             if(!userId || !code) {
                 errorDiv.textContent = 'الرجاء إدخال الآيدي والكود';
                 errorDiv.style.display = 'block';
                 return;
             }
-            
             try {
                 const response = await fetch('/verify', {
                     method: 'POST',
@@ -2502,13 +2276,10 @@
                         code: code
                     })
                 });
-                
                 const data = await response.json();
-                
                 if(data.success) {
-                    // نجح تسجيل الدخول
                     closeLoginModal();
-                    location.reload(); // إعادة تحميل الصفحة لعرض البيانات
+                    location.reload();
                 } else {
                     errorDiv.textContent = data.message;
                     errorDiv.style.display = 'block';
@@ -2518,13 +2289,9 @@
                 errorDiv.style.display = 'block';
             }
         }
-        
-        // دالة لعرض مساعدة الحصول على الكود
         function showCodeHelp() {
             alert('للحصول على كود التحقق:\\n\\n افتح البوت في تيليجرام\\n أرسل الأمر /code\\n انسخ الكود المكون من 6 أرقام\\n الصقه في الحقل أعلاه');
         }
-        
-        // دالة لتسجيل الخروج
         async function logout() {
             if(confirm('هل تريد تسجيل الخروج؟')) {
                 try {
@@ -2535,34 +2302,25 @@
                 }
             }
         }
-        
-        // دالة لفتح/إغلاق قسم الطلبات
         async function toggleOrders() {
             const ordersSection = document.getElementById('ordersSection');
             const isOpen = ordersSection.classList.toggle('open');
-            
             if(isOpen) {
-                // جلب الطلبات من السيرفر
                 await loadOrders();
             }
         }
-        
-        // دالة لجلب وعرض الطلبات
         async function loadOrders() {
             const ordersList = document.getElementById('ordersList');
             ordersList.innerHTML = '<p style="text-align:center; color:#888;">جاري التحميل...</p>';
-            
             try {
                 const response = await fetch(`/get_orders?user_id=${currentUserId}`);
                 const data = await response.json();
-                
                 if(data.orders && data.orders.length > 0) {
                     ordersList.innerHTML = '';
                     data.orders.forEach(order => {
                         const statusText = order.status === 'pending' ? 'قيد الانتظار' : 
                                           order.status === 'claimed' ? 'قيد المعالجة' : 'مكتمل';
                         const statusClass = order.status;
-                        
                         const orderHTML = `
                             <div class="order-item">
                                 <div class="order-header">
@@ -2587,27 +2345,17 @@
                 ordersList.innerHTML = '<p style="text-align:center; color:#e74c3c;"> حدث خطأ في تحميل الطلبات</p>';
             }
         }
-        
-        // تصفية المنتجات حسب الفئة
         let allItems = {{ items|tojson }};
-        let allCategories = []; // قائمة الأقسام المحملة
-        let currentCategory = 'all'; // متغير لتتبع الفئة الحالية
-        let currentDeliveryType = 'instant'; // متغير لتتبع نوع التسليم الحالي
-        
-        // دالة التبديل بين تبويبات التسليم
+        let allCategories = [];
+        let currentCategory = 'all';
+        let currentDeliveryType = 'instant';
         function switchDeliveryTab(type) {
             currentDeliveryType = type;
-            
-            // تحديث مظهر التبويبات
             document.getElementById('tabInstant').classList.remove('active');
             document.getElementById('tabManual').classList.remove('active');
             document.getElementById('tab' + (type === 'instant' ? 'Instant' : 'Manual')).classList.add('active');
-            
-            // إعادة عرض الأقسام حسب نوع التسليم (تختار أول قسم تلقائياً)
             renderCategoriesByType(type);
         }
-        
-        // دالة عرض الأقسام حسب نوع التسليم
         function renderCategoriesByType(deliveryType) {
             const container = document.getElementById('categoriesContainer');
             const colors = ['bg-netflix', 'bg-shahid', 'bg-disney', 'bg-osn', 'bg-video', 'bg-other'];
@@ -2619,18 +2367,14 @@
                 'https://cdn-icons-png.flaticon.com/512/3074/3074767.png',
                 'https://cdn-icons-png.flaticon.com/512/2087/2087815.png'
             ];
-            
-            // تصفية الأقسام حسب نوع التسليم
             const filteredCats = allCategories.filter(cat => {
                 const catDelivery = cat.delivery_type || 'instant';
                 return catDelivery === deliveryType;
             });
-            
             if(filteredCats.length === 0) {
                 container.innerHTML = '<p style="text-align:center; color:#888; padding: 20px;">لا توجد أقسام</p>';
                 return;
             }
-            
             container.innerHTML = filteredCats.map((cat, index) => {
                 const colorClass = colors[index % colors.length];
                 const icon = cat.image_url || defaultIcons[index % defaultIcons.length];
@@ -2642,73 +2386,49 @@
                     </div>
                 `;
             }).join('');
-            
-            // تصفية أول قسم تلقائياً
             if(filteredCats.length > 0) {
                 filterCategory(filteredCats[0].name);
             }
         }
-        
-        // دالة تصفية الأقسام حسب نوع التسليم
         function filterCategoryByDelivery(type) {
             try {
                 console.log('🔀 تصفية الأقسام حسب:', type);
-                
-                // تحديث الأزرار النشطة
                 document.querySelectorAll('.tab-filter-btn').forEach(btn => {
                     btn.classList.remove('active');
                 });
-                
-                // جعل الزر الحالي نشطاً (استخدام event بشكل آمن)
                 if(event && event.target) {
                     event.target.classList.add('active');
                     console.log(' تم تحديث الزر النشط');
                 }
-                
-                // تصفية وعرض الأقسام
                 const container = document.getElementById('categoriesContainer');
-                
                 if(type === 'all') {
-                    // عرض جميع الأقسام
                     console.log('عرض جميع الأقسام:', allCategories.length);
                     renderAllCategories();
                 } else {
-                    // تصفية حسب نوع التسليم
                     const filtered = allCategories.filter(cat => {
                         const catDelivery = cat.delivery_type || 'instant';
                         return catDelivery === type;
                     });
-                    
                     console.log(' الأقسام المصفاة (' + type + '):', filtered.length);
-                    // إعادة رسم الأقسام المصفاة
                     renderCategoriesGrid(filtered);
                 }
             } catch(error) {
                 console.error(' خطأ في تصفية الأقسام:', error);
             }
         }
-        
-        // دالة ترتيب الأقسام
         function sortCategories(sortBy) {
             try {
                 console.log(' ترتيب الأقسام حسب:', sortBy);
-                
-                // تحديث الأزرار النشطة
                 document.querySelectorAll('.tab-filter-btn').forEach(btn => {
                     btn.classList.remove('active');
                 });
-                
-                // جعل الزر الحالي نشطاً (استخدام event بشكل آمن)
                 if(event && event.target) {
                     event.target.classList.add('active');
                     console.log(' تم تحديث الزر النشط');
                 }
-                
                 const container = document.getElementById('categoriesContainer');
                 const sorted = [...allCategories];
-                
                 if(sortBy === 'popular') {
-                    // ترتيب حسب عدد المنتجات
                     sorted.sort((a, b) => {
                         const aCount = allItems.filter(i => i.category === a.name).length;
                         const bCount = allItems.filter(i => i.category === b.name).length;
@@ -2716,20 +2436,16 @@
                     });
                     console.log(' تم الترتيب حسب الشهرة');
                 } else if(sortBy === 'newest') {
-                    // ترتيب حسب آخر تحديث (إذا كان موجود)
                     sorted.sort((a, b) => {
                         return (b.order || 0) - (a.order || 0);
                     });
                     console.log(' تم الترتيب حسب الأحدث');
                 }
-                
                 renderCategoriesGrid(sorted);
             } catch(error) {
                 console.error(' خطأ في ترتيب الأقسام:', error);
             }
         }
-        
-        // دالة رسم شبكة الأقسام
         function renderCategoriesGrid(categories) {
             try {
                 const container = document.getElementById('categoriesContainer');
@@ -2742,26 +2458,21 @@
                     'https://cdn-icons-png.flaticon.com/512/3074/3074767.png',
                     'https://cdn-icons-png.flaticon.com/512/2087/2087815.png'
                 ];
-                
                 console.log(' رسم الأقسام:', categories.length);
-                
                 if(categories.length === 0) {
                     container.innerHTML = '<p style="text-align:center; color:#888; padding: 20px;">لا توجد أقسام</p>';
                     return;
                 }
-                
                 container.innerHTML = '';
                 categories.forEach((cat, index) => {
                     const catCard = document.createElement('div');
                     catCard.className = 'cat-card ' + (colors[index % colors.length] || 'bg-other');
-                    
                     const icon = cat.icon || defaultIcons[index % defaultIcons.length];
                     catCard.innerHTML = `
                         <div class="cat-icon"><img src="${icon}" alt="${cat.name}"></div>
                         <div class="cat-title">${cat.name}</div>
                         <div class="cat-count">${allItems.filter(i => i.category === cat.name).length} منتج</div>
                     `;
-                    
                     catCard.onclick = () => filterCategory(cat.name);
                     container.appendChild(catCard);
                 });
@@ -2770,24 +2481,17 @@
                 console.error(' خطأ في رسم الأقسام:', error);
             }
         }
-        
-        // دالة عرض جميع الأقسام
         function renderAllCategories() {
             renderCategoriesGrid(allCategories);
         }
-        
         function filterCategory(category) {
-            currentCategory = category; // حفظ الفئة الحالية
-            
-            // تحديث نص الفئة
+            currentCategory = category;
             const categoryFilterText = document.getElementById('categoryFilter');
             if(category === 'all') {
                 categoryFilterText.textContent = '';
             } else {
                 categoryFilterText.textContent = `- ${category}`;
             }
-            
-            // تحديث مظهر بطاقات الأقسام
             document.querySelectorAll('.cat-card').forEach(card => {
                 card.style.opacity = '0.5';
                 card.style.transform = 'scale(0.95)';
@@ -2807,28 +2511,19 @@
                     card.style.boxShadow = '';
                 });
             }
-            
-            // تصفية وعرض المنتجات
             const market = document.getElementById('market');
             market.innerHTML = '';
-            
-            // تصفية حسب الفئة ونوع التسليم
             let filteredItems = allItems.filter(item => {
-                // فلتر الفئة
                 const categoryMatch = category === 'all' || item.category === category;
-                // فلتر نوع التسليم (إذا لم يكن محدد، يعتبر فوري)
                 const deliveryType = item.delivery_type || 'instant';
                 const deliveryMatch = deliveryType === currentDeliveryType;
                 return categoryMatch && deliveryMatch;
             });
-            
-            // ترتيب المنتجات: المتاحة أولاً، ثم المباعة
             filteredItems.sort((a, b) => {
                 if(a.sold && !b.sold) return 1;
                 if(!a.sold && b.sold) return -1;
                 return 0;
             });
-            
             if(filteredItems.length === 0) {
                 const emptyMsg = currentDeliveryType === 'instant' ? 
                     '📭 لا توجد منتجات تسليم فوري في هذا القسم' : 
@@ -2840,11 +2535,8 @@
                     const isSold = item.sold === true;
                     const deliveryType = item.delivery_type || 'instant';
                     const deliveryBadge = deliveryType === 'manual' ? '<span class="delivery-badge manual">👨‍💼 يدوي</span>' : '<span class="delivery-badge instant"> فوري</span>';
-                    
-                    // تجهيز البيانات للأزرار
                     const safeItemName = (item.item_name || '').replace(/'/g, "\\\\'").replace(/"/g, '\\\\"');
                     const buyerInstr = item.buyer_instructions ? item.buyer_instructions.replace(/'/g, "\\\\'").replace(/"/g, '\\\\"') : '';
-                    
                     const productHTML = `
                         <div class="product-card ${isSold ? 'sold-product' : ''}" data-product-id="${item.id}">
                             ${isSold ? '<div class="sold-ribbon">مباع ✓</div>' : ''}
@@ -2870,8 +2562,6 @@
                     `;
                     market.innerHTML += productHTML;
                 });
-                
-                // إضافة event listeners للأزرار
                 document.querySelectorAll('.btn-add-cart').forEach(btn => {
                     btn.addEventListener('click', function(e) {
                         e.stopPropagation();
@@ -2883,14 +2573,9 @@
                     });
                 });
             }
-            
-            // تصفية المنتجات المباعة أيضاً
             filterSoldByMainCategory(category);
         }
-        
-        // دالة لتصفية المنتجات المباعة بناءً على اختيار القسم الرئيسي
         function filterSoldByMainCategory(category) {
-            // تحديث نص القسم المختار
             const soldCategoryFilter = document.getElementById('soldCategoryFilter');
             if(soldCategoryFilter) {
                 if(category === 'all') {
@@ -2899,7 +2584,6 @@
                     soldCategoryFilter.textContent = `- ${category}`;
                 }
             }
-            
             document.querySelectorAll('.sold-item-card').forEach(card => {
                 if(category === 'all' || card.dataset.category === category) {
                     card.style.display = 'block';
@@ -2908,31 +2592,22 @@
                 }
             });
         }
-
         let currentPurchaseData = null;
-        
         function buyItem(itemId, price, itemName, category, details, deliveryType, buyerInstructions) {
-            // التحقق من الرصيد أولاً
             if(userBalance < price) {
                 showWarningModal(price);
                 return;
             }
-
-            // تحديد بيانات المشتري
             let buyerId = currentUserId;
             let buyerName = '{{ user_name }}';
-            
             if(user && user.id) {
                 buyerId = user.id;
                 buyerName = user.first_name + (user.last_name ? ' ' + user.last_name : '');
             }
-
             if(!buyerId || buyerId == 0) {
                 alert("الرجاء تسجيل الدخول أولاً!");
                 return;
             }
-
-            // حفظ بيانات الشراء
             currentPurchaseData = {
                 itemId: itemId,
                 buyerId: buyerId,
@@ -2940,49 +2615,35 @@
                 deliveryType: deliveryType || 'instant',
                 buyerInstructions: buyerInstructions || ''
             };
-
-            // عرض نافذة التأكيد مع نوع التسليم
             document.getElementById('modalProductName').textContent = itemName;
             document.getElementById('modalProductCategory').textContent = category || 'غير محدد';
             document.getElementById('modalProductPrice').textContent = price + ' ريال';
             document.getElementById('modalProductDetails').textContent = details || 'لا توجد تفاصيل إضافية';
-            
-            // إظهار/إخفاء حقل إدخال المشتري حسب نوع التسليم
             const buyerInputSection = document.getElementById('buyerInputSection');
             const deliveryTypeNote = document.getElementById('deliveryTypeNote');
             const buyerInputDetails = document.getElementById('buyerInputDetails');
-            
             if(deliveryType === 'manual') {
-                // تسليم يدوي - إظهار حقل الإدخال
                 buyerInputSection.style.display = 'block';
                 document.getElementById('buyerInstructionsLabel').textContent = buyerInstructions || 'أدخل المعلومات المطلوبة:';
                 buyerInputDetails.value = '';
                 buyerInputDetails.placeholder = 'مثال: آيدي اللعبة، اسم الحساب...';
-                
                 deliveryTypeNote.style.color = '#f39c12';
                 deliveryTypeNote.innerHTML = '👨‍💼 تسليم يدوي - سيتم تنفيذ طلبك بواسطة المشرف';
             } else {
-                // تسليم فوري - إخفاء حقل الإدخال
                 buyerInputSection.style.display = 'none';
                 buyerInputDetails.value = '';
-                
                 deliveryTypeNote.style.color = '#00b894';
                 deliveryTypeNote.innerHTML = ' تسليم فوري - ستحصل على البيانات مباشرة';
             }
-            
             document.getElementById('buyModal').style.display = 'block';
         }
-
         function closeModal() {
             document.getElementById('buyModal').style.display = 'none';
             document.getElementById('buyerInputDetails').value = '';
             currentPurchaseData = null;
         }
-
         function confirmPurchase() {
             if(!currentPurchaseData) return;
-            
-            // للتسليم اليدوي: التحقق من إدخال البيانات
             if(currentPurchaseData.deliveryType === 'manual') {
                 const buyerDetails = document.getElementById('buyerInputDetails').value.trim();
                 if(!buyerDetails) {
@@ -2991,13 +2652,10 @@
                 }
                 currentPurchaseData.buyerDetails = buyerDetails;
             }
-            
-            // إظهار حالة التحميل
             const confirmBtn = document.querySelector('#buyModal .modal-btn-confirm');
             const originalText = confirmBtn.textContent;
             confirmBtn.textContent = ' جاري الشراء...';
             confirmBtn.disabled = true;
-
             fetch('/buy', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -3014,10 +2672,8 @@
             }).then(data => {
                 confirmBtn.textContent = originalText;
                 confirmBtn.disabled = false;
-                
                 if(data.status == 'success') {
                     closeModal();
-                    // تحديث الرصيد بأمان
                     if(data.new_balance !== undefined) {
                         userBalance = data.new_balance;
                         const balanceEl = document.getElementById('balance');
@@ -3026,7 +2682,6 @@
                         if(sidebarBalanceEl) sidebarBalanceEl.textContent = userBalance.toFixed(2);
                         if(typeof updateNavBalance === 'function') updateNavBalance(userBalance);
                     }
-                    // إظهار رسالة نجاح حسب نوع التسليم
                     let successMsg = '';
                     if(data.delivery_type === 'manual') {
                         successMsg = ' تم تسجيل طلبك بنجاح! \\n\\nرقم الطلب: ' + (data.order_id || '---') + '\\n\\n👨‍💼 سيتم تنفيذ طلبك بواسطة المشرف قريباً\\n\\nستصلك رسالة عند اكتمال التنفيذ';
@@ -3047,25 +2702,19 @@
                 console.error('Purchase error:', err);
             });
         }
-
         let lastPurchaseData = '';
-        
         function showSuccessModal(hiddenData, messageSent, orderId) {
             const container = document.getElementById('purchaseDataContainer');
             const dataDiv = document.getElementById('purchaseHiddenData');
             const botNote = document.getElementById('botMessageNote');
             const orderIdSpan = document.getElementById('successOrderId');
-            
-            // عرض رقم الطلب
             if(orderId) {
                 orderIdSpan.textContent = '#' + orderId;
             }
-            
             if(hiddenData && hiddenData !== 'لا توجد بيانات') {
                 container.style.display = 'block';
                 dataDiv.textContent = hiddenData;
                 lastPurchaseData = hiddenData;
-                
                 if(messageSent) {
                     botNote.innerHTML = ' تم إرسال البيانات أيضاً للبوت';
                     botNote.style.color = '#00b894';
@@ -3078,17 +2727,13 @@
             } else {
                 container.style.display = 'none';
             }
-            
-            // إظهار النافذة
             document.getElementById('successModal').style.display = 'block';
             console.log(' Success modal displayed');
         }
-        
         function copyPurchaseData() {
             navigator.clipboard.writeText(lastPurchaseData).then(() => {
                 alert(' تم نسخ البيانات!');
             }).catch(() => {
-                // fallback للأجهزة القديمة
                 const textArea = document.createElement('textarea');
                 textArea.value = lastPurchaseData;
                 document.body.appendChild(textArea);
@@ -3098,24 +2743,19 @@
                 alert(' تم نسخ البيانات!');
             });
         }
-
         function closeSuccessModal() {
             document.getElementById('successModal').style.display = 'none';
             document.getElementById('purchaseDataContainer').style.display = 'none';
             location.reload();
         }
-
         function showWarningModal(price) {
             document.getElementById('warningBalance').textContent = userBalance.toFixed(2);
             document.getElementById('warningPrice').textContent = parseFloat(price).toFixed(2);
             document.getElementById('warningModal').style.display = 'block';
         }
-
         function closeWarningModal() {
             document.getElementById('warningModal').style.display = 'none';
         }
-
-        // إغلاق النافذة عند الضغط خارجها
         window.onclick = function(event) {
             const buyModal = document.getElementById('buyModal');
             const successModal = document.getElementById('successModal');
@@ -3130,48 +2770,31 @@
                 closeWarningModal();
             }
         }
-        
-        // ====== دوال التبويبات الديناميكية من Firebase ======
         let allDynamicTabs = [];
         let currentActiveTab = null;
-        
-        // تحميل قائمة التبويبات المتاحة
         async function loadDynamicTabs() {
             try {
                 console.log(' جاري تحميل التبويبات الديناميكية...');
                 const response = await fetch('/api/tabs/list');
-                
                 if (!response.ok) {
                     console.error(' خطأ في الاتصال:', response.status);
                     return;
                 }
-                
                 const data = await response.json();
                 console.log(' البيانات المستلمة:', data);
-                
                 if (data.status === 'success' && data.tabs && data.tabs.length > 0) {
                     allDynamicTabs = data.tabs;
                     console.log(' تم تحميل التبويبات:', allDynamicTabs);
-                    
-                    // إظهار قسم التبويبات
                     const section = document.getElementById('dynamicTabsSection');
                     section.innerHTML = '';
-                    
-                    // إنشاء الـ container والـ content
                     const tabsContainer = document.createElement('div');
                     tabsContainer.className = 'dynamic-tabs-container';
                     tabsContainer.id = 'dynamicTabsContainer';
-                    
                     const contentContainer = document.createElement('div');
                     contentContainer.id = 'dynamicContentContainer';
-                    
                     section.appendChild(tabsContainer);
                     section.appendChild(contentContainer);
-                    
-                    // رسم التبويبات
                     renderDynamicTabs();
-                    
-                    // تحميل أول tab
                     if (allDynamicTabs.length > 0) {
                         await switchDynamicTab(allDynamicTabs[0]);
                     }
@@ -3184,18 +2807,14 @@
                 document.getElementById('dynamicTabsSection').innerHTML = '<div style="text-align: center; padding: 20px; color: #e74c3c;"> خطأ في تحميل التبويبات</div>';
             }
         }
-        
-        // رسم عناصر التبويبات
         function renderDynamicTabs() {
             const container = document.getElementById('dynamicTabsContainer');
             if (!container) {
                 console.error(' لم يتم العثور على dynamicTabsContainer');
                 return;
             }
-            
             console.log(' رسم التبويبات...');
             container.innerHTML = '';
-            
             allDynamicTabs.forEach(tabName => {
                 const tabEl = document.createElement('div');
                 tabEl.className = 'dynamic-tab';
@@ -3204,18 +2823,12 @@
                 container.appendChild(tabEl);
             });
         }
-        
-        // التبديل بين التبويبات
         async function switchDynamicTab(tabName) {
             try {
                 console.log('🔀 التبديل إلى tab:', tabName);
-                
-                // تحديث التبويبات النشطة
                 document.querySelectorAll('.dynamic-tab').forEach(tab => {
                     tab.classList.remove('active');
                 });
-                
-                // تحديث الـ tab الحالي
                 const tabs = document.querySelectorAll('.dynamic-tab');
                 for (let tab of tabs) {
                     if (tab.textContent.includes(tabName)) {
@@ -3223,31 +2836,23 @@
                         break;
                     }
                 }
-                
                 currentActiveTab = tabName;
-                
-                // إظهار رسالة التحميل
                 const contentContainer = document.getElementById('dynamicContentContainer');
                 if (!contentContainer) {
                     console.error(' لم يتم العثور على dynamicContentContainer');
                     return;
                 }
                 contentContainer.innerHTML = '<div class="tab-loading"> جاري التحميل...</div>';
-                
-                // جلب البيانات
                 const url = '/api/tabs/data/' + encodeURIComponent(tabName) + '?limit=50';
                 console.log('📡 جاري الطلب من:', url);
-                
                 const response = await fetch(url);
                 if (!response.ok) {
                     console.error(' خطأ في الاتصال:', response.status);
                     contentContainer.innerHTML = '<div class="tab-error"> خطأ في الاتصال</div>';
                     return;
                 }
-                
                 const data = await response.json();
                 console.log(' البيانات المستلمة من tab:', data);
-                
                 if (data.status === 'success') {
                     renderTabData(tabName, data.data);
                 } else {
@@ -3261,32 +2866,23 @@
                 }
             }
         }
-        
-        // عرض بيانات التبويب
         function renderTabData(tabName, items) {
             const contentContainer = document.getElementById('dynamicContentContainer');
             if (!contentContainer) {
                 console.error(' لم يتم العثور على contentContainer');
                 return;
             }
-            
             console.log(' رسم بيانات tab:', tabName, 'عدد العناصر:', items ? items.length : 0);
-            
             if (!items || items.length === 0) {
                 contentContainer.innerHTML = '<div class="tab-empty">📭 لا توجد بيانات في هذا القسم</div>';
                 return;
             }
-            
             let html = '<div style="padding: 10px 0;">';
-            
             items.forEach((item, index) => {
-                // استخراج المعلومات الأساسية
                 const itemName = item.name || item.title || item.id || 'عنصر بدون اسم';
                 const itemDesc = item.description || item.desc || '';
                 const itemPrice = item.price || '';
                 const itemImage = item.image || item.icon || '';
-                
-                // إنشاء بطاقة
                 html += `
                     <div style="background: rgba(108, 92, 231, 0.1); border: 1px solid rgba(108, 92, 231, 0.2); padding: 12px; margin-bottom: 10px; border-radius: 10px; display: flex; gap: 10px;">
                         <div style="font-size: 24px; flex-shrink: 0;">
@@ -3300,12 +2896,9 @@
                     </div>
                 `;
             });
-            
             html += '</div>';
             contentContainer.innerHTML = html;
         }
-        
-        // دالة مساعدة لـ escape HTML
         function escapeHtml(text) {
             const map = {
                 '&': '&amp;',
@@ -3316,33 +2909,22 @@
             };
             return String(text).replace(/[&<>"']/g, m => map[m]);
         }
-        
-        // تحميل أول قسم (نتفلكس) عند فتح الصفحة
         window.addEventListener('DOMContentLoaded', function() {
-            loadCategoriesUI();  // تحميل الأقسام ديناميكياً
-            loadDynamicTabs();   // تحميل التبويبات الديناميكية
+            loadCategoriesUI(); 
+            loadDynamicTabs();  
             initFloatingNav();
         });
-        
-        // دالة تحميل الأقسام للواجهة
         async function loadCategoriesUI() {
             try {
                 const response = await fetch('/api/categories');
                 const data = await response.json();
-                
                 if(data.status === 'success' && data.categories.length > 0) {
-                    // حفظ الأقسام في المتغير العام
                     allCategories = data.categories;
-                    
-                    // تطبيق عدد الأعمدة
                     const container = document.getElementById('categoriesContainer');
                     const cols = data.columns || 3;
                     container.className = 'categories-grid cols-' + cols;
-                    
-                    // عرض الأقسام حسب نوع التسليم الحالي (فوري افتراضياً)
                     renderCategoriesByType(currentDeliveryType);
                 } else {
-                    // استخدام الأقسام الافتراضية إذا فشل التحميل
                     filterCategory('نتفلكس');
                 }
             } catch(error) {
@@ -3350,88 +2932,65 @@
                 filterCategory('نتفلكس');
             }
         }
-
-        // --- Floating Navigation Bar ---
         function initFloatingNav() {
             const navItems = document.querySelectorAll('.floating-nav-item');
-            
-            // تفعيل العنصر الأول افتراضياً
             if(navItems.length > 0) {
                 navItems[0].classList.add('active');
             }
-            
             navItems.forEach((item, index) => {
                 item.addEventListener('click', function() {
-                    // إزالة active من جميع العناصر
                     navItems.forEach(nav => nav.classList.remove('active'));
-                    // إضافة active للعنصر الحالي
                     this.classList.add('active');
-                    
-                    // تنفيذ الإجراء المناسب
                     const action = this.getAttribute('data-action');
                     if(action === 'home') {
                         scrollToTop();
                     } else if(action === 'orders') {
-                        // التحقق من تسجيل الدخول أولاً
                         if(!isTelegramWebApp && (!currentUserId || currentUserId == 0)) {
                             showLoginModal();
                             return;
                         }
                         window.location.href = '/my_purchases';
                     } else if(action === 'charge') {
-                        // التحقق من تسجيل الدخول أولاً
                         if(!isTelegramWebApp && (!currentUserId || currentUserId == 0)) {
                             showLoginModal();
                             return;
                         }
-                        // الانتقال لصفحة المحفظة
                         window.location.href = '/wallet?user_id=' + currentUserId;
                     } else if(action === 'cart') {
-                        // التحقق من تسجيل الدخول أولاً
                         if(!isTelegramWebApp && (!currentUserId || currentUserId == 0)) {
                             showLoginModal();
                             return;
                         }
-                        // الذهاب للسلة
                         window.location.href = '/cart';
                     } else if(action === 'account') {
-                        // التحقق من تسجيل الدخول أولاً
                         if(!isTelegramWebApp && (!currentUserId || currentUserId == 0)) {
                             showLoginModal();
                             return;
                         }
-                        // فتح اللوحة الجانبية
                         toggleSidebar();
                     }
                 });
             });
         }
-
         function scrollToTop() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-
         function toggleAccountMenu() {
-            // هذه الدالة للتوافق مع الكود القديم
             if(!isTelegramWebApp && (!currentUserId || currentUserId == 0)) {
                 showLoginModal();
                 return;
             }
             toggleSidebar();
         }
-        
-        // عرض تفاصيل المنتج
         function showProductDetails(productId) {
             const product = allItems.find(p => p.id === productId);
             if(!product) {
                 showCustomAlert('المنتج غير موجود', 'error');
                 return;
             }
-            
             const deliveryText = product.delivery_type === 'manual' ? 'تسليم يدوي 🤝' : 'تسليم فوري ';
             const safeItemName = (product.item_name || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
             const buyerInstr = product.buyer_instructions ? product.buyer_instructions.replace(/'/g, "\\'").replace(/"/g, '\\"') : '';
-            
             let detailsHTML = `
                 <div class="product-detail-modal">
                     <div class="pdm-header">
@@ -3441,7 +3000,6 @@
                         <div class="pdm-title">${product.item_name}</div>
                         ${product.category ? `<div class="pdm-category">${product.category}</div>` : ''}
                     </div>
-                    
                     <div class="pdm-info">
                         <div class="pdm-row">
                             <span class="pdm-label">السعر:</span>
@@ -3468,15 +3026,12 @@
                         </div>
                         ` : ''}
                     </div>
-                    
                     <div class="pdm-actions">
                         <button class="pdm-btn close" onclick="closeProductDetailModal()">إغلاق</button>
                         <button class="pdm-btn cart" id="pdmAddCartBtn" data-id="${product.id}" data-name="${safeItemName}" data-delivery="${product.delivery_type || 'instant'}" data-instructions="${buyerInstr}">أضف للسلة </button>
                     </div>
                 </div>
             `;
-            
-            // إنشاء المودال
             let modal = document.getElementById('productDetailModal');
             if(!modal) {
                 modal = document.createElement('div');
@@ -3486,34 +3041,24 @@
             }
             modal.innerHTML = detailsHTML;
             modal.style.display = 'flex';
-            
-            // إضافة event listener لزر السلة
             document.getElementById('pdmAddCartBtn').addEventListener('click', function() {
                 closeProductDetailModal();
                 addToCart(this.dataset.id, this.dataset.name, this.dataset.delivery, this.dataset.instructions);
             });
-            
-            // إغلاق عند النقر خارج المودال
             modal.onclick = function(e) {
                 if(e.target === modal) closeProductDetailModal();
             };
         }
-        
         function closeProductDetailModal() {
             const modal = document.getElementById('productDetailModal');
             if(modal) modal.style.display = 'none';
         }
-        
-        // إضافة للسلة
         let pendingCartItem = null;
-        
         function addToCart(productId, productName, deliveryType, buyerInstructions) {
             if(!isTelegramWebApp && (!currentUserId || currentUserId == 0)) {
                 showLoginModal();
                 return;
             }
-            
-            // إذا كان المنتج يدوي، نطلب المعلومات أولاً
             if(deliveryType === 'manual') {
                 pendingCartItem = {
                     productId: productId,
@@ -3523,13 +3068,9 @@
                 showCartInputModal(productName, buyerInstructions);
                 return;
             }
-            
-            // منتج فوري - إضافة مباشرة
             submitAddToCart(productId, productName, '');
         }
-        
         function showCartInputModal(productName, instructions) {
-            // إنشاء نافذة الإدخال
             let modal = document.getElementById('cartInputModal');
             if(!modal) {
                 modal = document.createElement('div');
@@ -3551,32 +3092,27 @@
                 `;
                 document.body.appendChild(modal);
             }
-            
             document.getElementById('cartProductName').textContent = productName;
             document.getElementById('cartInstructionsLabel').textContent = instructions || 'أدخل المعلومات المطلوبة للتنفيذ:';
             document.getElementById('cartBuyerDetails').value = '';
             modal.style.display = 'block';
         }
-        
         function closeCartInputModal() {
             const modal = document.getElementById('cartInputModal');
             if(modal) modal.style.display = 'none';
             pendingCartItem = null;
         }
-        
         function submitCartWithDetails() {
             const details = document.getElementById('cartBuyerDetails').value.trim();
             if(!details) {
                 alert(' الرجاء إدخال المعلومات المطلوبة');
                 return;
             }
-            
             if(pendingCartItem) {
                 submitAddToCart(pendingCartItem.productId, pendingCartItem.productName, details);
                 closeCartInputModal();
             }
         }
-        
         async function submitAddToCart(productId, productName, buyerDetails) {
             try {
                 const response = await fetch('/api/cart/add', {
@@ -3589,11 +3125,8 @@
                     })
                 });
                 const data = await response.json();
-                
                 if(data.status === 'success') {
-                    // تحديث عداد السلة
                     updateCartBadge(data.cart_count);
-                    // إظهار رسالة نجاح
                     showCartToast(' تمت إضافة "' + productName + '" للسلة');
                 } else {
                     alert(' ' + (data.message || 'حدث خطأ'));
@@ -3603,7 +3136,6 @@
                 alert(' حدث خطأ في الاتصال');
             }
         }
-        
         function updateCartBadge(count) {
             const badge = document.getElementById('cartBadge');
             if(badge) {
@@ -3615,9 +3147,7 @@
                 }
             }
         }
-        
         function showCartToast(message) {
-            // إنشاء توست مؤقت
             let toast = document.getElementById('cartToast');
             if(!toast) {
                 toast = document.createElement('div');
@@ -3629,8 +3159,6 @@
             toast.style.opacity = '1';
             setTimeout(() => { toast.style.opacity = '0'; }, 3000);
         }
-        
-        // تحميل عدد السلة عند فتح الصفحة
         async function loadCartCount() {
             if(!currentUserId || currentUserId == 0) return;
             try {
@@ -3639,13 +3167,10 @@
                 updateCartBadge(data.count || 0);
             } catch(e) {}
         }
-        
         window.addEventListener('DOMContentLoaded', function() {
             loadCartCount();
         });
     </script>
-    
-    <!-- شريط الملاحة السفلي العائم -->
     <div class="floating-bottom-nav">
         <div class="floating-nav-item active" data-action="home">
             <div class="floating-nav-icon"></div>
@@ -3671,28 +3196,20 @@
             <div class="nav-balance" id="navBalance">{{ balance }} ر.س</div>
         </div>
     </div>
-    
-    <!--  حماية من الفحص -->
     <script>
-        // تعطيل الزر الأيمن
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
             return false;
         });
-        
-        // تعطيل اختصارات DevTools
         document.addEventListener('keydown', function(e) {
-            // F12
             if (e.key === 'F12') {
                 e.preventDefault();
                 return false;
             }
-            // Ctrl+Shift+I / Ctrl+Shift+J / Ctrl+Shift+C
             if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
                 e.preventDefault();
                 return false;
             }
-            // Ctrl+U (عرض المصدر)
             if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
                 e.preventDefault();
                 return false;

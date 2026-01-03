@@ -11,7 +11,6 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
         body {
             font-family: 'Tajawal', sans-serif;
             background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
@@ -19,8 +18,6 @@
             min-height: 100vh;
             padding-top: 70px;
         }
-        
-        /* الهيدر الرئيسي */
         .main-header {
             position: fixed;
             top: 0;
@@ -36,19 +33,16 @@
             z-index: 999;
             box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
         }
-        
         .header-right {
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        
         .header-center {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
         }
-        
         .header-logo {
             font-size: 22px;
             font-weight: bold;
@@ -57,17 +51,14 @@
             align-items: center;
             gap: 8px;
         }
-        
         .header-logo img {
             height: 35px;
             width: auto;
         }
-        
         .header-left {
             display: flex;
             align-items: center;
         }
-        
         .header-btn {
             background: rgba(108, 92, 231, 0.2);
             border: 1px solid rgba(108, 92, 231, 0.4);
@@ -82,25 +73,21 @@
             transition: all 0.3s;
             font-size: 18px;
         }
-        
         .header-btn:hover {
             background: rgba(108, 92, 231, 0.4);
             border-color: #6c5ce7;
             transform: scale(1.05);
         }
-        
         .header-btn.account-btn {
             width: auto;
             padding: 0 12px;
             gap: 6px;
             font-size: 14px;
         }
-        
         .menu-btn {
             flex-direction: column;
             gap: 4px;
         }
-        
         .menu-btn span {
             width: 18px;
             height: 2px;
@@ -108,8 +95,6 @@
             border-radius: 2px;
             transition: all 0.3s;
         }
-        
-        /* القائمة الجانبية */
         .side-menu-overlay {
             display: none;
             position: fixed;
@@ -120,11 +105,9 @@
             background: rgba(0, 0, 0, 0.6);
             z-index: 1000;
         }
-        
         .side-menu-overlay.show {
             display: block;
         }
-        
         .side-menu {
             position: fixed;
             top: 0;
@@ -137,11 +120,9 @@
             overflow-y: auto;
             border-right: 1px solid rgba(108, 92, 231, 0.3);
         }
-        
         .side-menu.show {
             left: 0;
         }
-        
         .side-menu-header {
             padding: 20px;
             border-bottom: 1px solid rgba(108, 92, 231, 0.3);
@@ -149,12 +130,10 @@
             justify-content: space-between;
             align-items: center;
         }
-        
         .side-menu-header h3 {
             color: #fff;
             font-size: 18px;
         }
-        
         .close-menu-btn {
             background: none;
             border: none;
@@ -162,11 +141,9 @@
             font-size: 24px;
             cursor: pointer;
         }
-        
         .side-menu-content {
             padding: 15px;
         }
-        
         .menu-item {
             display: flex;
             align-items: center;
@@ -178,24 +155,19 @@
             margin-bottom: 5px;
             transition: all 0.3s;
         }
-        
         .menu-item:hover {
             background: rgba(108, 92, 231, 0.2);
         }
-        
         .menu-item i {
             font-size: 20px;
             width: 25px;
             text-align: center;
         }
-        
         .menu-divider {
             height: 1px;
             background: rgba(108, 92, 231, 0.2);
             margin: 15px 0;
         }
-        
-        /* مربع البحث */
         .search-overlay {
             display: none;
             position: fixed;
@@ -207,28 +179,23 @@
             z-index: 1002;
             padding: 20px;
         }
-        
         .search-overlay.show {
             display: block;
         }
-        
         .search-container {
             max-width: 600px;
             margin: 80px auto 0;
         }
-        
         .search-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
-        
         .search-header h3 {
             color: #fff;
             font-size: 20px;
         }
-        
         .close-search-btn {
             background: none;
             border: none;
@@ -236,11 +203,9 @@
             font-size: 28px;
             cursor: pointer;
         }
-        
         .search-input-wrapper {
             position: relative;
         }
-        
         .search-input {
             width: 100%;
             padding: 15px 50px 15px 20px;
@@ -251,16 +216,13 @@
             font-size: 16px;
             font-family: 'Tajawal', sans-serif;
         }
-        
         .search-input:focus {
             outline: none;
             border-color: #6c5ce7;
         }
-        
         .search-input::placeholder {
             color: #888;
         }
-        
         .search-icon {
             position: absolute;
             left: 15px;
@@ -269,13 +231,11 @@
             color: #6c5ce7;
             font-size: 20px;
         }
-        
         .search-results {
             margin-top: 20px;
             max-height: 400px;
             overflow-y: auto;
         }
-        
         .search-result-item {
             display: flex;
             align-items: center;
@@ -287,26 +247,20 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        
         .search-result-item:hover {
             background: rgba(108, 92, 231, 0.2);
         }
-        
-        /* المحتوى الرئيسي */
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 30px 20px;
         }
-        
-        /* شبكة الفئات - 3×3 */
         .categories-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 20px;
             margin-bottom: 40px;
         }
-        
         .category-card {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             border: 2px solid rgba(108, 92, 231, 0.3);
@@ -318,13 +272,11 @@
             flex-direction: column;
             height: 100%;
         }
-        
         .category-card:hover {
             border-color: #6c5ce7;
             transform: translateY(-8px);
             box-shadow: 0 16px 40px rgba(108, 92, 231, 0.3);
         }
-        
         .category-image {
             width: 100%;
             height: 200px;
@@ -335,13 +287,11 @@
             font-size: 64px;
             overflow: hidden;
         }
-        
         .category-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
-        
         .category-content {
             padding: 20px;
             flex: 1;
@@ -349,63 +299,51 @@
             flex-direction: column;
             justify-content: space-between;
         }
-        
         .category-name {
             font-size: 20px;
             font-weight: bold;
             margin-bottom: 8px;
             color: #fff;
         }
-        
         .category-info {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-top: auto;
         }
-        
         .products-count {
             font-size: 14px;
             color: #888;
         }
-        
         .products-count .count {
             color: #6c5ce7;
             font-weight: bold;
         }
-        
         .arrow {
             color: #6c5ce7;
             font-size: 18px;
             transition: all 0.3s;
         }
-        
         .category-card:hover .arrow {
             transform: translateX(8px);
         }
-        
-        /* الحالة الفارغة */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
         }
-        
         .empty-state-icon {
             font-size: 64px;
             margin-bottom: 20px;
         }
-        
         .empty-state h2 {
             font-size: 24px;
             margin-bottom: 10px;
             color: #888;
         }
-        
         .empty-state p {
             color: #555;
             margin-bottom: 30px;
         }
-        
         .empty-state-btn {
             background: #6c5ce7;
             color: white;
@@ -417,13 +355,10 @@
             font-family: 'Tajawal', sans-serif;
             transition: all 0.3s;
         }
-        
         .empty-state-btn:hover {
             background: #5f3dc4;
             transform: scale(1.05);
         }
-        
-        /* التذييل */
         .footer {
             text-align: center;
             padding: 20px;
@@ -431,78 +366,60 @@
             border-top: 1px solid rgba(108, 92, 231, 0.2);
             margin-top: 40px;
         }
-        
         @media (max-width: 768px) {
-            /* شبكة 3×3 في الجوال */
             .categories-grid {
                 grid-template-columns: repeat(3, 1fr);
                 gap: 12px;
             }
-            
             .category-card {
                 min-height: auto;
             }
-            
             .category-image {
                 height: 120px;
                 font-size: 48px;
             }
-            
             .category-content {
                 padding: 12px;
             }
-            
             .category-name {
                 font-size: 13px;
                 margin-bottom: 6px;
             }
-            
             .products-count {
                 font-size: 11px;
             }
-            
             .header-right {
                 width: 100%;
                 justify-content: space-between;
             }
         }
-        
         @media (max-width: 480px) {
-            /* شبكة 3×3 في الهواتف الصغيرة */
             .categories-grid {
                 grid-template-columns: repeat(3, 1fr);
                 gap: 8px;
             }
-            
             .category-image {
                 height: 100px;
                 font-size: 40px;
             }
-            
             .category-content {
                 padding: 8px;
             }
-            
             .category-name {
                 font-size: 12px;
                 margin-bottom: 4px;
             }
-            
             .category-card {
                 border-radius: 12px;
             }
-            
-            /* الهيدر في الجوال الصغير */
             .header-btn.account-btn {
                 padding: 0;
                 width: 40px;
                 font-size: 18px;
             }
-            
             .header-btn.account-btn span:last-child {
                 display: none;
             }
-            
             .header-logo {
                 font-size: 18px;
             }
@@ -510,9 +427,7 @@
     </style>
 </head>
 <body data-logged-in="{{ 'true' if is_logged_in else 'false' }}">
-    <!-- الهيدر الرئيسي -->
     <header class="main-header">
-        <!-- يمين الشاشة: البحث وحسابي -->
         <div class="header-right">
             <button class="header-btn" onclick="openSearch()" title="بحث">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -522,15 +437,11 @@
                 <span id="headerAccountText">حسابي</span>
             </button>
         </div>
-        
-        <!-- وسط: الشعار -->
         <div class="header-center">
             <div class="header-logo">
                 المتجر
             </div>
         </div>
-        
-        <!-- يسار الشاشة: القائمة -->
         <div class="header-left">
             <button class="header-btn menu-btn" onclick="openSideMenu()" title="القائمة">
                 <span></span>
@@ -539,8 +450,6 @@
             </button>
         </div>
     </header>
-    
-    <!-- القائمة الجانبية -->
     <div class="side-menu-overlay" id="sideMenuOverlay" onclick="closeSideMenu()"></div>
     <div class="side-menu" id="sideMenu">
         <div class="side-menu-header">
@@ -574,8 +483,6 @@
             </div>
         </div>
     </div>
-    
-    <!-- صندوق البحث -->
     <div class="search-overlay" id="searchOverlay">
         <div class="search-container">
             <div class="search-header">
@@ -586,15 +493,10 @@
                 <input type="text" class="search-input" id="searchInput" placeholder="ابحث عن منتج أو فئة..." oninput="handleSearch(this.value)">
             </div>
             <div class="search-results" id="searchResults">
-                <!-- نتائج البحث ستظهر هنا -->
             </div>
         </div>
     </div>
-
-    <!-- المحتوى الرئيسي -->
     <div class="container">
-        
-        <!-- تبويبات نوع التسليم -->
         <div style="background: linear-gradient(135deg, #6c5ce7, #a29bfe); padding: 15px; border-radius: 15px; margin-bottom: 25px; display: flex; gap: 10px;">
             <button id="btn-instant" onclick="filterDelivery('instant')" style="flex: 1; padding: 12px; border: none; border-radius: 10px; background: white; color: #6c5ce7; font-weight: bold; cursor: pointer;">
                  فوري
@@ -603,7 +505,6 @@
                 👨‍💼 يدوي
             </button>
         </div>
-
         {% if categories %}
         <div class="categories-grid" id="categoriesGrid">
             {% for category in categories %}
@@ -612,7 +513,6 @@
                     {% if category.image_url %}
                     <img src="{{ category.image_url }}" alt="{{ category.name }}">
                     {% else %}
-                    
                     {% endif %}
                 </div>
                 <div class="category-content">
@@ -635,77 +535,57 @@
         </div>
         {% endif %}
     </div>
-    
-    <!-- التذييل -->
     <div class="footer">
         <p>© 2025 متجر رقمي. جميع الحقوق محفوظة</p>
     </div>
-    
-    <!-- Modal الدخول -->
     <div id="loginModal" class="login-modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeLoginModal()">&times;</span>
-            
-            <!-- الخطوة 1: إدخال Telegram ID أو البريد -->
             <div id="step1" class="step active">
                 <div class="modal-header">
                     <div class="modal-icon"></div>
                     <h2>دخول المتجر</h2>
                     <p id="loginSubtitle">أدخل رقم Telegram ID الخاص بك</p>
                 </div>
-                
-                <!-- قسم Telegram ID -->
                 <div id="telegramSection" class="login-section active">
                     <form id="userIdForm">
                         <div class="form-group">
                             <label for="userId">🆔 رقم Telegram ID</label>
                             <input type="text" id="userId" placeholder="مثال: 123456789" inputmode="numeric">
                         </div>
-                        
                         <div class="switch-method">
                             <a onclick="switchToEmail()"> التسجيل بالبريد الإلكتروني</a>
                         </div>
-                        
                         <button type="submit" id="sendCodeBtn"> إرسال كود التحقق</button>
                     </form>
                 </div>
-                
-                <!-- قسم البريد الإلكتروني -->
                 <div id="emailSection" class="login-section">
                     <form id="emailForm">
                         <div class="form-group">
                             <label for="loginEmail"> البريد الإلكتروني</label>
                             <input type="email" id="loginEmail" placeholder="example@email.com" dir="ltr">
                         </div>
-                        
                         <div class="switch-method">
                             <a onclick="switchToTelegram()"> التسجيل بـ Telegram ID</a>
                         </div>
-                        
                         <button type="submit" id="sendCodeEmailBtn"> إرسال كود التحقق</button>
                     </form>
-                    
                     <div class="help-text">
                          يجب أن يكون البريد موثق في حسابك مسبقاً
                     </div>
                 </div>
-                
                 <div id="error1" class="message error"></div>
                 <div class="security-note">
                      سيتم إرسال كود مؤقت عبر البوت للتحقق من هويتك
                 </div>
             </div>
-            
-            <!-- الخطوة 2: إدخال الكود -->
             <div id="step2" class="step">
                 <div class="modal-header">
                     <div class="modal-icon"></div>
                     <h2>كود التحقق</h2>
                     <p>أدخل الكود المرسل لك في Telegram</p>
                 </div>
-                
                 <div class="timer"> <span id="countdown">2:00</span></div>
-                
                 <form id="codeForm">
                     <div class="form-group">
                         <label for="verifyCode"> كود التحقق (6 أرقام)</label>
@@ -714,19 +594,15 @@
                     <button type="submit" id="verifyBtn"> تأكيد الدخول</button>
                     <button type="button" class="back-btn" onclick="goBackStep()"> رجوع</button>
                 </form>
-                
                 <div id="error2" class="message error"></div>
                 <div id="success2" class="message success"></div>
             </div>
-            
-            <!-- الخطوة 3: المصادقة الثنائية -->
             <div id="step3" class="step">
                 <div class="modal-header">
                     <div class="modal-icon"></div>
                     <h2>المصادقة الثنائية</h2>
                     <p>أدخل الكود من Google Authenticator</p>
                 </div>
-                
                 <form id="twoFAForm">
                     <div class="form-group">
                         <label for="twoFACode"> كود المصادقة (6 أرقام)</label>
@@ -735,15 +611,12 @@
                     <button type="submit" id="verify2FABtn"> تأكيد الدخول</button>
                     <button type="button" class="back-btn" onclick="goBackToStep1()"> رجوع للبداية</button>
                 </form>
-                
                 <div id="error3" class="message error"></div>
                 <div id="success3" class="message success"></div>
             </div>
         </div>
     </div>
-    
     <style>
-        /* نمط Modal */
         .login-modal {
             display: none;
             position: fixed;
@@ -755,18 +628,15 @@
             background-color: rgba(0, 0, 0, 0.7);
             animation: fadeIn 0.3s;
         }
-        
         .login-modal.show {
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
-        
         .modal-content {
             background: #0f0f1a;
             border-radius: 20px;
@@ -780,7 +650,6 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
             animation: slideUp 0.3s;
         }
-        
         @keyframes slideUp {
             from { 
                 transform: translateY(50px);
@@ -791,7 +660,6 @@
                 opacity: 1;
             }
         }
-        
         .close-btn {
             position: absolute;
             right: 20px;
@@ -802,53 +670,42 @@
             cursor: pointer;
             transition: color 0.3s;
         }
-        
         .close-btn:hover {
             color: #ff6b6b;
         }
-        
         .modal-header {
             text-align: center;
             margin-bottom: 30px;
         }
-        
         .modal-icon {
             font-size: 48px;
             margin-bottom: 10px;
         }
-        
         .modal-header h2 {
             color: #6c5ce7;
             font-size: 24px;
             margin-bottom: 8px;
         }
-        
         .modal-header p {
             color: #aaa;
             font-size: 14px;
         }
-        
         .step {
             display: none;
         }
-        
         .step.active {
             display: block;
         }
-        
         .login-section {
             display: none;
         }
-        
         .login-section.active {
             display: block;
         }
-        
         .switch-method {
             text-align: center;
             margin: 15px 0;
         }
-        
         .switch-method a {
             color: #6c5ce7;
             text-decoration: none;
@@ -856,30 +713,25 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
-        
         .switch-method a:hover {
             color: #a8b8f5;
             text-decoration: underline;
         }
-        
         .help-text {
             color: #888;
             font-size: 12px;
             margin-top: 10px;
             text-align: center;
         }
-        
         .form-group {
             margin-bottom: 20px;
         }
-        
         .form-group label {
             display: block;
             margin-bottom: 8px;
             color: #bbb;
             font-size: 14px;
         }
-        
         .form-group input {
             width: 100%;
             padding: 12px;
@@ -891,20 +743,17 @@
             text-align: right;
             transition: all 0.3s;
         }
-        
         .form-group input:focus {
             outline: none;
             border-color: #6c5ce7;
             box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
         }
-        
         .code-input {
             letter-spacing: 8px;
             font-size: 24px;
             font-weight: bold;
             text-align: center;
         }
-        
         .modal-content button {
             width: 100%;
             padding: 12px;
@@ -918,25 +767,20 @@
             transition: all 0.3s;
             margin-top: 10px;
         }
-        
         .modal-content button:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
         }
-        
         .modal-content button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
-        
         .back-btn {
             background: #333 !important;
         }
-        
         .back-btn:hover:not(:disabled) {
             background: #444 !important;
         }
-        
         .timer {
             color: #e74c3c;
             font-weight: bold;
@@ -944,7 +788,6 @@
             margin: 15px 0;
             font-size: 18px;
         }
-        
         .security-note {
             background: rgba(108, 92, 231, 0.1);
             border: 1px solid rgba(108, 92, 231, 0.3);
@@ -955,7 +798,6 @@
             margin-top: 15px;
             text-align: center;
         }
-        
         .message {
             padding: 12px;
             border-radius: 8px;
@@ -964,26 +806,21 @@
             text-align: center;
             display: none;
         }
-        
         .message.error {
             background: rgba(231, 76, 60, 0.1);
             color: #e74c3c;
             border: 1px solid rgba(231, 76, 60, 0.3);
         }
-        
         .message.success {
             background: rgba(39, 174, 96, 0.1);
             color: #27ae60;
             border: 1px solid rgba(39, 174, 96, 0.3);
         }
     </style>
-    
     <script>
         let countdownInterval;
         let secondsLeft = 120;
         let currentUserId = '';
-        
-        // فتح Modal الدخول
         function openLoginModal() {
             document.getElementById('loginModal').classList.add('show');
             document.getElementById('step1').classList.add('active');
@@ -991,15 +828,11 @@
             document.getElementById('userId').focus();
             resetForm();
         }
-        
-        // إغلاق Modal الدخول
         function closeLoginModal() {
             document.getElementById('loginModal').classList.remove('show');
             clearInterval(countdownInterval);
             resetForm();
         }
-        
-        // دالة تسجيل الخروج
         async function logout() {
             if (confirm('هل تريد تسجيل الخروج؟')) {
                 try {
@@ -1013,8 +846,6 @@
                 }
             }
         }
-        
-        // إعادة تعيين النموذج
         function resetForm() {
             document.getElementById('userId').value = '';
             document.getElementById('loginEmail').value = '';
@@ -1028,13 +859,10 @@
             document.getElementById('sendCodeEmailBtn').innerHTML = ' إرسال كود التحقق';
             document.getElementById('verifyBtn').disabled = false;
             document.getElementById('verifyBtn').innerHTML = ' تأكيد الدخول';
-            // إعادة تعيين للقسم الافتراضي
             document.getElementById('telegramSection').classList.add('active');
             document.getElementById('emailSection').classList.remove('active');
             document.getElementById('loginSubtitle').textContent = 'أدخل رقم Telegram ID الخاص بك';
         }
-        
-        // التبديل للبريد الإلكتروني
         function switchToEmail() {
             document.getElementById('telegramSection').classList.remove('active');
             document.getElementById('emailSection').classList.add('active');
@@ -1042,8 +870,6 @@
             document.getElementById('error1').style.display = 'none';
             document.getElementById('loginEmail').focus();
         }
-        
-        // التبديل للـ Telegram
         function switchToTelegram() {
             document.getElementById('emailSection').classList.remove('active');
             document.getElementById('telegramSection').classList.add('active');
@@ -1051,34 +877,27 @@
             document.getElementById('error1').style.display = 'none';
             document.getElementById('userId').focus();
         }
-        
-        // الخطوة 1: إرسال Telegram ID
         document.getElementById('userIdForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const userId = document.getElementById('userId').value.trim();
             const btn = document.getElementById('sendCodeBtn');
             const errorDiv = document.getElementById('error1');
-            
             if (!userId || !userId.match(/^\d+$/)) {
                 errorDiv.textContent = ' الرجاء إدخال رقم صحيح فقط';
                 errorDiv.style.display = 'block';
                 return;
             }
-            
             currentUserId = userId;
             btn.disabled = true;
             btn.innerHTML = ' جاري الإرسال...';
             errorDiv.style.display = 'none';
-            
             try {
                 const response = await fetch('/api/send_code', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user_id: userId })
                 });
-                
                 const data = await response.json();
-                
                 if (data.success) {
                     document.getElementById('step1').classList.remove('active');
                     document.getElementById('step2').classList.add('active');
@@ -1097,33 +916,26 @@
                 btn.innerHTML = ' إرسال كود التحقق';
             }
         });
-        
-        // إرسال كود عبر البريد الإلكتروني
         document.getElementById('emailForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value.trim();
             const btn = document.getElementById('sendCodeEmailBtn');
             const errorDiv = document.getElementById('error1');
-            
             if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
                 errorDiv.textContent = ' الرجاء إدخال بريد إلكتروني صحيح';
                 errorDiv.style.display = 'block';
                 return;
             }
-            
             btn.disabled = true;
             btn.innerHTML = ' جاري البحث...';
             errorDiv.style.display = 'none';
-            
             try {
                 const response = await fetch('/api/send_code_by_email', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: email })
                 });
-                
                 const data = await response.json();
-                
                 if (data.success) {
                     currentUserId = data.user_id;
                     document.getElementById('step1').classList.remove('active');
@@ -1143,26 +955,21 @@
                 btn.innerHTML = ' إرسال كود التحقق';
             }
         });
-        
-        // الخطوة 2: التحقق من الكود
         document.getElementById('codeForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const code = document.getElementById('verifyCode').value.trim();
             const btn = document.getElementById('verifyBtn');
             const errorDiv = document.getElementById('error2');
             const successDiv = document.getElementById('success2');
-            
             if (!code || code.length !== 6 || !code.match(/^\d{6}$/)) {
                 errorDiv.textContent = ' الرجاء إدخال 6 أرقام صحيحة';
                 errorDiv.style.display = 'block';
                 return;
             }
-            
             btn.disabled = true;
             btn.innerHTML = ' جاري التحقق...';
             errorDiv.style.display = 'none';
             successDiv.style.display = 'none';
-            
             try {
                 const response = await fetch('/verify', {
                     method: 'POST',
@@ -1172,11 +979,8 @@
                         code: code 
                     })
                 });
-                
                 const data = await response.json();
-                
                 if (data.success) {
-                    // التحقق من طلب المصادقة الثنائية
                     if (data.requires_2fa) {
                         successDiv.textContent = ' مطلوب كود المصادقة الثنائية';
                         successDiv.style.display = 'block';
@@ -1207,16 +1011,12 @@
                 btn.innerHTML = ' تأكيد الدخول';
             }
         });
-        
-        // العد التنازلي
         function startCountdown() {
             secondsLeft = 120;
             updateCountdown();
-            
             countdownInterval = setInterval(() => {
                 secondsLeft--;
                 updateCountdown();
-                
                 if (secondsLeft <= 0) {
                     clearInterval(countdownInterval);
                     document.getElementById('error2').textContent = ' انتهت صلاحية الكود! الرجاء المحاولة مجدداً';
@@ -1225,14 +1025,11 @@
                 }
             }, 1000);
         }
-        
         function updateCountdown() {
             const minutes = Math.floor(secondsLeft / 60);
             const seconds = secondsLeft % 60;
             document.getElementById('countdown').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
         }
-        
-        // الرجوع للخطوة 1
         function goBackStep() {
             clearInterval(countdownInterval);
             document.getElementById('step2').classList.remove('active');
@@ -1248,8 +1045,6 @@
             document.getElementById('sendCodeEmailBtn').disabled = false;
             document.getElementById('sendCodeEmailBtn').innerHTML = ' إرسال كود التحقق';
         }
-        
-        // الرجوع للخطوة 1 من 2FA
         function goBackToStep1() {
             document.getElementById('step3').classList.remove('active');
             document.getElementById('step1').classList.add('active');
@@ -1265,35 +1060,28 @@
             document.getElementById('sendCodeEmailBtn').disabled = false;
             document.getElementById('sendCodeEmailBtn').innerHTML = ' إرسال كود التحقق';
         }
-        
-        // الخطوة 3: التحقق من المصادقة الثنائية
         document.getElementById('twoFAForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const totpCode = document.getElementById('twoFACode').value.trim();
             const btn = document.getElementById('verify2FABtn');
             const errorDiv = document.getElementById('error3');
             const successDiv = document.getElementById('success3');
-            
             if (!totpCode || totpCode.length !== 6 || !totpCode.match(/^\d{6}$/)) {
                 errorDiv.textContent = ' الرجاء إدخال 6 أرقام صحيحة';
                 errorDiv.style.display = 'block';
                 return;
             }
-            
             btn.disabled = true;
             btn.innerHTML = ' جاري التحقق...';
             errorDiv.style.display = 'none';
             successDiv.style.display = 'none';
-            
             try {
                 const response = await fetch('/verify_2fa_login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ totp_code: totpCode })
                 });
-                
                 const data = await response.json();
-                
                 if (data.success) {
                     successDiv.textContent = ' تم التحقق! جاري نقلك...';
                     successDiv.style.display = 'block';
@@ -1313,28 +1101,20 @@
                 btn.innerHTML = ' تأكيد الدخول';
             }
         });
-        
-        // السماح بأرقام فقط
         document.getElementById('userId').addEventListener('input', function(e) {
             this.value = this.value.replace(/[^0-9]/g, '');
         });
-        
         document.getElementById('verifyCode').addEventListener('input', function(e) {
             this.value = this.value.replace(/[^0-9]/g, '');
         });
-        
         document.getElementById('twoFACode').addEventListener('input', function(e) {
             this.value = this.value.replace(/[^0-9]/g, '');
         });
-        
-        // إغلاق Modal عند الضغط على الخلفية
         document.getElementById('loginModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeLoginModal();
             }
         });
-
-        // إعداد بيانات الفئات للـ sidebar
         (function() {
             var jsonStr = '{{ categories_json|safe }}';
             try {
@@ -1343,17 +1123,12 @@
                 window.categoriesData = [];
             }
         })();
-
-        // دوال التصفية والترتيب
-        let currentFilter = 'instant'; // الافتراضي فوري
-        
+        let currentFilter = 'instant';
         function filterDelivery(type) {
             currentFilter = type;
             const cards = document.querySelectorAll('.category-card');
             const btnInstant = document.getElementById('btn-instant');
             const btnManual = document.getElementById('btn-manual');
-            
-            // تحديث مظهر الأزرار
             if (type === 'instant') {
                 btnInstant.style.background = 'white';
                 btnInstant.style.color = '#6c5ce7';
@@ -1365,8 +1140,6 @@
                 btnInstant.style.background = 'rgba(255,255,255,0.2)';
                 btnInstant.style.color = 'white';
             }
-            
-            // فلترة البطاقات
             let visibleCount = 0;
             cards.forEach(card => {
                 const deliveryType = card.dataset.deliveryType || 'instant';
@@ -1377,11 +1150,8 @@
                     card.style.display = 'none';
                 }
             });
-            
-            // إظهار رسالة إذا لا توجد فئات
             const grid = document.getElementById('categoriesGrid');
             let emptyMsg = document.getElementById('emptyFilterMsg');
-            
             if (visibleCount === 0) {
                 if (!emptyMsg) {
                     emptyMsg = document.createElement('div');
@@ -1394,59 +1164,40 @@
             } else if (emptyMsg) {
                 emptyMsg.style.display = 'none';
             }
-            
             console.log('تصفية حسب:', type, '- عدد الفئات:', visibleCount);
         }
-        
-        // تشغيل الفلتر الافتراضي عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', function() {
             filterDelivery('instant');
         });
-        
-        // ====== دوال الهيدر والقائمة والبحث ======
-        
-        // فتح القائمة الجانبية
         function openSideMenu() {
             document.getElementById('sideMenu').classList.add('show');
             document.getElementById('sideMenuOverlay').classList.add('show');
             document.body.style.overflow = 'hidden';
         }
-        
-        // إغلاق القائمة الجانبية
         function closeSideMenu() {
             document.getElementById('sideMenu').classList.remove('show');
             document.getElementById('sideMenuOverlay').classList.remove('show');
             document.body.style.overflow = '';
         }
-        
-        // فتح صندوق البحث
         function openSearch() {
             document.getElementById('searchOverlay').classList.add('show');
             document.getElementById('searchInput').focus();
             document.body.style.overflow = 'hidden';
         }
-        
-        // إغلاق صندوق البحث
         function closeSearch() {
             document.getElementById('searchOverlay').classList.remove('show');
             document.getElementById('searchInput').value = '';
             document.getElementById('searchResults').innerHTML = '';
             document.body.style.overflow = '';
         }
-        
-        // التعامل مع البحث
         function handleSearch(query) {
             const resultsContainer = document.getElementById('searchResults');
-            
             if (query.length < 2) {
                 resultsContainer.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">اكتب كلمتين على الأقل للبحث...</p>';
                 return;
             }
-            
-            // البحث في الفئات الموجودة في الصفحة
             const cards = document.querySelectorAll('.category-card');
             let results = [];
-            
             cards.forEach(card => {
                 const name = card.querySelector('.category-name').textContent.toLowerCase();
                 if (name.includes(query.toLowerCase())) {
@@ -1457,12 +1208,10 @@
                     });
                 }
             });
-            
             if (results.length === 0) {
                 resultsContainer.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">لا توجد نتائج لـ "' + query + '"</p>';
                 return;
             }
-            
             let html = '';
             results.forEach(item => {
                 html += `
@@ -1475,53 +1224,36 @@
                     </div>
                 `;
             });
-            
             resultsContainer.innerHTML = html;
         }
-        
-        // إغلاق بالضغط على Escape
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeSearch();
                 closeSideMenu();
             }
         });
-        
-        // ====== دالة الذهاب للصفحة أو تسجيل الدخول ======
-        // تحقق من حالة التسجيل من both data attribute و localStorage
         var isLoggedIn = document.body.getAttribute('data-logged-in') === 'true' || 
                          localStorage.getItem('user_logged_in') === 'true';
         var pendingRedirect = null;
-        
         function goToPageOrLogin(url, pageName) {
             closeSideMenu();
-            
             if (isLoggedIn) {
-                // المستخدم مسجل دخوله - انتقل للصفحة
                 window.location.href = url;
             } else {
-                // المستخدم غير مسجل - احفظ الرابط وافتح نافذة الدخول مباشرة
                 pendingRedirect = url;
                 openLoginModal();
             }
         }
-        
-        // فتح بوت تيليجرام
         var botUsername = '{{ bot_username | default("") }}';
         function openTelegramBot() {
             var username = botUsername || 'your_bot';
             window.open('https://t.me/' + username, '_blank');
         }
-        
-        // تعديل دالة نجاح تسجيل الدخول للتوجيه بعد النجاح
         var originalLoginSuccess = window.onLoginSuccess;
         window.onLoginSuccess = function() {
             if (originalLoginSuccess) originalLoginSuccess();
-            
-            // احفظ حالة التسجيل في localStorage
             localStorage.setItem('user_logged_in', 'true');
             isLoggedIn = true;
-            
             if (pendingRedirect) {
                 window.location.href = pendingRedirect;
                 pendingRedirect = null;
@@ -1529,20 +1261,14 @@
                 window.location.reload();
             }
         };
-        
-        // دالة معالجة نقر زر حسابي
         function handleAccountClick() {
             if (isLoggedIn) {
-                // إذا كان المستخدم مسجل دخول، اذهب لصفحة الحساب
                 window.location.href = '/profile';
             } else {
-                // وإلا فتح نافذة تسجيل الدخول
                 openLoginModal();
             }
             closeSideMenu();
         }
-        
-        // عرض قائمة تسجيل الخروج
         function showLogoutMenu() {
             var accountItem = document.getElementById('accountMenuItem');
             var menu = document.createElement('div');
@@ -1556,8 +1282,6 @@
                 </div>
             `;
             document.body.appendChild(menu);
-            
-            // أغلق القائمة عند النقر خارجها
             setTimeout(() => {
                 document.addEventListener('click', function closeMenu(e) {
                     if (e.target !== accountItem && !menu.contains(e.target)) {
@@ -1567,17 +1291,11 @@
                 });
             }, 0);
         }
-        
-        // تحديث عنصر حسابي عند تحميل الصفحة
         function updateAccountMenuOnLoad() {
-            // تحديث القائمة الجانبية
             var accountIcon = document.getElementById('accountIcon');
             var accountText = document.getElementById('accountText');
-            
-            // تحديث الهيدر
             var headerAccountIcon = document.getElementById('headerAccountIcon');
             var headerAccountText = document.getElementById('headerAccountText');
-            
             if (isLoggedIn) {
                 if (accountIcon) accountIcon.textContent = '';
                 if (accountText) accountText.textContent = 'حسابي (مسجل)';
@@ -1585,8 +1303,6 @@
                 if (headerAccountText) headerAccountText.textContent = 'حسابي';
             }
         }
-        
-        // استدعاء الدالة عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', updateAccountMenuOnLoad);
     </script>
 </body>

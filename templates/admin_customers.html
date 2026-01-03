@@ -1,7 +1,5 @@
 {% extends "admin_base.html" %}
-
 {% block title %}العملاء - لوحة التحكم{% endblock %}
-
 {% block content %}
 <div class="top-bar">
     <h1> إدارة العملاء</h1>
@@ -9,8 +7,6 @@
         <button class="btn btn-secondary" onclick="loadCustomers()"> تحديث</button>
     </div>
 </div>
-
-<!-- الإحصائيات -->
 <div class="stats-grid">
     <div class="stat-card">
         <div class="icon"></div>
@@ -33,8 +29,6 @@
         <div class="label">إجمالي المشتريات</div>
     </div>
 </div>
-
-<!-- البحث -->
 <div class="card">
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
         <input type="text" id="searchInput" placeholder=" البحث بالاسم أو ID..." 
@@ -48,8 +42,6 @@
         <button class="btn btn-primary" onclick="loadCustomers()">بحث</button>
     </div>
 </div>
-
-<!-- جدول العملاء -->
 <div class="card">
     <div class="card-header">
         <span class="card-title"> قائمة العملاء</span>
@@ -77,32 +69,25 @@
         </table>
     </div>
 </div>
-
-<!-- Modal تفاصيل العميل -->
 <div id="customerModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto;">
     <div style="max-width: 800px; margin: 40px auto; padding: 20px;">
         <div class="card" style="position: relative;">
             <button onclick="closeModal()" style="position: absolute; left: 15px; top: 15px; background: none; border: none; color: white; font-size: 24px; cursor: pointer;">✕</button>
             <div id="customerDetails">
-                <!-- سيتم تحميله ديناميكياً -->
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script>
     let allCustomers = [];
-
     async function loadCustomers() {
         const tbody = document.getElementById('customersTable');
         tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
-        
         try {
             const res = await fetch('/api/admin/get_customers');
             const data = await res.json();
-            
             if (data.status === 'success') {
                 allCustomers = data.customers;
                 updateStats(data.stats);
@@ -114,26 +99,21 @@
             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #e74c3c;"> خطأ في الاتصال</td></tr>';
         }
     }
-
     function updateStats(stats) {
         document.getElementById('totalCustomers').textContent = stats.total_customers || 0;
         document.getElementById('totalBalance').textContent = (stats.total_balance || 0).toFixed(2) + ' ر.س';
         document.getElementById('totalOrders').textContent = stats.total_orders || 0;
         document.getElementById('totalSpent').textContent = (stats.total_spent || 0).toFixed(2) + ' ر.س';
     }
-
     function renderCustomers() {
         const tbody = document.getElementById('customersTable');
         const search = document.getElementById('searchInput').value.toLowerCase();
         const sortBy = document.getElementById('sortBy').value;
-        
         let filtered = allCustomers.filter(c => {
             const name = (c.name || c.username || c.first_name || '').toLowerCase();
             const id = (c.user_id || c.id || '').toString();
             return name.includes(search) || id.includes(search);
         });
-        
-        // Sort
         filtered.sort((a, b) => {
             switch (sortBy) {
                 case 'balance_desc': return (b.balance || 0) - (a.balance || 0);
@@ -143,14 +123,11 @@
                 default: return 0;
             }
         });
-        
         document.getElementById('customersCountLabel').textContent = `${filtered.length} عميل`;
-        
         if (filtered.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--muted);">لا يوجد عملاء</td></tr>';
             return;
         }
-        
         tbody.innerHTML = filtered.map(c => {
             const name = c.name || c.username || c.first_name || 'بدون اسم';
             const userId = c.user_id || c.id || '-';
@@ -158,7 +135,6 @@
             const orders = c.orders_count || 0;
             const spent = (c.total_spent || 0).toFixed(2);
             const lastActivity = c.last_activity ? new Date(c.last_activity).toLocaleDateString('ar-SA') : '-';
-            
             return `
                 <tr>
                     <td>
@@ -192,28 +168,19 @@
             `;
         }).join('');
     }
-
     async function viewCustomer(userId) {
         const modal = document.getElementById('customerModal');
         const details = document.getElementById('customerDetails');
-        
         modal.style.display = 'block';
         details.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto;"></div></div>';
-        
         try {
-            // جلب بيانات العميل
             const res = await fetch(`/api/admin/get_customer_details?user_id=${userId}`);
             const data = await res.json();
-            
-            // جلب سجل الشحنات
             const historyRes = await fetch(`/api/admin/get_user_history?user_id=${userId}`);
             const historyData = await historyRes.json();
-            
             if (data.status === 'success') {
                 const c = data.customer;
                 const name = c.name || c.username || c.first_name || 'بدون اسم';
-                
-                // سجل الشحنات
                 let chargesHtml = '<p style="color: var(--muted);">لا يوجد شحنات مسجلة</p>';
                 if (historyData.status === 'success' && historyData.data.charges && historyData.data.charges.length > 0) {
                     chargesHtml = `
@@ -230,18 +197,16 @@
                                 <tbody>
                                     ${historyData.data.charges.map(ch => {
                                         const now = Date.now() / 1000;
-                                        const waitMinutes = 5; // 5 دقائق للاختبار
+                                        const waitMinutes = 5;
                                         const passed = (now - ch.timestamp) / 60;
                                         const isAvailable = passed >= waitMinutes;
                                         const minutesLeft = Math.ceil(waitMinutes - passed);
-                                        
                                         const methodName = {
                                             'edfapay': ' بطاقة',
                                             'key': ' كود',
                                             'admin': '👨‍💼 أدمن',
                                             'charge': ' كود'
                                         }[ch.method] || ch.method;
-                                        
                                         return `
                                             <tr>
                                                 <td style="font-weight: 600; color: var(--success);">+${ch.amount} ر.س</td>
@@ -261,8 +226,6 @@
                         </div>
                     `;
                 }
-                
-                // طلبات السحب
                 let withdrawalsHtml = '<p style="color: var(--muted);">لا يوجد طلبات سحب</p>';
                 if (historyData.status === 'success' && historyData.data.withdrawals && historyData.data.withdrawals.length > 0) {
                     withdrawalsHtml = `
@@ -294,11 +257,9 @@
                         </div>
                     `;
                 }
-                
                 details.innerHTML = `
                     <h2 style="margin-bottom: 20px;"> ${name}</h2>
                     <p style="color: var(--muted); margin-bottom: 20px;">ID: ${userId}</p>
-                    
                     <div class="stats-grid" style="margin-bottom: 20px;">
                         <div class="stat-card">
                             <div class="icon"></div>
@@ -321,20 +282,14 @@
                             <div class="label">طلبات السحب</div>
                         </div>
                     </div>
-                    
-                    <!-- سجل الشحنات -->
                     <div style="margin-bottom: 20px;">
                         <h3 style="margin-bottom: 10px;"> سجل الشحنات (${historyData.data?.charges?.length || 0})</h3>
                         ${chargesHtml}
                     </div>
-                    
-                    <!-- طلبات السحب -->
                     <div style="margin-bottom: 20px;">
                         <h3 style="margin-bottom: 10px;"> طلبات السحب (${historyData.data?.withdrawals?.length || 0})</h3>
                         ${withdrawalsHtml}
                     </div>
-                    
-                    <!-- الطلبات -->
                     <div style="margin-bottom: 20px;">
                         <h3 style="margin-bottom: 10px;"> الطلبات (${(c.orders || []).length})</h3>
                         ${c.orders && c.orders.length > 0 ? `
@@ -377,15 +332,12 @@
             details.innerHTML = '<p style="color: var(--danger); text-align: center;"> خطأ في الاتصال</p>';
         }
     }
-
     function closeModal() {
         document.getElementById('customerModal').style.display = 'none';
     }
-
     async function addBalance(userId, name) {
         const amount = prompt(` كم تريد إضافة لرصيد ${name}؟`);
         if (!amount || isNaN(amount) || parseFloat(amount) <= 0) return;
-        
         try {
             const res = await fetch('/api/add_balance', {
                 method: 'POST',
@@ -396,7 +348,6 @@
                 })
             });
             const data = await res.json();
-            
             if (data.success) {
                 showToast(` تم إضافة ${amount} ر.س لـ ${name}`);
                 loadCustomers();
@@ -407,12 +358,8 @@
             showToast('خطأ في الاتصال', 'error');
         }
     }
-
-    // Search on input
     document.getElementById('searchInput').addEventListener('input', renderCustomers);
     document.getElementById('sortBy').addEventListener('change', renderCustomers);
-
-    // Load on page load
     loadCustomers();
 </script>
 {% endblock %}

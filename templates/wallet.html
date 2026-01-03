@@ -1,10 +1,7 @@
 {% extends "base.html" %}
-
 {% block title %} محفظتي - المتجر الرقمي{% endblock %}
-
 {% block extra_css %}
 <style>
-    /* بطاقة الرصيد */
     .balance-card {
         background: linear-gradient(135deg, var(--card-bg) 0%, #2d2d44 100%);
         border-radius: 24px;
@@ -44,13 +41,10 @@
         color: var(--text-muted);
         font-size: 16px;
     }
-    
     @keyframes pulse {
         0%, 100% { transform: scale(1); }
         50% { transform: scale(1.01); }
     }
-    
-    /* إحصائيات */
     .stats-row {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -73,8 +67,6 @@
         font-size: 11px;
         color: var(--text-muted);
     }
-    
-    /* قسم البطاقة */
     .section-card {
         background: var(--card-bg);
         border-radius: 20px;
@@ -94,8 +86,6 @@
     .section-title span {
         font-size: 24px;
     }
-    
-    /* حقول الإدخال */
     .form-label {
         display: block;
         color: #dfe6e9;
@@ -123,8 +113,6 @@
         margin-top: 8px;
         text-align: center;
     }
-    
-    /* أزرار المبالغ السريعة */
     .amount-buttons {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -146,8 +134,6 @@
         background: rgba(108, 92, 231, 0.2);
         border-color: var(--primary);
     }
-    
-    /* زر الدفع */
     .pay-btn {
         width: 100%;
         padding: 16px;
@@ -169,8 +155,6 @@
         opacity: 0.5;
         cursor: not-allowed;
     }
-    
-    /* سجل المعاملات */
     .transaction-item {
         display: flex;
         align-items: center;
@@ -224,8 +208,6 @@
     .transaction-amount.expense {
         color: #ff7675;
     }
-    
-    /* رسالة فارغة */
     .empty-transactions {
         text-align: center;
         padding: 40px 20px;
@@ -238,17 +220,13 @@
     }
 </style>
 {% endblock %}
-
 {% block content %}
     <div class="container-sm">
-        <!-- بطاقة الرصيد -->
         <div class="balance-card">
             <div class="balance-label"> رصيدك الحالي</div>
             <div class="balance-amount" id="currentBalance">{{ balance }}</div>
             <div class="balance-currency">ريال سعودي</div>
         </div>
-        
-        <!-- إحصائيات سريعة -->
         <div class="stats-row">
             <div class="stat-card">
                 <div class="stat-value">{{ total_charges }}</div>
@@ -263,16 +241,12 @@
                 <div class="stat-label">المشتريات</div>
             </div>
         </div>
-        
-        <!-- قسم الشحن بالبطاقة -->
         <div class="section-card">
             <div class="section-title">
                 <span></span>
                 شحن رصيدك
             </div>
-            
             <form id="chargeForm" onsubmit="processPayment(event)">
-                <!-- رقم الجوال -->
                 <div style="margin-bottom: 20px;">
                     <label class="form-label"> رقم الجوال</label>
                     <div style="display: flex; gap: 10px; direction: ltr;">
@@ -298,8 +272,6 @@
                                class="form-input" style="flex: 1; text-align: center;">
                     </div>
                 </div>
-                
-                <!-- المبلغ -->
                 <div style="margin-bottom: 20px;">
                     <label class="form-label"> المبلغ المراد شحنه</label>
                     <div style="display: flex; align-items: center; gap: 10px;">
@@ -309,33 +281,25 @@
                     </div>
                     <p class="form-hint">الحد الأدنى: 10 ريال | الحد الأقصى: 5000 ريال</p>
                 </div>
-                
-                <!-- أزرار مبالغ سريعة -->
                 <div class="amount-buttons">
                     <button type="button" class="amount-btn" onclick="setAmount(25)">25</button>
                     <button type="button" class="amount-btn" onclick="setAmount(50)">50</button>
                     <button type="button" class="amount-btn" onclick="setAmount(100)">100</button>
                     <button type="button" class="amount-btn" onclick="setAmount(200)">200</button>
                 </div>
-                
-                <!-- زر الدفع -->
                 <button type="submit" id="payBtn" class="pay-btn">
                      إتمام الدفع
                 </button>
             </form>
-            
             <p style="text-align: center; color: #666; font-size: 12px; margin-top: 15px;">
                  دفع آمن عبر <span style="color: #00cec9;">EdfaPay</span>
             </p>
         </div>
-        
-        <!-- سجل المعاملات -->
         <div class="section-card">
             <div class="section-title">
                 <span>📜</span>
                 سجل المعاملات
             </div>
-            
             {% if transactions %}
                 {% for t in transactions %}
                 <div class="transaction-item">
@@ -362,46 +326,33 @@
         </div>
     </div>
 {% endblock %}
-
 {% block extra_js %}
 <script>
     const userId = '{{ user_id }}';
-    
     function setAmount(amount) {
         document.getElementById('chargeAmount').value = amount;
     }
-    
     async function processPayment(event) {
         event.preventDefault();
-        
         const phone = document.getElementById('phoneNumber').value.trim();
         const countryCode = document.getElementById('countryCode').value;
         const amount = document.getElementById('chargeAmount').value;
         const btn = document.getElementById('payBtn');
-        
-        // التحقق من رقم الجوال
         if(!phone || phone.length < 7) {
             showToast(' الرجاء إدخال رقم جوال صحيح', 'error');
             return;
         }
-        
-        // التحقق من المبلغ
         if(!amount || amount < 10 || amount > 5000) {
             showToast(' المبلغ يجب أن يكون بين 10 و 5000 ريال', 'error');
             return;
         }
-        
-        // إزالة الصفر من البداية
         let cleanPhone = phone;
         if(cleanPhone.startsWith('0')) {
             cleanPhone = cleanPhone.substring(1);
         }
-        
         const fullPhone = countryCode + cleanPhone;
-        
         btn.disabled = true;
         btn.textContent = '⏳ جاري التحويل...';
-        
         try {
             const response = await fetch('/wallet/pay', {
                 method: 'POST',
@@ -411,11 +362,8 @@
                     amount: parseFloat(amount)
                 })
             });
-            
             const result = await response.json();
-            
             if(result.success && result.payment_url) {
-                // توجيه لصفحة الدفع
                 window.location.href = result.payment_url;
             } else {
                 showToast(' ' + (result.message || 'حدث خطأ'), 'error');
@@ -428,8 +376,6 @@
             btn.textContent = ' إتمام الدفع';
         }
     }
-    
-    // إعداد بيانات الفئات للـ sidebar
     window.categoriesData = [];
 </script>
 {% endblock %}

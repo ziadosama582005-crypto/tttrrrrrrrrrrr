@@ -1,7 +1,5 @@
 {% extends "admin_base.html" %}
-
 {% block title %}الطلبات - لوحة التحكم{% endblock %}
-
 {% block content %}
 <div class="top-bar">
     <h1> إدارة الطلبات</h1>
@@ -9,8 +7,6 @@
         <button class="btn btn-secondary" onclick="loadOrders()"> تحديث</button>
     </div>
 </div>
-
-<!-- الإحصائيات -->
 <div class="stats-grid">
     <div class="stat-card">
         <div class="icon"></div>
@@ -33,8 +29,6 @@
         <div class="label">إجمالي الإيرادات</div>
     </div>
 </div>
-
-<!-- الفلترة -->
 <div class="card">
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
         <select id="statusFilter" style="padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
@@ -51,8 +45,6 @@
                style="flex: 1; min-width: 150px; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
     </div>
 </div>
-
-<!-- جدول الطلبات -->
 <div class="card">
     <div class="card-header">
         <span class="card-title"> قائمة الطلبات</span>
@@ -82,32 +74,25 @@
         </table>
     </div>
 </div>
-
-<!-- Modal تفاصيل الطلب -->
 <div id="orderModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 2000; overflow-y: auto;">
     <div style="max-width: 600px; margin: 40px auto; padding: 20px;">
         <div class="card" style="position: relative;">
             <button onclick="closeModal()" style="position: absolute; left: 15px; top: 15px; background: none; border: none; color: white; font-size: 24px; cursor: pointer;">✕</button>
             <div id="orderDetails">
-                <!-- سيتم تحميله ديناميكياً -->
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script>
     let allOrders = [];
-
     async function loadOrders() {
         const tbody = document.getElementById('ordersTable');
         tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
-        
         try {
             const res = await fetch('/api/admin/get_orders');
             const data = await res.json();
-            
             if (data.status === 'success') {
                 allOrders = data.orders;
                 updateStats(data.stats);
@@ -119,48 +104,37 @@
             tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #e74c3c;"> خطأ في الاتصال</td></tr>';
         }
     }
-
     function updateStats(stats) {
         document.getElementById('totalOrders').textContent = stats.total || 0;
         document.getElementById('completedOrders').textContent = stats.completed || 0;
         document.getElementById('pendingOrders').textContent = stats.pending || 0;
         document.getElementById('totalRevenue').textContent = (stats.revenue || 0).toFixed(2) + ' ر.س';
     }
-
     function renderOrders() {
         const tbody = document.getElementById('ordersTable');
         const statusFilter = document.getElementById('statusFilter').value;
         const deliveryFilter = document.getElementById('deliveryFilter').value;
         const search = document.getElementById('searchInput').value.toLowerCase();
-        
         let filtered = allOrders.filter(o => {
             if (statusFilter !== 'all' && o.status !== statusFilter) return false;
             if (deliveryFilter !== 'all' && o.delivery_type !== deliveryFilter) return false;
-            
             const searchStr = `${o.id} ${o.buyer_name} ${o.item_name}`.toLowerCase();
             if (search && !searchStr.includes(search)) return false;
-            
             return true;
         });
-        
         document.getElementById('ordersCountLabel').textContent = `${filtered.length} طلب`;
-        
         if (filtered.length === 0) {
             tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--muted);">لا يوجد طلبات</td></tr>';
             return;
         }
-        
         tbody.innerHTML = filtered.map(o => {
             const statusBadge = o.status === 'completed' 
                 ? '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(0,184,148,0.2); color: var(--success);"> مكتمل</span>'
                 : '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(243,156,18,0.2); color: var(--warning);">⏳ معلق</span>';
-            
             const typeBadge = o.delivery_type === 'instant'
                 ? '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(52,152,219,0.2); color: var(--info);"> فوري</span>'
                 : '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(155,89,182,0.2); color: #9b59b6;">👨‍💼 يدوي</span>';
-            
             const date = o.created_at ? new Date(o.created_at).toLocaleDateString('ar-SA') : '-';
-            
             return `
                 <tr>
                     <td style="font-family: monospace; font-size: 12px;">${o.id || '-'}</td>
@@ -181,23 +155,18 @@
             `;
         }).join('');
     }
-
     function viewOrder(orderId) {
         const order = allOrders.find(o => o.id === orderId);
         if (!order) return;
-        
         const modal = document.getElementById('orderModal');
         const details = document.getElementById('orderDetails');
-        
         details.innerHTML = `
             <h2 style="margin-bottom: 20px;"> تفاصيل الطلب</h2>
-            
             <div style="display: grid; gap: 15px;">
                 <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px;">
                     <div style="color: var(--muted); font-size: 12px;">رقم الطلب</div>
                     <div style="font-family: monospace;">${order.id}</div>
                 </div>
-                
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px;">
                         <div style="color: var(--muted); font-size: 12px;">المشتري</div>
@@ -208,12 +177,10 @@
                         <div>${order.buyer_id || '-'}</div>
                     </div>
                 </div>
-                
                 <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px;">
                     <div style="color: var(--muted); font-size: 12px;">المنتج</div>
                     <div>${order.item_name || '-'}</div>
                 </div>
-                
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px;">
                         <div style="color: var(--muted); font-size: 12px;">السعر</div>
@@ -224,14 +191,12 @@
                         <div>${order.delivery_type === 'instant' ? ' فوري' : '👨‍💼 يدوي'}</div>
                     </div>
                 </div>
-                
                 ${order.hidden_data ? `
                     <div style="padding: 12px; background: rgba(108,92,231,0.15); border-radius: 10px; border: 1px solid rgba(108,92,231,0.3);">
                         <div style="color: var(--primary-light); font-size: 12px;"> البيانات السرية</div>
                         <div style="font-family: monospace; white-space: pre-wrap; margin-top: 8px;">${order.hidden_data}</div>
                     </div>
                 ` : ''}
-                
                 ${order.buyer_details ? `
                     <div style="padding: 12px; background: rgba(243,156,18,0.15); border-radius: 10px; border: 1px solid rgba(243,156,18,0.3);">
                         <div style="color: var(--warning); font-size: 12px;"> معلومات المشتري</div>
@@ -239,7 +204,6 @@
                     </div>
                 ` : ''}
             </div>
-            
             ${order.status === 'pending' ? `
                 <div style="margin-top: 20px; text-align: center;">
                     <button class="btn btn-success" onclick="completeOrder('${order.id}'); closeModal();">
@@ -248,17 +212,13 @@
                 </div>
             ` : ''}
         `;
-        
         modal.style.display = 'block';
     }
-
     function closeModal() {
         document.getElementById('orderModal').style.display = 'none';
     }
-
     async function completeOrder(orderId) {
         if (!confirm('هل تريد إكمال هذا الطلب؟')) return;
-        
         try {
             const res = await fetch('/api/admin/complete_order', {
                 method: 'POST',
@@ -266,7 +226,6 @@
                 body: JSON.stringify({ order_id: orderId })
             });
             const data = await res.json();
-            
             if (data.status === 'success') {
                 showToast(' تم إكمال الطلب');
                 loadOrders();
@@ -277,13 +236,9 @@
             showToast('خطأ في الاتصال', 'error');
         }
     }
-
-    // Filters
     document.getElementById('statusFilter').addEventListener('change', renderOrders);
     document.getElementById('deliveryFilter').addEventListener('change', renderOrders);
     document.getElementById('searchInput').addEventListener('input', renderOrders);
-
-    // Load on page load
     loadOrders();
 </script>
 {% endblock %}

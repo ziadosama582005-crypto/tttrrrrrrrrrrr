@@ -27,8 +27,6 @@
             padding: 20px;
         }
         .container { max-width: 1200px; margin: 0 auto; }
-        
-        /* الهيدر */
         .header {
             display: flex;
             justify-content: space-between;
@@ -74,8 +72,6 @@
             color: white;
         }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        
-        /* الإحصائيات */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -106,8 +102,6 @@
         .stat-card.warning .value { color: var(--warning); }
         .stat-card.info .value { color: var(--info); }
         .stat-card.danger .value { color: var(--danger); }
-        
-        /* التبويبات */
         .tabs {
             display: flex;
             gap: 10px;
@@ -141,8 +135,6 @@
         .tab-content.active {
             display: block;
         }
-        
-        /* الجدول */
         .table-container {
             background: var(--card);
             border-radius: 15px;
@@ -201,7 +193,6 @@
         .status.completed { background: rgba(0, 184, 148, 0.2); color: var(--success); }
         .status.pending { background: rgba(253, 203, 110, 0.2); color: var(--warning); }
         .status.failed { background: rgba(231, 76, 60, 0.2); color: var(--danger); }
-        
         .type-badge {
             padding: 5px 12px;
             border-radius: 20px;
@@ -211,13 +202,10 @@
         .type-badge.charge { background: rgba(9, 132, 227, 0.2); color: var(--info); }
         .type-badge.invoice { background: rgba(108, 92, 231, 0.2); color: var(--primary); }
         .type-badge.purchase { background: rgba(0, 184, 148, 0.2); color: var(--success); }
-        
         .amount {
             font-weight: bold;
             color: var(--success);
         }
-        
-        /* تفاصيل */
         .details-btn {
             padding: 5px 10px;
             background: var(--primary);
@@ -228,8 +216,6 @@
             font-family: 'Tajawal', sans-serif;
             font-size: 12px;
         }
-        
-        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -284,8 +270,6 @@
         .detail-value {
             font-weight: bold;
         }
-        
-        /* Loading */
         .loading {
             text-align: center;
             padding: 50px;
@@ -303,8 +287,6 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        
-        /* Empty state */
         .empty-state {
             text-align: center;
             padding: 50px;
@@ -314,8 +296,6 @@
             font-size: 50px;
             margin-bottom: 15px;
         }
-        
-        /* Responsive */
         @media (max-width: 768px) {
             .table-container { overflow-x: auto; }
             table { min-width: 600px; }
@@ -325,7 +305,6 @@
 </head>
 <body>
     <div class="container">
-        <!-- الهيدر -->
         <div class="header">
             <h1> إدارة الفواتير والمعاملات</h1>
             <div class="header-actions">
@@ -333,8 +312,6 @@
                 <button class="btn btn-primary" onclick="loadData()"> تحديث</button>
             </div>
         </div>
-        
-        <!-- الإحصائيات -->
         <div class="stats-grid" id="statsGrid">
             <div class="stat-card">
                 <div class="icon"></div>
@@ -367,8 +344,6 @@
                 <div class="label">منتجات متاحة</div>
             </div>
         </div>
-        
-        <!-- التبويبات -->
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('payments')"> طلبات الدفع</button>
             <button class="tab-btn" onclick="switchTab('invoices')"> فواتير التجار</button>
@@ -377,8 +352,6 @@
             <button class="tab-btn" onclick="switchTab('sold')"> المنتجات المباعة</button>
             <button class="tab-btn" onclick="switchTab('available')"> المنتجات المتاحة</button>
         </div>
-        
-        <!-- طلبات الدفع -->
         <div class="tab-content active" id="payments-tab">
             <div class="table-container">
                 <div class="table-header">
@@ -405,8 +378,6 @@
                 </table>
             </div>
         </div>
-        
-        <!-- فواتير التجار -->
         <div class="tab-content" id="invoices-tab">
             <div class="table-container">
                 <div class="table-header">
@@ -432,8 +403,6 @@
                 </table>
             </div>
         </div>
-        
-        <!-- سجل الشحن -->
         <div class="tab-content" id="charges-tab">
             <div class="table-container">
                 <div class="table-header">
@@ -458,8 +427,6 @@
                 </table>
             </div>
         </div>
-        
-        <!-- المشتريات -->
         <div class="tab-content" id="orders-tab">
             <div class="table-container">
                 <div class="table-header">
@@ -486,8 +453,6 @@
                 </table>
             </div>
         </div>
-        
-        <!-- المنتجات المباعة -->
         <div class="tab-content" id="sold-tab">
             <div class="table-container">
                 <div class="table-header">
@@ -512,8 +477,6 @@
                 </table>
             </div>
         </div>
-        
-        <!-- المنتجات المتاحة -->
         <div class="tab-content" id="available-tab">
             <div class="table-container">
                 <div class="table-header">
@@ -539,8 +502,6 @@
             </div>
         </div>
     </div>
-    
-    <!-- Modal التفاصيل -->
     <div class="modal" id="detailsModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -550,16 +511,12 @@
             <div class="modal-body" id="modalBody"></div>
         </div>
     </div>
-    
     <script>
         let allData = {};
-        
-        // تحميل البيانات
         async function loadData() {
             try {
                 const response = await fetch('/api/admin/get_invoices');
                 const result = await response.json();
-                
                 if (result.status === 'success') {
                     allData = result;
                     updateStats(result.stats);
@@ -577,8 +534,6 @@
                 alert('حدث خطأ في تحميل البيانات');
             }
         }
-        
-        // تحديث الإحصائيات
         function updateStats(stats) {
             document.getElementById('totalRevenue').textContent = stats.total_revenue.toLocaleString() + ' ر.ي';
             document.getElementById('completedPayments').textContent = stats.completed_payments;
@@ -587,21 +542,16 @@
             document.getElementById('soldProducts').textContent = stats.sold_products;
             document.getElementById('availableProducts').textContent = stats.available_products;
         }
-        
-        // عرض طلبات الدفع
         function renderPayments(payments) {
             const loading = document.getElementById('paymentsLoading');
             const table = document.getElementById('paymentsTable');
             const tbody = document.getElementById('paymentsBody');
-            
             loading.style.display = 'none';
             table.style.display = 'table';
-            
             if (payments.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#b2bec3;">لا توجد طلبات دفع</td></tr>';
                 return;
             }
-            
             tbody.innerHTML = payments.map(p => `
                 <tr>
                     <td>${p.order_id.substring(0, 8)}...</td>
@@ -614,21 +564,16 @@
                 </tr>
             `).join('');
         }
-        
-        // عرض فواتير التجار
         function renderInvoices(invoices) {
             const loading = document.getElementById('invoicesLoading');
             const table = document.getElementById('invoicesTable');
             const tbody = document.getElementById('invoicesBody');
-            
             loading.style.display = 'none';
             table.style.display = 'table';
-            
             if (invoices.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#b2bec3;">لا توجد فواتير تجار</td></tr>';
                 return;
             }
-            
             tbody.innerHTML = invoices.map(inv => `
                 <tr>
                     <td>${inv.merchant_name}<br><small style="color:#b2bec3;">${inv.merchant_id}</small></td>
@@ -640,21 +585,16 @@
                 </tr>
             `).join('');
         }
-        
-        // عرض سجل الشحن
         function renderCharges(charges) {
             const loading = document.getElementById('chargesLoading');
             const table = document.getElementById('chargesTable');
             const tbody = document.getElementById('chargesBody');
-            
             loading.style.display = 'none';
             table.style.display = 'table';
-            
             if (charges.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#b2bec3;">لا توجد عمليات شحن</td></tr>';
                 return;
             }
-            
             tbody.innerHTML = charges.map(c => `
                 <tr>
                     <td>${c.user_name}<br><small style="color:#b2bec3;">${c.user_id}</small></td>
@@ -665,21 +605,16 @@
                 </tr>
             `).join('');
         }
-        
-        // عرض المشتريات
         function renderOrders(orders) {
             const loading = document.getElementById('ordersLoading');
             const table = document.getElementById('ordersTable');
             const tbody = document.getElementById('ordersBody');
-            
             loading.style.display = 'none';
             table.style.display = 'table';
-            
             if (orders.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#b2bec3;">لا توجد مشتريات</td></tr>';
                 return;
             }
-            
             tbody.innerHTML = orders.map(o => `
                 <tr>
                     <td>#${o.order_id}</td>
@@ -692,21 +627,16 @@
                 </tr>
             `).join('');
         }
-        
-        // عرض المنتجات المباعة
         function renderSoldProducts(products) {
             const loading = document.getElementById('soldLoading');
             const table = document.getElementById('soldTable');
             const tbody = document.getElementById('soldBody');
-            
             loading.style.display = 'none';
             table.style.display = 'table';
-            
             if (products.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#b2bec3;">لا توجد منتجات مباعة</td></tr>';
                 return;
             }
-            
             tbody.innerHTML = products.map(p => `
                 <tr>
                     <td>${p.item_name}</td>
@@ -717,21 +647,16 @@
                 </tr>
             `).join('');
         }
-        
-        // عرض المنتجات المتاحة
         function renderAvailableProducts(products) {
             const loading = document.getElementById('availableLoading');
             const table = document.getElementById('availableTable');
             const tbody = document.getElementById('availableBody');
-            
             loading.style.display = 'none';
             table.style.display = 'table';
-            
             if (products.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#b2bec3;">لا توجد منتجات متاحة</td></tr>';
                 return;
             }
-            
             tbody.innerHTML = products.map(p => `
                 <tr>
                     <td>${p.item_name}</td>
@@ -742,19 +667,12 @@
                 </tr>
             `).join('');
         }
-        
-        // تبديل التبويبات
         function switchTab(tabName) {
-            // إخفاء جميع المحتويات
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            
-            // إظهار التبويب المحدد
             document.getElementById(tabName + '-tab').classList.add('active');
             event.target.classList.add('active');
         }
-        
-        // عرض تفاصيل الدفع
         function showPaymentDetails(payment) {
             document.getElementById('modalTitle').textContent = ' تفاصيل طلب الدفع';
             document.getElementById('modalBody').innerHTML = `
@@ -797,8 +715,6 @@
             `;
             document.getElementById('detailsModal').classList.add('active');
         }
-        
-        // عرض تفاصيل الفاتورة
         function showInvoiceDetails(invoice) {
             document.getElementById('modalTitle').textContent = ' تفاصيل فاتورة التاجر';
             document.getElementById('modalBody').innerHTML = `
@@ -829,8 +745,6 @@
             `;
             document.getElementById('detailsModal').classList.add('active');
         }
-        
-        // عرض تفاصيل الطلب
         function showOrderDetails(order) {
             document.getElementById('modalTitle').textContent = ' تفاصيل الطلب';
             document.getElementById('modalBody').innerHTML = `
@@ -869,13 +783,9 @@
             `;
             document.getElementById('detailsModal').classList.add('active');
         }
-        
-        // إغلاق Modal
         function closeModal() {
             document.getElementById('detailsModal').classList.remove('active');
         }
-        
-        // نص الحالة
         function getStatusText(status) {
             const statuses = {
                 'pending': 'بانتظار الدفع',
@@ -886,8 +796,6 @@
             };
             return statuses[status] || status;
         }
-        
-        // تنسيق التاريخ
         function formatDate(dateStr) {
             if (!dateStr || dateStr === 'None' || dateStr === '') return '-';
             try {
@@ -898,25 +806,18 @@
                 return dateStr;
             }
         }
-        
-        // فلترة الجدول
         function filterTable(tableId, searchText) {
             const table = document.getElementById(tableId);
             const rows = table.querySelectorAll('tbody tr');
             const search = searchText.toLowerCase();
-            
             rows.forEach(row => {
                 const text = row.textContent.toLowerCase();
                 row.style.display = text.includes(search) ? '' : 'none';
             });
         }
-        
-        // إغلاق Modal بالنقر خارجها
         document.getElementById('detailsModal').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });
-        
-        // تحميل البيانات عند فتح الصفحة
         loadData();
     </script>
 </body>

@@ -1,7 +1,5 @@
 {% extends "admin_base.html" %}
-
 {% block title %}سجل الرصيد - لوحة التحكم{% endblock %}
-
 {% block content %}
 <div class="top-bar">
     <h1> سجل عمليات الرصيد</h1>
@@ -9,8 +7,6 @@
         <button class="btn btn-secondary" onclick="loadLogs()"> تحديث</button>
     </div>
 </div>
-
-<!-- الإحصائيات -->
 <div class="stats-grid">
     <div class="stat-card" style="border-color: var(--success);">
         <div class="icon">➕</div>
@@ -28,8 +24,6 @@
         <div class="label">إجمالي العمليات</div>
     </div>
 </div>
-
-<!-- الفلترة -->
 <div class="card">
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
         <select id="typeFilter" style="padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
@@ -41,8 +35,6 @@
                style="flex: 1; min-width: 150px; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
     </div>
 </div>
-
-<!-- جدول السجلات -->
 <div class="card">
     <div class="card-header">
         <span class="card-title"> سجل العمليات</span>
@@ -70,19 +62,15 @@
     </div>
 </div>
 {% endblock %}
-
 {% block extra_js %}
 <script>
     let allLogs = [];
-
     async function loadLogs() {
         const tbody = document.getElementById('logsTable');
         tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
-        
         try {
             const res = await fetch('/api/admin/get_balance_logs');
             const data = await res.json();
-            
             if (data.status === 'success') {
                 allLogs = data.logs || [];
                 updateStats();
@@ -94,7 +82,6 @@
             tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #e74c3c;"> خطأ في الاتصال</td></tr>';
         }
     }
-
     function updateStats() {
         let deposits = 0, deductions = 0;
         allLogs.forEach(l => {
@@ -102,38 +89,30 @@
             if (l.type === 'add') deposits += amount;
             else deductions += amount;
         });
-        
         document.getElementById('totalDeposits').textContent = deposits.toFixed(2) + ' ر.س';
         document.getElementById('totalDeductions').textContent = deductions.toFixed(2) + ' ر.س';
         document.getElementById('totalTransactions').textContent = allLogs.length;
     }
-
     function renderLogs() {
         const tbody = document.getElementById('logsTable');
         const typeFilter = document.getElementById('typeFilter').value;
         const search = document.getElementById('searchInput').value.toLowerCase();
-        
         let filtered = allLogs.filter(l => {
             if (typeFilter !== 'all' && l.type !== typeFilter) return false;
             if (search && !(l.user_id || '').toLowerCase().includes(search)) return false;
             return true;
         });
-        
         document.getElementById('logsCountLabel').textContent = `${filtered.length} عملية`;
-        
         if (filtered.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--muted);">لا يوجد سجلات</td></tr>';
             return;
         }
-        
         tbody.innerHTML = filtered.map(l => {
             const typeBadge = l.type === 'add'
                 ? '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(0,184,148,0.2); color: var(--success);">➕ إيداع</span>'
                 : '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(231,76,60,0.2); color: var(--danger);">➖ خصم</span>';
-            
             const date = l.created_at ? new Date(l.created_at).toLocaleString('ar-SA') : '-';
             const amount = parseFloat(l.amount) || 0;
-            
             return `
                 <tr>
                     <td>${typeBadge}</td>
@@ -147,11 +126,8 @@
             `;
         }).join('');
     }
-
-    // Filters
     document.getElementById('typeFilter').addEventListener('change', renderLogs);
     document.getElementById('searchInput').addEventListener('input', renderLogs);
-
     loadLogs();
 </script>
 {% endblock %}
