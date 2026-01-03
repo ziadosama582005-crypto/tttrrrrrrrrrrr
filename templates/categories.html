@@ -20,84 +20,49 @@
             padding-top: 70px;
         }
         
-        /* الهيدر الرئيسي */
-        .main-header {
+        /* الهيدر البسيط - زر الرجوع فقط */
+        .simple-header {
             position: fixed;
             top: 0;
-            left: 0;
             right: 0;
+            left: 0;
             height: 60px;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            border-bottom: 1px solid rgba(108, 92, 231, 0.3);
             display: flex;
             align-items: center;
-            justify-content: space-between;
             padding: 0 15px;
             z-index: 999;
             box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
         }
         
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .header-center {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
-        .header-logo {
-            font-size: 22px;
-            font-weight: bold;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .header-logo img {
-            height: 35px;
-            width: auto;
-        }
-        
-        .header-left {
-            display: flex;
-            align-items: center;
-        }
-        
-        .header-btn {
+        .back-btn {
             background: rgba(108, 92, 231, 0.2);
             border: 1px solid rgba(108, 92, 231, 0.4);
             color: #fff;
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s;
-            font-size: 18px;
+            font-size: 22px;
+            text-decoration: none;
         }
         
-        .header-btn:hover {
+        .back-btn:hover {
             background: rgba(108, 92, 231, 0.4);
             border-color: #6c5ce7;
             transform: scale(1.05);
         }
         
-        .header-btn.account-btn {
-            width: auto;
-            padding: 0 12px;
-            gap: 6px;
-            font-size: 14px;
+        /* إخفاء الهيدر القديم */
+        .main-header {
+            display: none !important;
         }
         
         .menu-btn {
-            flex-direction: column;
             gap: 4px;
         }
         
@@ -510,33 +475,11 @@
     </style>
 </head>
 <body data-logged-in="{{ 'true' if is_logged_in else 'false' }}">
-    <!-- الهيدر الرئيسي -->
-    <header class="main-header">
-        <!-- يمين الشاشة: البحث وحسابي -->
-        <div class="header-right">
-            <button class="header-btn" onclick="openSearch()" title="بحث">
-                🔍
-            </button>
-            <button class="header-btn account-btn" id="headerAccountBtn" onclick="handleAccountClick()" title="حسابي">
-                <span id="headerAccountIcon">👤</span> <span id="headerAccountText">حسابي</span>
-            </button>
-        </div>
-        
-        <!-- وسط: الشعار -->
-        <div class="header-center">
-            <div class="header-logo">
-                🛒 المتجر
-            </div>
-        </div>
-        
-        <!-- يسار الشاشة: القائمة -->
-        <div class="header-left">
-            <button class="header-btn menu-btn" onclick="openSideMenu()" title="القائمة">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-        </div>
+    <!-- الهيدر البسيط - زر الرجوع فقط -->
+    <header class="simple-header">
+        <a href="/" class="back-btn" title="الرجوع للرئيسية">
+            ←
+        </a>
     </header>
     
     <!-- القائمة الجانبية -->
