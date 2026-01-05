@@ -801,10 +801,10 @@ def get_category_sales_count(category_name):
         if not db:
             return 0
         
-        # جلب المنتجات المباعة من هذه الفئة
+        # جلب المنتجات المباعة من هذه الفئة (sold = true)
         products_ref = db.collection('products')
         products_ref = query_where(products_ref, 'category', '==', category_name)
-        products_ref = query_where(products_ref, 'status', '==', 'sold')
+        products_ref = query_where(products_ref, 'sold', '==', True)
         
         count = 0
         for doc in products_ref.stream():
@@ -824,8 +824,8 @@ def get_all_categories_sales():
         
         sales_count = {}
         
-        # جلب جميع المنتجات المباعة
-        products_ref = query_where(db.collection('products'), 'status', '==', 'sold')
+        # جلب جميع المنتجات المباعة (sold = true)
+        products_ref = query_where(db.collection('products'), 'sold', '==', True)
         
         for doc in products_ref.stream():
             product = doc.to_dict()
