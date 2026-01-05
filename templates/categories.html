@@ -271,6 +271,7 @@
             display: flex;
             flex-direction: column;
             height: 100%;
+            position: relative;
         }
         .category-card:hover {
             border-color: #6c5ce7;
@@ -320,23 +321,28 @@
             font-weight: bold;
         }
         .sales-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
             background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
             color: #fff;
-            font-size: 11px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-weight: 600;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 10;
         }
         .sales-badge.hot {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-            animation: pulse 2s infinite;
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            animation: pulse-badge 1.5s infinite;
         }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        @keyframes pulse-badge {
+            0%, 100% { transform: scale(1); box-shadow: 0 2px 8px rgba(255,65,108,0.4); }
+            50% { transform: scale(1.08); box-shadow: 0 4px 15px rgba(255,65,108,0.6); }
         }
         .arrow {
             color: #6c5ce7;
@@ -533,6 +539,11 @@
         <div class="categories-grid" id="categoriesGrid">
             {% for category in categories %}
             <div class="category-card" data-delivery-type="{{ category.delivery_type|default('instant') }}" onclick="location.href='/t/{{ category.id }}'">
+                {% if category.sales_count > 0 %}
+                <div class="sales-badge {% if category.sales_count >= 10 %}hot{% endif %}">
+                    🔥 {{ category.sales_count }}
+                </div>
+                {% endif %}
                 <div class="category-image">
                     {% if category.image_url %}
                     <img src="{{ category.image_url }}" alt="{{ category.name }}">
@@ -545,11 +556,6 @@
                         <div class="products-count">
                             <span class="count">{{ category.products_count }}</span> منتج
                         </div>
-                        {% if category.sales_count > 0 %}
-                        <div class="sales-badge {% if category.sales_count >= 10 %}hot{% endif %}">
-                            🔥 {{ category.sales_count }} مبيعة
-                        </div>
-                        {% endif %}
                         <div class="arrow">←</div>
                     </div>
                 </div>
