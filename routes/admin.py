@@ -995,12 +995,21 @@ def api_get_user_history():
             charges_ref = db.collection('charge_history').where('user_id', '==', str(user_id))
             for doc in charges_ref.stream():
                 data = doc.to_dict()
+                # تحويل timestamp لرقم
+                ts = data.get('timestamp', 0)
+                if hasattr(ts, 'timestamp'):
+                    ts = ts.timestamp()
+                elif hasattr(ts, 'seconds'):
+                    ts = ts.seconds
+                elif not isinstance(ts, (int, float)):
+                    ts = 0
+                
                 result['charges'].append({
                     'id': doc.id,
                     'amount': data.get('amount', 0),
                     'method': data.get('method', 'غير محدد'),
                     'date': data.get('date', ''),
-                    'timestamp': data.get('timestamp', 0),
+                    'timestamp': ts,
                     'type': data.get('type', '')
                 })
             
@@ -1010,12 +1019,21 @@ def api_get_user_history():
                     charges_ref2 = db.collection('charge_history').where('user_id', '==', int(user_id))
                     for doc in charges_ref2.stream():
                         data = doc.to_dict()
+                        # تحويل timestamp لرقم
+                        ts = data.get('timestamp', 0)
+                        if hasattr(ts, 'timestamp'):
+                            ts = ts.timestamp()
+                        elif hasattr(ts, 'seconds'):
+                            ts = ts.seconds
+                        elif not isinstance(ts, (int, float)):
+                            ts = 0
+                        
                         result['charges'].append({
                             'id': doc.id,
                             'amount': data.get('amount', 0),
                             'method': data.get('method', 'غير محدد'),
                             'date': data.get('date', ''),
-                            'timestamp': data.get('timestamp', 0),
+                            'timestamp': ts,
                             'type': data.get('type', '')
                         })
                 except:
