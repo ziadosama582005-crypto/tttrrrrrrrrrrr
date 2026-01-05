@@ -336,15 +336,17 @@
             background: linear-gradient(135deg, #c8ff00 0%, #9acd32 100%);
             color: #000;
             border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
+            padding: 12px 25px;
+            border-radius: 10px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s;
             font-size: 14px;
+            width: 100%;
+            margin-top: 12px;
         }
         .max-btn:hover {
-            transform: scale(1.05);
+            transform: scale(1.02);
             box-shadow: 0 5px 15px rgba(200, 255, 0, 0.3);
         }
         .available-balance {
@@ -1390,11 +1392,11 @@
                     <div class="amount-input-wrapper">
                         <input type="number" id="withdrawAmountInput" placeholder="0.00" min="1" step="0.01" oninput="calculateWithdraw()">
                         <span class="currency-label">ر.س</span>
-                        <button type="button" class="max-btn" onclick="setMaxAmount()">كامل</button>
                     </div>
                     <div class="available-balance">
                         الرصيد المتاح: <span id="availableBalance">0</span> ر.س
                     </div>
+                    <button type="button" class="max-btn" onclick="setMaxAmount()">💯 سحب كامل الرصيد</button>
                 </div>
                 
                 <div class="withdraw-summary">
