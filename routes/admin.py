@@ -909,13 +909,46 @@ def api_get_balance_logs():
         balance_logs_list = []
         
         if db:
-            logs_ref = db.collection('balance_logs').order_by('created_at', direction=firestore.Query.DESCENDING).limit(200)
+            # جلب بدون order_by لتجنب مشكلة Index
+            logs_ref = db.collection('balance_logs').limit(500)
+            all_logs = []
+            
             for doc in logs_ref.stream():
                 data = doc.to_dict()
-                user_name = 'غير معروف'
                 user_id = data.get('user_id', '')
                 
-                # جلب اسم المستخدم
+                # تحويل created_at لرقم للترتيب
+                created_at = data.get('created_at')
+                timestamp = 0
+                if created_at:
+                    if hasattr(created_at, 'timestamp'):
+                        timestamp = created_at.timestamp()
+                    elif hasattr(created_at, 'seconds'):
+                        timestamp = created_at.seconds
+                    elif isinstance(created_at, (int, float)):
+                        timestamp = created_at
+                
+                all_logs.append({
+                    'id': doc.id,
+                    'user_id': user_id,
+                    'amount': data.get('amount', 0),
+                    'operation_type': data.get('operation_type', ''),
+                    'description': data.get('description', ''),
+                    'order_id': data.get('order_id', ''),
+                    'old_balance': data.get('old_balance', 0),
+                    'new_balance': data.get('new_balance', 0),
+                    'created_at': str(data.get('created_at', '')),
+                    'timestamp': timestamp
+                })
+            
+            # ترتيب من الأحدث
+            all_logs.sort(key=lambda x: x.get('timestamp', 0), reverse=True)
+            
+            # أخذ أول 200 وجلب أسماء المستخدمين
+            for log in all_logs[:200]:
+                user_name = 'غير معروف'
+                user_id = log.get('user_id', '')
+                
                 try:
                     user_doc = db.collection('users').document(str(user_id)).get()
                     if user_doc.exists:
@@ -924,18 +957,9 @@ def api_get_balance_logs():
                 except:
                     pass
                 
-                balance_logs_list.append({
-                    'id': doc.id,
-                    'user_id': user_id,
-                    'user_name': user_name,
-                    'amount': data.get('amount', 0),
-                    'operation_type': data.get('operation_type', ''),
-                    'description': data.get('description', ''),
-                    'order_id': data.get('order_id', ''),
-                    'old_balance': data.get('old_balance', 0),
-                    'new_balance': data.get('new_balance', 0),
-                    'created_at': str(data.get('created_at', ''))
-                })
+                log['user_name'] = user_name
+                del log['timestamp']  # حذف الحقل المؤقت
+                balance_logs_list.append(log)
         
         # إحصائيات
         total_credits = sum([l['amount'] for l in balance_logs_list if l['operation_type'] == 'credit'])
