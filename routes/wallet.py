@@ -64,12 +64,22 @@ def wallet_page():
             amount = data.get('amount', 0)
             total_charges += amount
             charges_count += 1
+            
+            # تحويل timestamp لرقم
+            ts = data.get('timestamp', 0)
+            if hasattr(ts, 'timestamp'):
+                ts = ts.timestamp()
+            elif hasattr(ts, 'seconds'):
+                ts = ts.seconds
+            elif not isinstance(ts, (int, float)):
+                ts = 0
+            
             transactions.append({
                 'type': 'income',
                 'title': 'شحن رصيد',
                 'amount': amount,
                 'date': data.get('date', 'غير محدد'),
-                'timestamp': data.get('timestamp', 0)
+                'timestamp': ts
             })
         
         # جلب المشتريات
