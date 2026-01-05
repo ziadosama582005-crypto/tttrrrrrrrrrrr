@@ -289,6 +289,74 @@
         .withdraw-modal-body {
             padding: 20px;
         }
+        .withdraw-amount-section {
+            margin-bottom: 20px;
+        }
+        .withdraw-amount-section label {
+            display: block;
+            margin-bottom: 10px;
+            color: #fff;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .amount-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(30, 30, 50, 0.8);
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+            padding: 5px;
+            transition: all 0.3s;
+        }
+        .amount-input-wrapper:focus-within {
+            border-color: #00ff88;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+        }
+        .amount-input-wrapper input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #00ff88;
+            font-size: 22px;
+            font-weight: 700;
+            padding: 12px 15px;
+            outline: none;
+            text-align: right;
+        }
+        .amount-input-wrapper input::placeholder {
+            color: #555;
+        }
+        .currency-label {
+            color: #888;
+            font-size: 14px;
+            padding-right: 5px;
+        }
+        .max-btn {
+            background: linear-gradient(135deg, #c8ff00 0%, #9acd32 100%);
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        .max-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(200, 255, 0, 0.3);
+        }
+        .available-balance {
+            text-align: center;
+            margin-top: 10px;
+            color: #888;
+            font-size: 13px;
+        }
+        .available-balance span {
+            color: #00ff88;
+            font-weight: 600;
+        }
         .withdraw-summary {
             background: rgba(108, 92, 231, 0.1);
             border-radius: 12px;
@@ -1316,21 +1384,34 @@
                 <button class="withdraw-modal-close" onclick="closeWithdrawModal()">×</button>
             </div>
             <div class="withdraw-modal-body">
+                <!-- حقل إدخال المبلغ -->
+                <div class="withdraw-amount-section">
+                    <label>💰 أدخل المبلغ المراد سحبه:</label>
+                    <div class="amount-input-wrapper">
+                        <input type="number" id="withdrawAmountInput" placeholder="0.00" min="1" step="0.01" oninput="calculateWithdraw()">
+                        <span class="currency-label">ر.س</span>
+                        <button type="button" class="max-btn" onclick="setMaxAmount()">كامل</button>
+                    </div>
+                    <div class="available-balance">
+                        الرصيد المتاح: <span id="availableBalance">0</span> ر.س
+                    </div>
+                </div>
+                
                 <div class="withdraw-summary">
                     <div class="withdraw-summary-row">
-                        <span>المبلغ للسحب:</span>
+                        <span>المبلغ المطلوب:</span>
                         <span id="withdrawBalance">0 ر.س</span>
                     </div>
                     <div class="withdraw-summary-row">
                         <span>نوع السحب:</span>
                         <span id="withdrawType">-</span>
                     </div>
-                    <div class="withdraw-summary-row">
+                    <div class="withdraw-summary-row fee-row">
                         <span>الرسوم (<span id="feePercent">0</span>%):</span>
-                        <span id="withdrawFee">0 ر.س</span>
+                        <span id="withdrawFee" class="fee-amount">- 0 ر.س</span>
                     </div>
                     <div class="withdraw-summary-row highlight">
-                        <span>المبلغ الصافي:</span>
+                        <span>💵 المبلغ الصافي:</span>
                         <span id="withdrawNet">0 ر.س</span>
                     </div>
                 </div>
@@ -1391,27 +1472,74 @@
         let currentWithdrawType = '';
         let currentMethod = '';
         let currentAmount = 0;
+        let maxWithdrawAmount = 0;
         const userBalance = parseFloat("{{ balance }}") || 0;
         const normalAmount = parseFloat("{{ normal_withdraw_amount }}") || 0;
         const instantAmount = parseFloat("{{ instant_withdraw_amount }}") || 0;
+        
+        function setMaxAmount() {
+            document.getElementById('withdrawAmountInput').value = maxWithdrawAmount.toFixed(2);
+            calculateWithdraw();
+        }
+        
+        function calculateWithdraw() {
+            const input = document.getElementById('withdrawAmountInput');
+            let amount = parseFloat(input.value) || 0;
+            
+            // التأكد من عدم تجاوز الحد الأقصى
+            if (amount > maxWithdrawAmount) {
+                amount = maxWithdrawAmount;
+                input.value = amount.toFixed(2);
+            }
+            
+            // التأكد من عدم إدخال قيمة سالبة
+            if (amount < 0) {
+                amount = 0;
+                input.value = '0';
+            }
+            
+            currentAmount = amount;
+            const fee = currentWithdrawType === 'normal' ? 6.5 : 8;
+            const feeAmount = amount * (fee / 100);
+            const netAmount = amount - feeAmount;
+            
+            document.getElementById('withdrawBalance').textContent = amount.toFixed(2) + ' ر.س';
+            document.getElementById('withdrawFee').textContent = '- ' + feeAmount.toFixed(2) + ' ر.س';
+            document.getElementById('withdrawNet').textContent = netAmount.toFixed(2) + ' ر.س';
+            
+            // تعطيل الزر إذا كان المبلغ صفر أو لم يتم اختيار طريقة
+            const submitBtn = document.getElementById('submitWithdrawBtn');
+            if (currentMethod && amount > 0) {
+                submitBtn.disabled = false;
+            } else {
+                submitBtn.disabled = true;
+            }
+        }
+        
         function openWithdrawModal(type) {
             currentWithdrawType = type;
             const modal = document.getElementById('withdrawModal');
             const title = document.getElementById('withdrawModalTitle');
             const typeSpan = document.getElementById('withdrawType');
             const feePercent = document.getElementById('feePercent');
-            const withdrawFee = document.getElementById('withdrawFee');
-            const withdrawNet = document.getElementById('withdrawNet');
-            currentAmount = type === 'normal' ? normalAmount : instantAmount;
+            
+            maxWithdrawAmount = type === 'normal' ? normalAmount : instantAmount;
             const fee = type === 'normal' ? 6.5 : 8;
-            const feeAmount = currentAmount * (fee / 100);
-            const netAmount = currentAmount - feeAmount;
+            
             title.textContent = type === 'normal' ? ' سحب عادي' : ' سحب فوري';
             typeSpan.textContent = type === 'normal' ? 'عادي (6.5%)' : 'فوري (8%)';
-            document.getElementById('withdrawBalance').textContent = currentAmount.toFixed(2) + ' ر.س';
             feePercent.textContent = fee;
-            withdrawFee.textContent = feeAmount.toFixed(2) + ' ر.س';
-            withdrawNet.textContent = netAmount.toFixed(2) + ' ر.س';
+            
+            // تحديث الرصيد المتاح
+            document.getElementById('availableBalance').textContent = maxWithdrawAmount.toFixed(2);
+            
+            // تفريغ حقل الإدخال وحساب القيم الابتدائية
+            document.getElementById('withdrawAmountInput').value = '';
+            currentAmount = 0;
+            document.getElementById('withdrawBalance').textContent = '0.00 ر.س';
+            document.getElementById('withdrawFee').textContent = '- 0.00 ر.س';
+            document.getElementById('withdrawNet').textContent = '0.00 ر.س';
+            
             currentMethod = '';
             document.getElementById('methodWallet').classList.remove('selected');
             document.getElementById('methodBank').classList.remove('selected');
@@ -1429,7 +1557,11 @@
             document.getElementById('methodBank').classList.toggle('selected', method === 'bank');
             document.getElementById('walletForm').style.display = method === 'wallet' ? 'block' : 'none';
             document.getElementById('bankForm').style.display = method === 'bank' ? 'block' : 'none';
-            document.getElementById('submitWithdrawBtn').disabled = false;
+            
+            // تفعيل الزر فقط إذا كان هناك مبلغ
+            if (currentAmount > 0) {
+                document.getElementById('submitWithdrawBtn').disabled = false;
+            }
         }
         async function submitWithdraw() {
             const btn = document.getElementById('submitWithdrawBtn');
