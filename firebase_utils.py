@@ -794,3 +794,47 @@ def get_collection_list():
         print(f"⚠️ خطأ في جلب قائمة Collections: {e}")
         return []
 
+
+def get_category_sales_count(category_name):
+    """حساب عدد المبيعات لفئة معينة"""
+    try:
+        if not db:
+            return 0
+        
+        # جلب المنتجات المباعة من هذه الفئة
+        products_ref = db.collection('products')
+        products_ref = query_where(products_ref, 'category', '==', category_name)
+        products_ref = query_where(products_ref, 'status', '==', 'sold')
+        
+        count = 0
+        for doc in products_ref.stream():
+            count += 1
+        
+        return count
+    except Exception as e:
+        print(f"⚠️ خطأ في حساب مبيعات الفئة: {e}")
+        return 0
+
+
+def get_all_categories_sales():
+    """جلب عدد المبيعات لجميع الفئات"""
+    try:
+        if not db:
+            return {}
+        
+        sales_count = {}
+        
+        # جلب جميع المنتجات المباعة
+        products_ref = query_where(db.collection('products'), 'status', '==', 'sold')
+        
+        for doc in products_ref.stream():
+            product = doc.to_dict()
+            category = product.get('category', '')
+            if category:
+                sales_count[category] = sales_count.get(category, 0) + 1
+        
+        return sales_count
+    except Exception as e:
+        print(f"⚠️ خطأ في جلب مبيعات الفئات: {e}")
+        return {}
+

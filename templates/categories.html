@@ -319,6 +319,25 @@
             color: #6c5ce7;
             font-weight: bold;
         }
+        .sales-badge {
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            color: #fff;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .sales-badge.hot {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
         .arrow {
             color: #6c5ce7;
             font-size: 18px;
@@ -526,6 +545,11 @@
                         <div class="products-count">
                             <span class="count">{{ category.products_count }}</span> منتج
                         </div>
+                        {% if category.sales_count > 0 %}
+                        <div class="sales-badge {% if category.sales_count >= 10 %}hot{% endif %}">
+                            🔥 {{ category.sales_count }} مبيعة
+                        </div>
+                        {% endif %}
                         <div class="arrow">←</div>
                     </div>
                 </div>

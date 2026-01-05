@@ -4,7 +4,8 @@ Web Routes - صفحات الويب
 from flask import Blueprint, render_template, session
 from firebase_utils import (
     get_balance, get_user_cart, get_categories, 
-    get_products_by_category, get_product_by_id
+    get_products_by_category, get_product_by_id,
+    get_all_categories_sales
 )
 from extensions import BOT_USERNAME
 from config import CONTACT_BOT_URL, CONTACT_WHATSAPP
@@ -30,11 +31,16 @@ def index():
     
     # 2. جلب الفئات
     categories = get_categories()
+    
+    # 3. جلب عدد المبيعات لكل فئة
+    sales_counts = get_all_categories_sales()
+    
     for cat in categories:
         products = get_products_by_category(cat.get('name', ''))
         cat['products_count'] = len(products)
+        cat['sales_count'] = sales_counts.get(cat.get('name', ''), 0)
     
-    # 3. جلب عدد منتجات السلة
+    # 4. جلب عدد منتجات السلة
     cart_count = 0
     if user_id:
         cart = get_user_cart(str(user_id)) or {}
