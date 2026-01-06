@@ -168,88 +168,6 @@
             background: rgba(108, 92, 231, 0.2);
             margin: 15px 0;
         }
-        .search-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 1002;
-            padding: 20px;
-        }
-        .search-overlay.show {
-            display: block;
-        }
-        .search-container {
-            max-width: 600px;
-            margin: 80px auto 0;
-        }
-        .search-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .search-header h3 {
-            color: #fff;
-            font-size: 20px;
-        }
-        .close-search-btn {
-            background: none;
-            border: none;
-            color: #888;
-            font-size: 28px;
-            cursor: pointer;
-        }
-        .search-input-wrapper {
-            position: relative;
-        }
-        .search-input {
-            width: 100%;
-            padding: 15px 50px 15px 20px;
-            border: 2px solid rgba(108, 92, 231, 0.5);
-            border-radius: 15px;
-            background: rgba(26, 26, 46, 0.9);
-            color: #fff;
-            font-size: 16px;
-            font-family: 'Tajawal', sans-serif;
-        }
-        .search-input:focus {
-            outline: none;
-            border-color: #6c5ce7;
-        }
-        .search-input::placeholder {
-            color: #888;
-        }
-        .search-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6c5ce7;
-            font-size: 20px;
-        }
-        .search-results {
-            margin-top: 20px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .search-result-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 15px;
-            background: rgba(26, 26, 46, 0.8);
-            border-radius: 12px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .search-result-item:hover {
-            background: rgba(108, 92, 231, 0.2);
-        }
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -455,9 +373,6 @@
 <body data-logged-in="{{ 'true' if is_logged_in else 'false' }}">
     <header class="main-header">
         <div class="header-right">
-            <button class="header-btn" onclick="openSearch()" title="بحث">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            </button>
             <button class="header-btn account-btn" id="headerAccountBtn" onclick="handleAccountClick()" title="حسابي">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 <span id="headerAccountText">حسابي</span>
@@ -511,19 +426,6 @@
             {% endif %}
             <div class="menu-item" onclick="openTelegramBot(); closeSideMenu();" style="cursor: pointer;">
                 <span>تيليجرام</span>
-            </div>
-        </div>
-    </div>
-    <div class="search-overlay" id="searchOverlay">
-        <div class="search-container">
-            <div class="search-header">
-                <h3>البحث في المتجر</h3>
-                <button class="close-search-btn" onclick="closeSearch()">×</button>
-            </div>
-            <div class="search-input-wrapper">
-                <input type="text" class="search-input" id="searchInput" placeholder="ابحث عن منتج أو فئة..." oninput="handleSearch(this.value)">
-            </div>
-            <div class="search-results" id="searchResults">
             </div>
         </div>
     </div>
@@ -1255,56 +1157,8 @@
             document.getElementById('sideMenuOverlay').classList.remove('show');
             document.body.style.overflow = '';
         }
-        function openSearch() {
-            document.getElementById('searchOverlay').classList.add('show');
-            document.getElementById('searchInput').focus();
-            document.body.style.overflow = 'hidden';
-        }
-        function closeSearch() {
-            document.getElementById('searchOverlay').classList.remove('show');
-            document.getElementById('searchInput').value = '';
-            document.getElementById('searchResults').innerHTML = '';
-            document.body.style.overflow = '';
-        }
-        function handleSearch(query) {
-            const resultsContainer = document.getElementById('searchResults');
-            if (query.length < 2) {
-                resultsContainer.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">اكتب كلمتين على الأقل للبحث...</p>';
-                return;
-            }
-            const cards = document.querySelectorAll('.category-card');
-            let results = [];
-            cards.forEach(card => {
-                const name = card.querySelector('.category-name').textContent.toLowerCase();
-                if (name.includes(query.toLowerCase())) {
-                    results.push({
-                        name: card.querySelector('.category-name').textContent,
-                        count: card.querySelector('.products-count .count')?.textContent || '0',
-                        url: card.getAttribute('onclick').match(/'([^']+)'/)?.[1] || '#'
-                    });
-                }
-            });
-            if (results.length === 0) {
-                resultsContainer.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">لا توجد نتائج لـ "' + query + '"</p>';
-                return;
-            }
-            let html = '';
-            results.forEach(item => {
-                html += `
-                    <div class="search-result-item" onclick="location.href='${item.url}'; closeSearch();">
-                        <span style="font-size: 30px;"></span>
-                        <div>
-                            <div style="font-weight: bold;">${item.name}</div>
-                            <div style="color: #888; font-size: 13px;">${item.count} منتج</div>
-                        </div>
-                    </div>
-                `;
-            });
-            resultsContainer.innerHTML = html;
-        }
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                closeSearch();
                 closeSideMenu();
             }
         });
