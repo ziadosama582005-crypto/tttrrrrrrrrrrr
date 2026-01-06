@@ -88,3 +88,51 @@ document.addEventListener('DOMContentLoaded', function() {
         loadCategoriesFromAPI();
     }
 });
+
+// ========== القائمة المنبثقة للبروفايل ==========
+function toggleProfileMenu() {
+    const menu = document.getElementById('profileDropdown');
+    const overlay = document.getElementById('profileOverlay');
+    
+    if (menu && overlay) {
+        menu.classList.toggle('active');
+        overlay.classList.toggle('active');
+    }
+}
+
+function closeProfileMenu() {
+    const menu = document.getElementById('profileDropdown');
+    const overlay = document.getElementById('profileOverlay');
+    
+    if (menu && overlay) {
+        menu.classList.remove('active');
+        overlay.classList.remove('active');
+    }
+}
+
+// نسخ الآيدي مع تأثير بصري
+function copyUserId(text) {
+    if (!text) return;
+    
+    navigator.clipboard.writeText(text).then(() => {
+        const idBadge = document.querySelector('.copy-id-badge');
+        const textSpan = document.getElementById('idText');
+        
+        if (idBadge && textSpan) {
+            const originalText = textSpan.innerText;
+            
+            textSpan.innerText = 'تم النسخ ✅';
+            idBadge.style.background = 'rgba(0, 255, 136, 0.2)';
+            
+            setTimeout(() => {
+                textSpan.innerText = originalText;
+                idBadge.style.background = '';
+            }, 1500);
+        } else {
+            showToast('تم نسخ المعرف بنجاح ✅');
+        }
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        showToast('فشل النسخ ❌', 'error');
+    });
+}

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>المتجر الرقمي - الفئات</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -72,18 +73,200 @@
             cursor: pointer;
             transition: all 0.3s;
             font-size: 18px;
+            text-decoration: none;
         }
         .header-btn:hover {
             background: rgba(108, 92, 231, 0.4);
             border-color: #6c5ce7;
             transform: scale(1.05);
         }
-        .header-btn.account-btn {
-            width: auto;
-            padding: 0 12px;
-            gap: 6px;
-            font-size: 14px;
+        /* زر البروفايل الدائري */
+        .profile-widget-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: 2px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+            transition: transform 0.2s;
+            overflow: hidden;
         }
+        .profile-widget-btn:active { transform: scale(0.95); }
+        .profile-widget-btn img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .profile-widget-btn span {
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .profile-widget-btn.guest {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.1);
+        }
+        /* القائمة المنبثقة */
+        .profile-dropdown {
+            position: fixed;
+            top: 70px;
+            right: 15px;
+            width: 300px;
+            background: #1a1a2e;
+            border-radius: 20px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            z-index: 10000;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-20px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .profile-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .profile-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(2px);
+            z-index: 9999;
+            display: none;
+        }
+        .profile-overlay.active { display: block; }
+        .dropdown-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: white;
+        }
+        .user-details-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .dropdown-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            overflow: hidden;
+        }
+        .dropdown-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .dropdown-user-text h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .copy-id-badge {
+            font-size: 11px;
+            background: rgba(0,0,0,0.2);
+            padding: 4px 10px;
+            border-radius: 15px;
+            margin-top: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .copy-id-badge:hover { background: rgba(0,0,0,0.4); }
+        .dropdown-balance-card {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .dropdown-balance-card .lbl { font-size: 12px; opacity: 0.9; }
+        .dropdown-balance-card .val { font-size: 20px; font-weight: 800; }
+        .dropdown-quick-actions {
+            display: flex;
+            padding: 15px;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .q-action-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            color: #a29bfe;
+            transition: transform 0.2s;
+        }
+        .q-action-item:hover { transform: translateY(-3px); }
+        .icon-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .charge .icon-box { background: rgba(0, 255, 136, 0.1); color: #00ff88; }
+        .orders .icon-box { background: rgba(108, 92, 231, 0.1); color: #a29bfe; }
+        .support .icon-box { background: rgba(241, 196, 15, 0.1); color: #f1c40f; }
+        .q-action-item span { font-size: 11px; font-weight: 600; }
+        .dropdown-list-menu { padding: 10px; }
+        .list-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            color: #e0e0e0;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: background 0.2s;
+            font-size: 13px;
+        }
+        .list-item:hover { background: rgba(108, 92, 231, 0.1); color: white; }
+        .list-item i { width: 20px; text-align: center; color: #6c5ce7; }
+        .list-item .arrow { margin-right: auto; font-size: 10px; opacity: 0.5; }
+        .dropdown-footer-area { padding: 12px; background: rgba(0,0,0,0.2); }
+        .dropdown-logout-btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            background: rgba(231, 76, 60, 0.1);
+            color: #ff6b6b;
+            border-radius: 10px;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .dropdown-logout-btn:hover { background: rgba(231, 76, 60, 0.2); }
         .menu-btn {
             flex-direction: column;
             gap: 4px;
@@ -373,10 +556,19 @@
 <body data-logged-in="{{ 'true' if is_logged_in else 'false' }}">
     <header class="main-header">
         <div class="header-right">
-            <button class="header-btn account-btn" id="headerAccountBtn" onclick="handleAccountClick()" title="حسابي">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                <span id="headerAccountText">حسابي</span>
-            </button>
+            {% if is_logged_in %}
+                <div class="profile-widget-btn" onclick="toggleProfileMenu()">
+                    {% if profile_photo %}
+                        <img src="{{ profile_photo }}" alt="Profile">
+                    {% else %}
+                        <span>{{ user_name[0] if user_name else '👤' }}</span>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="profile-widget-btn guest" onclick="openLoginModal()">
+                    <span>👤</span>
+                </div>
+            {% endif %}
         </div>
         <div class="header-center">
             <div class="header-logo">
@@ -391,6 +583,66 @@
             </button>
         </div>
     </header>
+
+    {% if is_logged_in %}
+    <div class="profile-overlay" id="profileOverlay" onclick="toggleProfileMenu()"></div>
+    <div class="profile-dropdown" id="profileDropdown">
+        <div class="dropdown-header">
+            <div class="user-details-row">
+                <div class="dropdown-avatar">
+                    {% if profile_photo %}
+                        <img src="{{ profile_photo }}">
+                    {% else %}
+                        <span>{{ user_name[0] if user_name else 'U' }}</span>
+                    {% endif %}
+                </div>
+                <div class="dropdown-user-text">
+                    <h3>{{ user_name or 'مستخدم' }}</h3>
+                    <div class="copy-id-badge" onclick="copyUserId('{{ current_user_id }}')">
+                        <span id="idText">ID: {{ current_user_id }}</span>
+                        <i class="fas fa-copy"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="dropdown-balance-card">
+                <span class="lbl">الرصيد الحالي</span>
+                <span class="val">{{ "%.2f"|format(balance|float) }} <small>ر.س</small></span>
+            </div>
+        </div>
+        <div class="dropdown-quick-actions">
+            <a href="/wallet" class="q-action-item charge">
+                <div class="icon-box"><i class="fas fa-plus"></i></div>
+                <span>شحن</span>
+            </a>
+            <a href="/my_purchases" class="q-action-item orders">
+                <div class="icon-box"><i class="fas fa-shopping-bag"></i></div>
+                <span>طلباتي</span>
+            </a>
+            <a href="{{ contact_bot_url }}" target="_blank" class="q-action-item support">
+                <div class="icon-box"><i class="fas fa-headset"></i></div>
+                <span>الدعم</span>
+            </a>
+        </div>
+        <div class="dropdown-list-menu">
+            <a href="/profile" class="list-item">
+                <i class="fas fa-user-circle"></i>
+                <span>الملف الشخصي</span>
+                <i class="fas fa-chevron-left arrow"></i>
+            </a>
+            <a href="/cart" class="list-item">
+                <i class="fas fa-shopping-cart"></i>
+                <span>السلة</span>
+                <i class="fas fa-chevron-left arrow"></i>
+            </a>
+        </div>
+        <div class="dropdown-footer-area">
+            <button onclick="logout()" class="dropdown-logout-btn">
+                <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="side-menu-overlay" id="sideMenuOverlay" onclick="closeSideMenu()"></div>
     <div class="side-menu" id="sideMenu">
         <div class="side-menu-header">
@@ -1239,6 +1491,41 @@
                 if (headerAccountText) headerAccountText.textContent = 'حسابي';
             }
         }
+        
+        // ========== القائمة المنبثقة للبروفايل ==========
+        function toggleProfileMenu() {
+            const menu = document.getElementById('profileDropdown');
+            const overlay = document.getElementById('profileOverlay');
+            
+            if (menu && overlay) {
+                menu.classList.toggle('active');
+                overlay.classList.toggle('active');
+            }
+        }
+        
+        function copyUserId(text) {
+            if (!text) return;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const idBadge = document.querySelector('.copy-id-badge');
+                const textSpan = document.getElementById('idText');
+                
+                if (idBadge && textSpan) {
+                    const originalText = textSpan.innerText;
+                    textSpan.innerText = 'تم النسخ ✅';
+                    idBadge.style.background = 'rgba(0, 255, 136, 0.2)';
+                    
+                    setTimeout(() => {
+                        textSpan.innerText = originalText;
+                        idBadge.style.background = '';
+                    }, 1500);
+                }
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('تم نسخ: ' + text);
+            });
+        }
+        
         document.addEventListener('DOMContentLoaded', updateAccountMenuOnLoad);
     </script>
 </body>
