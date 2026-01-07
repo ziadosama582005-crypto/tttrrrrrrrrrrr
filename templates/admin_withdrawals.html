@@ -1,0 +1,422 @@
+{% extends "admin_base.html" %}
+{% block title %}طلبات السحب - لوحة التحكم{% endblock %}
+{% block content %}
+<div class="top-bar">
+    <h1>💸 طلبات السحب</h1>
+    <div class="top-bar-actions">
+        <button class="btn btn-secondary" onclick="loadWithdrawals()">🔄 تحديث</button>
+    </div>
+</div>
+
+<!-- الإحصائيات -->
+<div class="stats-grid">
+    <div class="stat-card" style="border-color: var(--warning);">
+        <div class="icon">⏳</div>
+        <div class="value" id="pendingCount" style="color: var(--warning);">-</div>
+        <div class="label">قيد الانتظار</div>
+    </div>
+    <div class="stat-card" style="border-color: var(--success);">
+        <div class="icon">✅</div>
+        <div class="value" id="approvedCount" style="color: var(--success);">-</div>
+        <div class="label">تمت الموافقة</div>
+    </div>
+    <div class="stat-card" style="border-color: var(--danger);">
+        <div class="icon">❌</div>
+        <div class="value" id="rejectedCount" style="color: var(--danger);">-</div>
+        <div class="label">مرفوض</div>
+    </div>
+    <div class="stat-card" style="border-color: var(--primary);">
+        <div class="icon">💰</div>
+        <div class="value" id="totalAmount" style="color: var(--primary);">-</div>
+        <div class="label">إجمالي المبالغ</div>
+    </div>
+</div>
+
+<!-- الفلاتر -->
+<div class="card">
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+        <select id="statusFilter" style="padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
+            <option value="all">جميع الحالات</option>
+            <option value="pending" selected>⏳ قيد الانتظار</option>
+            <option value="approved">✅ تمت الموافقة</option>
+            <option value="rejected">❌ مرفوض</option>
+        </select>
+        <input type="text" id="searchInput" placeholder="🔍 بحث بالمستخدم أو رقم الآيبان..." 
+               style="flex: 1; min-width: 200px; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: white;">
+    </div>
+</div>
+
+<!-- جدول الطلبات -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">📋 قائمة الطلبات</span>
+        <span id="requestsCountLabel" style="color: var(--muted); font-size: 13px;">جاري التحميل...</span>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>الحالة</th>
+                    <th>المستخدم</th>
+                    <th>الاسم</th>
+                    <th>المبلغ</th>
+                    <th>الرسوم</th>
+                    <th>الصافي</th>
+                    <th>النوع</th>
+                    <th>البيانات البنكية</th>
+                    <th>التاريخ</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody id="withdrawalsTable">
+                <tr>
+                    <td colspan="10" style="text-align: center; padding: 40px;">
+                        <div class="spinner" style="margin: 0 auto;"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal تفاصيل الطلب -->
+<div id="detailsModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: var(--card-bg); border-radius: 20px; padding: 30px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0;">📋 تفاصيل الطلب</h3>
+            <button onclick="closeModal()" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;">×</button>
+        </div>
+        <div id="modalContent"></div>
+    </div>
+</div>
+
+<style>
+    .action-btn {
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-size: 12px;
+        margin: 2px;
+        transition: all 0.2s;
+    }
+    .action-btn:hover {
+        transform: scale(1.05);
+    }
+    .action-btn.approve {
+        background: rgba(0, 184, 148, 0.2);
+        color: var(--success);
+    }
+    .action-btn.reject {
+        background: rgba(231, 76, 60, 0.2);
+        color: var(--danger);
+    }
+    .action-btn.resend {
+        background: rgba(108, 92, 231, 0.2);
+        color: var(--primary);
+    }
+    .action-btn.details {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+    .action-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .bank-info {
+        font-size: 11px;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let allWithdrawals = [];
+    
+    async function loadWithdrawals() {
+        const tbody = document.getElementById('withdrawalsTable');
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px;"><div class="spinner" style="margin: 0 auto;"></div></td></tr>';
+        
+        try {
+            const res = await fetch('/api/admin/get_withdrawals');
+            const data = await res.json();
+            
+            if (data.status === 'success') {
+                allWithdrawals = data.withdrawals || [];
+                updateStats();
+                renderWithdrawals();
+            } else {
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #e74c3c;">❌ ' + (data.message || 'حدث خطأ') + '</td></tr>';
+            }
+        } catch (e) {
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #e74c3c;">❌ خطأ في الاتصال</td></tr>';
+        }
+    }
+    
+    function updateStats() {
+        let pending = 0, approved = 0, rejected = 0, total = 0;
+        
+        allWithdrawals.forEach(w => {
+            const amount = parseFloat(w.amount) || 0;
+            total += amount;
+            
+            if (w.status === 'pending') pending++;
+            else if (w.status === 'approved') approved++;
+            else if (w.status === 'rejected') rejected++;
+        });
+        
+        document.getElementById('pendingCount').textContent = pending;
+        document.getElementById('approvedCount').textContent = approved;
+        document.getElementById('rejectedCount').textContent = rejected;
+        document.getElementById('totalAmount').textContent = total.toFixed(2) + ' ر.س';
+    }
+    
+    function renderWithdrawals() {
+        const tbody = document.getElementById('withdrawalsTable');
+        const statusFilter = document.getElementById('statusFilter').value;
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        
+        let filtered = allWithdrawals.filter(w => {
+            if (statusFilter !== 'all' && w.status !== statusFilter) return false;
+            if (search) {
+                const searchFields = [
+                    w.user_id || '',
+                    w.full_name || '',
+                    w.iban || '',
+                    w.wallet_number || ''
+                ].join(' ').toLowerCase();
+                if (!searchFields.includes(search)) return false;
+            }
+            return true;
+        });
+        
+        // ترتيب حسب التاريخ (الأحدث أولاً)
+        filtered.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+        
+        document.getElementById('requestsCountLabel').textContent = `${filtered.length} طلب`;
+        
+        if (filtered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: var(--muted);">لا يوجد طلبات</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = filtered.map(w => {
+            const statusBadge = getStatusBadge(w.status);
+            const date = w.created_at ? new Date(w.created_at).toLocaleString('ar-SA') : '-';
+            const amount = parseFloat(w.amount) || 0;
+            const fee = parseFloat(w.fee) || 0;
+            const netAmount = parseFloat(w.net_amount) || 0;
+            
+            const typeIcon = w.withdrawal_type === 'bank' ? '🏦' : '💳';
+            const typeName = w.withdrawal_type === 'bank' ? 'تحويل بنكي' : 'محفظة';
+            
+            let bankInfo = '';
+            if (w.withdrawal_type === 'bank') {
+                bankInfo = `${w.bank_name || '-'}<br>IBAN: ${w.iban || '-'}`;
+            } else {
+                bankInfo = `${w.wallet_type || '-'}<br>${w.wallet_number || '-'}`;
+            }
+            
+            const isPending = w.status === 'pending';
+            
+            return `
+                <tr>
+                    <td>${statusBadge}</td>
+                    <td style="font-family: monospace;">#${w.user_id || '-'}</td>
+                    <td>${w.full_name || '-'}</td>
+                    <td style="font-weight: 600;">${amount.toFixed(2)} ر.س</td>
+                    <td style="color: var(--danger); font-size: 12px;">${fee.toFixed(2)} ر.س</td>
+                    <td style="color: var(--success); font-weight: 600;">${netAmount.toFixed(2)} ر.س</td>
+                    <td>${typeIcon} ${typeName}</td>
+                    <td class="bank-info">${bankInfo}</td>
+                    <td style="font-size: 12px; color: var(--muted);">${date}</td>
+                    <td>
+                        <button class="action-btn details" onclick="showDetails('${w.id}')">📋</button>
+                        <button class="action-btn resend" onclick="resendNotification('${w.id}')" title="إعادة إرسال الإشعار">📤</button>
+                        ${isPending ? `
+                            <button class="action-btn approve" onclick="approveWithdrawal('${w.id}')">✅</button>
+                            <button class="action-btn reject" onclick="rejectWithdrawal('${w.id}')">❌</button>
+                        ` : ''}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+    
+    function getStatusBadge(status) {
+        switch(status) {
+            case 'pending':
+                return '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(243,156,18,0.2); color: var(--warning);">⏳ قيد الانتظار</span>';
+            case 'approved':
+                return '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(0,184,148,0.2); color: var(--success);">✅ تمت الموافقة</span>';
+            case 'rejected':
+                return '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(231,76,60,0.2); color: var(--danger);">❌ مرفوض</span>';
+            default:
+                return '<span style="padding: 3px 8px; border-radius: 6px; font-size: 11px; background: rgba(255,255,255,0.1); color: var(--muted);">غير معروف</span>';
+        }
+    }
+    
+    function showDetails(id) {
+        const w = allWithdrawals.find(x => x.id === id);
+        if (!w) return;
+        
+        const modal = document.getElementById('detailsModal');
+        const content = document.getElementById('modalContent');
+        
+        const date = w.created_at ? new Date(w.created_at).toLocaleString('ar-SA') : '-';
+        const amount = parseFloat(w.amount) || 0;
+        const fee = parseFloat(w.fee) || 0;
+        const netAmount = parseFloat(w.net_amount) || 0;
+        
+        content.innerHTML = `
+            <div style="display: grid; gap: 15px;">
+                <div style="display: flex; justify-content: space-between; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px;">
+                    <span style="color: var(--muted);">الحالة</span>
+                    <span>${getStatusBadge(w.status)}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px;">
+                    <span style="color: var(--muted);">رقم المستخدم</span>
+                    <span style="font-family: monospace;">#${w.user_id || '-'}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px;">
+                    <span style="color: var(--muted);">الاسم الكامل</span>
+                    <span>${w.full_name || '-'}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px;">
+                    <span style="color: var(--muted);">المبلغ المطلوب</span>
+                    <span style="font-weight: 600;">${amount.toFixed(2)} ر.س</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px;">
+                    <span style="color: var(--muted);">الرسوم (${w.fee_percentage || 0}%)</span>
+                    <span style="color: var(--danger);">${fee.toFixed(2)} ر.س</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 12px; background: rgba(0,184,148,0.1); border-radius: 10px; border: 1px solid rgba(0,184,148,0.3);">
+                    <span style="color: var(--success);">المبلغ الصافي للتحويل</span>
+                    <span style="color: var(--success); font-weight: 700; font-size: 18px;">${netAmount.toFixed(2)} ر.س</span>
+                </div>
+                
+                <div style="border-top: 1px solid rgba(255,255,255,0.1); margin: 10px 0;"></div>
+                
+                <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px;">
+                    <div style="color: var(--muted); margin-bottom: 8px;">نوع السحب</div>
+                    <div>${w.withdrawal_type === 'bank' ? '🏦 تحويل بنكي' : '💳 محفظة إلكترونية'}</div>
+                </div>
+                
+                ${w.withdrawal_type === 'bank' ? `
+                    <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px;">
+                        <div style="color: var(--muted); margin-bottom: 8px;">اسم البنك</div>
+                        <div>${w.bank_name || '-'}</div>
+                    </div>
+                    <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px;">
+                        <div style="color: var(--muted); margin-bottom: 8px;">رقم الآيبان</div>
+                        <div style="font-family: monospace; word-break: break-all;">${w.iban || '-'}</div>
+                    </div>
+                ` : `
+                    <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px;">
+                        <div style="color: var(--muted); margin-bottom: 8px;">نوع المحفظة</div>
+                        <div>${w.wallet_type || '-'}</div>
+                    </div>
+                    <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px;">
+                        <div style="color: var(--muted); margin-bottom: 8px;">رقم المحفظة</div>
+                        <div style="font-family: monospace;">${w.wallet_number || '-'}</div>
+                    </div>
+                `}
+                
+                <div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 10px;">
+                    <div style="color: var(--muted); margin-bottom: 8px;">تاريخ الطلب</div>
+                    <div>${date}</div>
+                </div>
+                
+                ${w.status === 'pending' ? `
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button class="action-btn approve" style="flex: 1; padding: 12px;" onclick="approveWithdrawal('${w.id}'); closeModal();">✅ موافقة</button>
+                        <button class="action-btn reject" style="flex: 1; padding: 12px;" onclick="rejectWithdrawal('${w.id}'); closeModal();">❌ رفض</button>
+                    </div>
+                ` : ''}
+                
+                <button class="action-btn resend" style="width: 100%; padding: 12px;" onclick="resendNotification('${w.id}');">📤 إعادة إرسال الإشعار</button>
+            </div>
+        `;
+        
+        modal.style.display = 'flex';
+    }
+    
+    function closeModal() {
+        document.getElementById('detailsModal').style.display = 'none';
+    }
+    
+    async function approveWithdrawal(id) {
+        if (!confirm('هل أنت متأكد من الموافقة على هذا الطلب؟')) return;
+        
+        try {
+            const res = await fetch(`/api/admin/withdrawal/${id}/approve`, { method: 'POST' });
+            const data = await res.json();
+            
+            if (data.status === 'success') {
+                alert('✅ تم الموافقة على الطلب');
+                loadWithdrawals();
+            } else {
+                alert('❌ ' + (data.message || 'حدث خطأ'));
+            }
+        } catch (e) {
+            alert('❌ خطأ في الاتصال');
+        }
+    }
+    
+    async function rejectWithdrawal(id) {
+        const reason = prompt('سبب الرفض (اختياري):');
+        if (reason === null) return; // المستخدم ضغط Cancel
+        
+        try {
+            const res = await fetch(`/api/admin/withdrawal/${id}/reject`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reason: reason })
+            });
+            const data = await res.json();
+            
+            if (data.status === 'success') {
+                alert('✅ تم رفض الطلب');
+                loadWithdrawals();
+            } else {
+                alert('❌ ' + (data.message || 'حدث خطأ'));
+            }
+        } catch (e) {
+            alert('❌ خطأ في الاتصال');
+        }
+    }
+    
+    async function resendNotification(id) {
+        if (!confirm('هل تريد إعادة إرسال الإشعار للأدمن؟')) return;
+        
+        try {
+            const res = await fetch(`/api/admin/withdrawal/${id}/resend`, { method: 'POST' });
+            const data = await res.json();
+            
+            if (data.status === 'success') {
+                alert('✅ تم إرسال الإشعار');
+            } else {
+                alert('❌ ' + (data.message || 'حدث خطأ'));
+            }
+        } catch (e) {
+            alert('❌ خطأ في الاتصال');
+        }
+    }
+    
+    // إغلاق Modal عند النقر خارجها
+    document.getElementById('detailsModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+    
+    // الأحداث
+    document.getElementById('statusFilter').addEventListener('change', renderWithdrawals);
+    document.getElementById('searchInput').addEventListener('input', renderWithdrawals);
+    
+    // تحميل البيانات
+    loadWithdrawals();
+</script>
+{% endblock %}

@@ -2146,6 +2146,244 @@ def api_delete_manager():
         return jsonify({'status': 'error', 'message': 'حدث خطأ'})
 
 
+# ===================== إدارة طلبات السحب =====================
+
+@admin_bp.route('/admin/withdrawals')
+def admin_withdrawals_page():
+    """صفحة طلبات السحب"""
+    if not session.get('is_admin'):
+        return redirect('/dashboard')
+    return render_template('admin_withdrawals.html', active_page='withdrawals')
+
+
+@admin_bp.route('/api/admin/get_withdrawals')
+def api_get_withdrawals():
+    """جلب جميع طلبات السحب"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    
+    try:
+        withdrawals = []
+        if db:
+            requests_ref = db.collection('withdrawal_requests').order_by('created_at', direction=firestore.Query.DESCENDING)
+            for doc in requests_ref.stream():
+                data = doc.to_dict()
+                data['id'] = doc.id
+                
+                # تحويل التاريخ
+                if data.get('created_at'):
+                    data['created_at'] = data['created_at'].isoformat() if hasattr(data['created_at'], 'isoformat') else str(data['created_at'])
+                
+                # فك تشفير البيانات الحساسة
+                if data.get('iban_encrypted'):
+                    try:
+                        data['iban'] = decrypt_data(data['iban_encrypted'])
+                    except:
+                        data['iban'] = '***مشفر***'
+                
+                if data.get('wallet_number_encrypted'):
+                    try:
+                        data['wallet_number'] = decrypt_data(data['wallet_number_encrypted'])
+                    except:
+                        data['wallet_number'] = '***مشفر***'
+                
+                withdrawals.append(data)
+        
+        return jsonify({'status': 'success', 'withdrawals': withdrawals})
+    
+    except Exception as e:
+        logger.error(f"Error getting withdrawals: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+
+
+@admin_bp.route('/api/admin/withdrawal/<withdrawal_id>/approve', methods=['POST'])
+def api_approve_withdrawal(withdrawal_id):
+    """الموافقة على طلب السحب"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    
+    try:
+        if not db:
+            return jsonify({'status': 'error', 'message': 'خطأ في الاتصال'})
+        
+        doc_ref = db.collection('withdrawal_requests').document(withdrawal_id)
+        doc = doc_ref.get()
+        
+        if not doc.exists:
+            return jsonify({'status': 'error', 'message': 'الطلب غير موجود'})
+        
+        data = doc.to_dict()
+        if data.get('status') != 'pending':
+            return jsonify({'status': 'error', 'message': 'هذا الطلب تم معالجته مسبقاً'})
+        
+        # تحديث حالة الطلب
+        doc_ref.update({
+            'status': 'approved',
+            'approved_at': firestore.SERVER_TIMESTAMP,
+            'approved_by': session.get('admin_id', 'admin')
+        })
+        
+        # إرسال إشعار للمستخدم
+        user_id = data.get('user_id')
+        amount = data.get('amount', 0)
+        net_amount = data.get('net_amount', 0)
+        
+        if bot and user_id:
+            try:
+                message = f"""✅ تمت الموافقة على طلب السحب
+
+💰 المبلغ المطلوب: {amount} ر.س
+💵 المبلغ الصافي: {net_amount} ر.س
+
+سيتم تحويل المبلغ خلال 24-48 ساعة عمل."""
+                bot.send_message(chat_id=user_id, text=message)
+            except Exception as e:
+                logger.error(f"Error sending approval notification: {e}")
+        
+        return jsonify({'status': 'success', 'message': 'تم الموافقة على الطلب'})
+    
+    except Exception as e:
+        logger.error(f"Error approving withdrawal: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+
+
+@admin_bp.route('/api/admin/withdrawal/<withdrawal_id>/reject', methods=['POST'])
+def api_reject_withdrawal(withdrawal_id):
+    """رفض طلب السحب وإرجاع الرصيد"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    
+    try:
+        if not db:
+            return jsonify({'status': 'error', 'message': 'خطأ في الاتصال'})
+        
+        req_data = request.get_json() or {}
+        reason = req_data.get('reason', '')
+        
+        doc_ref = db.collection('withdrawal_requests').document(withdrawal_id)
+        doc = doc_ref.get()
+        
+        if not doc.exists:
+            return jsonify({'status': 'error', 'message': 'الطلب غير موجود'})
+        
+        data = doc.to_dict()
+        if data.get('status') != 'pending':
+            return jsonify({'status': 'error', 'message': 'هذا الطلب تم معالجته مسبقاً'})
+        
+        user_id = data.get('user_id')
+        amount = data.get('amount', 0)
+        
+        # إرجاع الرصيد للمستخدم
+        user_ref = db.collection('users').document(str(user_id))
+        user_doc = user_ref.get()
+        if user_doc.exists:
+            current_balance = user_doc.to_dict().get('balance', 0)
+            user_ref.update({'balance': current_balance + amount})
+        
+        # تحديث حالة الطلب
+        doc_ref.update({
+            'status': 'rejected',
+            'rejected_at': firestore.SERVER_TIMESTAMP,
+            'rejected_by': session.get('admin_id', 'admin'),
+            'rejection_reason': reason
+        })
+        
+        # إرسال إشعار للمستخدم
+        if bot and user_id:
+            try:
+                message = f"""❌ تم رفض طلب السحب
+
+💰 المبلغ: {amount} ر.س
+📝 السبب: {reason if reason else 'لم يتم تحديد السبب'}
+
+تم إرجاع المبلغ لرصيدك."""
+                bot.send_message(chat_id=user_id, text=message)
+            except Exception as e:
+                logger.error(f"Error sending rejection notification: {e}")
+        
+        return jsonify({'status': 'success', 'message': 'تم رفض الطلب وإرجاع الرصيد'})
+    
+    except Exception as e:
+        logger.error(f"Error rejecting withdrawal: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+
+
+@admin_bp.route('/api/admin/withdrawal/<withdrawal_id>/resend', methods=['POST'])
+def api_resend_withdrawal_notification(withdrawal_id):
+    """إعادة إرسال إشعار طلب السحب للأدمن"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    
+    try:
+        if not db:
+            return jsonify({'status': 'error', 'message': 'خطأ في الاتصال'})
+        
+        doc = db.collection('withdrawal_requests').document(withdrawal_id).get()
+        
+        if not doc.exists:
+            return jsonify({'status': 'error', 'message': 'الطلب غير موجود'})
+        
+        data = doc.to_dict()
+        
+        # فك تشفير البيانات
+        iban = ''
+        wallet_number = ''
+        if data.get('iban_encrypted'):
+            try:
+                iban = decrypt_data(data['iban_encrypted'])
+            except:
+                iban = '***خطأ في فك التشفير***'
+        
+        if data.get('wallet_number_encrypted'):
+            try:
+                wallet_number = decrypt_data(data['wallet_number_encrypted'])
+            except:
+                wallet_number = '***خطأ في فك التشفير***'
+        
+        # إرسال الإشعار للأدمن
+        if bot and ADMIN_ID:
+            status_text = {
+                'pending': '⏳ قيد الانتظار',
+                'approved': '✅ تمت الموافقة',
+                'rejected': '❌ مرفوض'
+            }.get(data.get('status', 'pending'), '❓ غير معروف')
+            
+            if data.get('withdrawal_type') == 'bank':
+                bank_info = f"""🏦 تحويل بنكي
+البنك: {data.get('bank_name', '-')}
+IBAN: {iban}"""
+            else:
+                bank_info = f"""💳 محفظة إلكترونية
+نوع المحفظة: {data.get('wallet_type', '-')}
+رقم المحفظة: {wallet_number}"""
+            
+            message = f"""🔄 إعادة إرسال - طلب سحب رصيد
+
+👤 المستخدم: {data.get('user_id', '-')}
+📛 الاسم: {data.get('full_name', '-')}
+💰 المبلغ: {data.get('amount', 0)} ر.س
+💸 الرسوم ({data.get('fee_percentage', 0)}%): {data.get('fee', 0)} ر.س
+✅ الصافي: {data.get('net_amount', 0)} ر.س
+
+{bank_info}
+
+📊 الحالة: {status_text}
+📅 التاريخ: {data.get('created_at', '-')}"""
+            
+            try:
+                bot.send_message(chat_id=ADMIN_ID, text=message)
+                return jsonify({'status': 'success', 'message': 'تم إرسال الإشعار'})
+            except Exception as e:
+                logger.error(f"Error sending notification: {e}")
+                return jsonify({'status': 'error', 'message': f'خطأ في الإرسال: {str(e)}'})
+        else:
+            return jsonify({'status': 'error', 'message': 'البوت غير متاح'})
+    
+    except Exception as e:
+        logger.error(f"Error resending notification: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+
+
 # ===================== دالة التهيئة =====================
 
 def init_admin(app_db, app_bot, admin_id, app_limiter=None, bot_active=False):
