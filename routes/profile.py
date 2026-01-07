@@ -2,7 +2,7 @@
 Profile Routes - مسارات صفحة الحساب الشخصي
 """
 from flask import Blueprint, render_template, session, redirect, url_for, jsonify, request
-from extensions import db, logger, bot
+from extensions import db, logger, bot, ADMIN_ID
 from google.cloud import firestore
 import json
 import random
@@ -1037,20 +1037,19 @@ def submit_withdraw():
         
         # إرسال إشعار للأدمن
         try:
-            admin_id = os.environ.get('ADMIN_TELEGRAM_ID')
-            if not admin_id:
-                logger.warning("لم يتم تعيين ADMIN_TELEGRAM_ID")
-            
-            if method == 'wallet':
-                # فك تشفير رقم المحفظة للعرض
-                display_wallet = decrypt_data(withdraw_data['wallet_number']) if ENCRYPTION_AVAILABLE else withdraw_data['wallet_number']
-                details = f"محفظة {withdraw_data['wallet_type']}: {display_wallet}"
+            if not ADMIN_ID:
+                logger.warning("لم يتم تعيين ADMIN_ID")
             else:
-                # فك تشفير الآيبان للعرض
-                display_iban = decrypt_data(withdraw_data['iban']) if ENCRYPTION_AVAILABLE else withdraw_data['iban']
-                details = f"بنك {withdraw_data['bank_name']}\nIBAN: {display_iban}"
-            
-            admin_message = f"""
+                if method == 'wallet':
+                    # فك تشفير رقم المحفظة للعرض
+                    display_wallet = decrypt_data(withdraw_data['wallet_number']) if ENCRYPTION_AVAILABLE else withdraw_data['wallet_number']
+                    details = f"محفظة {withdraw_data['wallet_type']}: {display_wallet}"
+                else:
+                    # فك تشفير الآيبان للعرض
+                    display_iban = decrypt_data(withdraw_data['iban']) if ENCRYPTION_AVAILABLE else withdraw_data['iban']
+                    details = f"بنك {withdraw_data['bank_name']}\nIBAN: {display_iban}"
+                
+                admin_message = f"""
 🔔 طلب سحب جديد!
 
 👤 المستخدم: {user_data.get('name', 'غير معروف')}
@@ -1065,7 +1064,8 @@ def submit_withdraw():
 👤 {full_name}
 {details}
 """
-            bot.send_message(int(admin_id), admin_message, parse_mode='HTML')
+                bot.send_message(ADMIN_ID, admin_message, parse_mode='HTML')
+                logger.info(f"✅ تم إرسال إشعار السحب للأدمن {ADMIN_ID}")
         except Exception as e:
             logger.error(f"خطأ في إرسال إشعار للأدمن: {e}")
         
