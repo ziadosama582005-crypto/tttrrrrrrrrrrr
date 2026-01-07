@@ -909,7 +909,7 @@ def submit_withdraw():
         
         # حساب الرسوم
         if withdraw_type == 'normal':
-            fee_percent = 6.5
+            fee_percent = 6.0
             
             # ===== المعادلة الذهبية: المتاح = الرصيد الحالي - المجمد =====
             import datetime
@@ -978,7 +978,7 @@ def submit_withdraw():
                     'available_for_normal': current_available_balance
                 }), 400
         else:
-            fee_percent = 8.0
+            fee_percent = 8.5
         
         fee_amount = amount * (fee_percent / 100)
         net_amount = amount - fee_amount
@@ -1036,7 +1036,7 @@ def submit_withdraw():
         
         # إرسال إشعار للمستخدم
         try:
-            type_text = "عادي (6.5%)" if withdraw_type == 'normal' else "فوري (8%)"
+            type_text = "عادي (6%)" if withdraw_type == 'normal' else "فوري (8.5%)"
             user_message = f"""
 💸 تم استلام طلب السحب!
 
@@ -1048,7 +1048,7 @@ def submit_withdraw():
 📍 طريقة التحويل: {method_display}
 👤 الاسم: {full_name}
 
-⏰ وقت التحويل: 12-24 ساعة
+⚡ وقت التحويل: 1-5 ساعات بعد الموافقة
 📞 للاستفسار راسلنا
 """
             bot.send_message(int(user_id), user_message, parse_mode='HTML')

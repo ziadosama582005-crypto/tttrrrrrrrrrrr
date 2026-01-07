@@ -172,6 +172,8 @@
             align-items: center;
             gap: 8px;
             transition: all 0.3s;
+            position: relative;
+            overflow: visible;
         }
         .withdraw-btn.normal {
             background: linear-gradient(135deg, #00b894, #00cec9);
@@ -195,6 +197,27 @@
             background: rgba(0,0,0,0.2);
             padding: 3px 10px;
             border-radius: 10px;
+        }
+        .withdraw-btn .btn-hint {
+            font-size: 10px;
+            opacity: 0.7;
+            margin-top: 3px;
+        }
+        .withdraw-btn .fast-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: linear-gradient(135deg, #f1c40f, #f39c12);
+            color: #000;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 10px;
+            animation: badgePulse 2s ease-in-out infinite;
+        }
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
         .withdraw-btn i {
             font-size: 24px;
@@ -496,6 +519,32 @@
             padding-top: 12px;
             margin-top: 5px;
             border-top: 2px solid rgba(0, 184, 148, 0.3);
+        }
+        
+        /* تحسين - وقت التحويل */
+        .transfer-time-hint {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 15px;
+            padding: 12px;
+            background: linear-gradient(135deg, rgba(0, 206, 201, 0.1), rgba(0, 184, 148, 0.1));
+            border: 1px dashed rgba(0, 206, 201, 0.4);
+            border-radius: 10px;
+            color: #00cec9;
+            font-size: 13px;
+        }
+        .transfer-time-hint i {
+            font-size: 16px;
+            animation: rocketPulse 1.5s ease-in-out infinite;
+        }
+        .transfer-time-hint strong {
+            color: #00ff88;
+        }
+        @keyframes rocketPulse {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(3px); }
         }
         
         /* طريقة التحويل */
@@ -859,12 +908,15 @@
                 <button class="withdraw-btn normal" onclick="openWithdrawModal('normal')" {% if available_for_normal <= 0 %}disabled{% endif %}>
                     <i class="fas fa-clock"></i>
                     <span>سحب عادي</span>
-                    <span class="fee">رسوم 6.5%</span>
+                    <span class="fee">رسوم 6%</span>
+                    <span class="btn-hint">بعد 72 ساعة</span>
                 </button>
                 <button class="withdraw-btn instant" onclick="openWithdrawModal('instant')" {% if balance <= 0 %}disabled{% endif %}>
+                    <span class="fast-badge">⚡ سريع</span>
                     <i class="fas fa-bolt"></i>
                     <span>سحب فوري</span>
-                    <span class="fee">رسوم 8%</span>
+                    <span class="fee">رسوم 8.5%</span>
+                    <span class="btn-hint">متاح الآن</span>
                 </button>
             </div>
             
@@ -977,12 +1029,16 @@
                             <span id="summaryAmount">0.00 ر.س</span>
                         </div>
                         <div class="summary-row">
-                            <span>الرسوم (<span id="feePercent">6.5</span>%)</span>
+                            <span>الرسوم (<span id="feePercent">6</span>%)</span>
                             <span id="summaryFee">0.00 ر.س</span>
                         </div>
                         <div class="summary-row total">
                             <span>المبلغ الصافي</span>
                             <span id="summaryNet">0.00 ر.س</span>
+                        </div>
+                        <div class="transfer-time-hint">
+                            <i class="fas fa-rocket"></i>
+                            <span>التحويل خلال <strong>1-5 ساعات</strong> بعد الموافقة</span>
                         </div>
                     </div>
                     
@@ -1047,7 +1103,7 @@
         const availableForNormal = {{ available_for_normal|float }};
         let currentMethod = 'wallet';
         let currentType = 'normal';
-        let currentFeePercent = 6.5;
+        let currentFeePercent = 6;
         
         function openWithdrawModal(type) {
             currentType = type;
@@ -1055,11 +1111,11 @@
             
             if (type === 'normal') {
                 document.getElementById('modalTitle').innerHTML = '<i class="fas fa-clock"></i><span>سحب عادي</span>';
-                currentFeePercent = 6.5;
+                currentFeePercent = 6;
                 document.getElementById('availableText').innerHTML = 'المتاح: <span style="color: #00ff88;">' + availableForNormal.toFixed(2) + '</span> ر.س';
             } else {
                 document.getElementById('modalTitle').innerHTML = '<i class="fas fa-bolt"></i><span>سحب فوري</span>';
-                currentFeePercent = 8;
+                currentFeePercent = 8.5;
                 document.getElementById('availableText').innerHTML = 'المتاح: <span style="color: #00ff88;">' + balance.toFixed(2) + '</span> ر.س';
             }
             
