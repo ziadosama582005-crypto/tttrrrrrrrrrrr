@@ -141,6 +141,47 @@ def add_security_headers(response):
     return response
 
 
+# --- حظر المسارات المشبوهة والهجمات ---
+@app.before_request
+def block_suspicious_requests():
+    """حظر الطلبات المشبوهة قبل معالجتها"""
+    path = request.path.lower()
+    
+    # قائمة المسارات المحظورة (ملفات PHP وWordPress)
+    blocked_patterns = [
+        '.php', 'wp-admin', 'wp-login', 'wp-includes', 'wp-content',
+        'wordpress', 'xmlrpc', '.asp', '.aspx', '.jsp',
+        'phpmyadmin', 'admin.php', 'shell', 'cmd'
+    ]
+    
+    # حظر أي مسار يحتوي على أنماط مشبوهة
+    for pattern in blocked_patterns:
+        if pattern in path:
+            # سجل محاولة الاختراق بصمت (بدون traceback)
+            logger.warning(f"🚫 محاولة اختراق محظورة: {path} من {request.remote_addr}")
+            return "Forbidden", 403
+    
+    # حظر POST على المسارات التي لا تدعمها
+    if request.method == 'POST':
+        # المسارات المسموح بها للـ POST
+        allowed_post_paths = [
+            '/webhook', '/api/', '/auth/', '/payment/', '/cart/',
+            '/admin/', '/profile/', '/wallet/', '/charge', '/login',
+            '/telegram-auth', '/update_', '/confirm', '/order'
+        ]
+        
+        # تحقق إذا كان المسار مسموحاً
+        is_allowed = False
+        for allowed in allowed_post_paths:
+            if allowed in path or path.startswith(allowed):
+                is_allowed = True
+                break
+        
+        # إذا POST على مسار غير مسموح (مثل / أو /index)
+        if not is_allowed and path in ['/', '/index', '/home']:
+            return "Forbidden", 403
+
+
 # --- معالجات الأخطاء الآمنة (إخفاء المعلومات الحساسة) ---
 @app.errorhandler(404)
 def page_not_found(error):
@@ -162,9 +203,20 @@ def internal_error(error):
     return jsonify({'status': 'error', 'message': 'حدث خطأ في السيرفر. الرجاء المحاولة لاحقاً'}), 500
 
 
+@app.errorhandler(405)
+def method_not_allowed(error):
+    """Method Not Allowed - حظر الطرق غير المسموحة بصمت"""
+    # لا نسجل تفاصيل - فقط نرفض الطلب
+    return "Forbidden", 403
+
+
 @app.errorhandler(Exception)
 def handle_exception(error):
     """معالج شامل للأخطاء غير المتوقعة"""
+    # تجاهل أخطاء 405 لأنها غالباً هجمات
+    if '405' in str(error) or 'Method Not Allowed' in str(error):
+        return "Forbidden", 403
+    
     logger.error(f"❌ خطأ غير متوقع: {error}", exc_info=True)
     
     # لا نعرض معلومات حساسة في الأخطاء
