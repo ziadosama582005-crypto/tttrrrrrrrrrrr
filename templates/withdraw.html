@@ -611,6 +611,199 @@
         .toast.error {
             background: linear-gradient(135deg, #e74c3c, #c0392b);
         }
+        
+        /* === تحسينات للشاشات الصغيرة (450px وأقل) === */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 10px;
+            }
+            
+            /* بطاقة الرصيد */
+            .balance-hero {
+                padding: 18px 15px;
+                border-radius: 15px;
+            }
+            .balance-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .balance-info .amount {
+                font-size: 28px;
+            }
+            .available-badge {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+            
+            /* الإحصائيات */
+            .stats-grid {
+                gap: 8px;
+            }
+            .stat-card {
+                padding: 12px 8px;
+                border-radius: 12px;
+            }
+            .stat-icon {
+                font-size: 20px;
+                margin-bottom: 5px;
+            }
+            .stat-value {
+                font-size: 15px;
+            }
+            .stat-label {
+                font-size: 10px;
+            }
+            
+            /* أزرار السحب */
+            .withdraw-section {
+                padding: 15px;
+                border-radius: 15px;
+            }
+            .section-header {
+                font-size: 16px;
+                margin-bottom: 15px;
+            }
+            .withdraw-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .withdraw-btn {
+                padding: 15px;
+                flex-direction: row;
+                justify-content: center;
+            }
+            .withdraw-btn i {
+                font-size: 20px;
+            }
+            .withdraw-btn .fee {
+                font-size: 11px;
+            }
+            .withdraw-info-box {
+                font-size: 12px;
+                padding: 12px;
+            }
+            
+            /* سجل العمليات */
+            .activity-section {
+                padding: 15px;
+                border-radius: 15px;
+            }
+            .activity-tabs {
+                gap: 6px;
+                margin-bottom: 15px;
+            }
+            .activity-tab {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+            .activity-list {
+                max-height: 300px;
+            }
+            .activity-item {
+                padding: 12px 10px;
+                gap: 10px;
+            }
+            .activity-icon {
+                width: 38px;
+                height: 38px;
+                font-size: 16px;
+            }
+            .activity-title {
+                font-size: 13px;
+            }
+            .activity-date {
+                font-size: 11px;
+            }
+            .activity-amount {
+                font-size: 13px;
+            }
+            
+            /* المودال */
+            .modal-overlay {
+                padding: 10px;
+            }
+            .modal-content {
+                border-radius: 15px;
+                max-height: 95vh;
+            }
+            .modal-header {
+                padding: 15px;
+            }
+            .modal-header h2 {
+                font-size: 16px;
+            }
+            .modal-body {
+                padding: 15px;
+            }
+            .amount-input-wrapper input {
+                font-size: 20px;
+                padding: 10px 12px;
+            }
+            .max-btn {
+                padding: 10px 15px;
+                font-size: 12px;
+            }
+            .method-options {
+                gap: 8px;
+            }
+            .method-option {
+                padding: 12px 10px;
+            }
+            .method-option i {
+                font-size: 22px;
+            }
+            .method-option span {
+                font-size: 11px;
+            }
+            .form-group input,
+            .form-group select {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+            .submit-btn {
+                padding: 12px;
+                font-size: 14px;
+            }
+            .withdraw-summary {
+                padding: 12px;
+            }
+            .summary-row {
+                font-size: 13px;
+                padding: 6px 0;
+            }
+            .summary-row.total {
+                font-size: 16px;
+            }
+        }
+        
+        /* شاشات صغيرة جداً (أقل من 360px) */
+        @media (max-width: 360px) {
+            .balance-info .amount {
+                font-size: 24px;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 5px;
+            }
+            .stat-card {
+                padding: 10px 5px;
+            }
+            .stat-value {
+                font-size: 14px;
+            }
+            .stat-label {
+                font-size: 9px;
+            }
+            .withdraw-btn {
+                padding: 12px;
+            }
+            .activity-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
