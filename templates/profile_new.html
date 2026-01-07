@@ -1,0 +1,984 @@
+{% extends "base.html" %}
+{% block title %}الإعدادات - متجر TR{% endblock %}
+
+{% block content %}
+<div class="settings-page">
+    <div class="settings-container">
+        <div class="page-header">
+            <i class="fas fa-cog"></i>
+            <h1>الإعدادات</h1>
+        </div>
+        
+        <p class="intro-text">إدارة حسابك وإعدادات الأمان</p>
+
+        <!-- قسم الأمان والتوثيق -->
+        <div class="settings-section">
+            <h2 class="section-title"><i class="fas fa-shield-alt"></i> الأمان والتوثيق</h2>
+            
+            <!-- توثيق البريد الإلكتروني -->
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-icon email">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="setting-text">
+                        <h3>توثيق البريد الإلكتروني</h3>
+                        <p>{% if email %}{{ email }}{% else %}لم يتم إضافة بريد إلكتروني{% endif %}</p>
+                    </div>
+                </div>
+                <div class="setting-action">
+                    {% if email_verified %}
+                        <span class="status-badge verified"><i class="fas fa-check-circle"></i> موثق</span>
+                    {% else %}
+                        <button class="action-btn" onclick="openEmailModal()">
+                            {% if email %}توثيق{% else %}إضافة{% endif %}
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- المصادقة الثنائية -->
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-icon twofa">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div class="setting-text">
+                        <h3>المصادقة الثنائية (2FA)</h3>
+                        <p>حماية إضافية عبر Google Authenticator</p>
+                    </div>
+                </div>
+                <div class="setting-action">
+                    {% if totp_enabled %}
+                        <span class="status-badge verified"><i class="fas fa-check-circle"></i> مفعّل</span>
+                        <button class="action-btn danger" onclick="openDisable2FAModal()">تعطيل</button>
+                    {% else %}
+                        <button class="action-btn" onclick="openSetup2FAModal()">تفعيل</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- معلومات الحساب -->
+        <div class="settings-section">
+            <h2 class="section-title"><i class="fas fa-user"></i> معلومات الحساب</h2>
+            
+            <div class="account-info-grid">
+                <div class="info-card">
+                    <div class="info-label">اسم المستخدم</div>
+                    <div class="info-value">{{ user_name or 'غير محدد' }}</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">رقم المعرف (ID)</div>
+                    <div class="info-value copyable" onclick="copyToClipboard('{{ user_id }}')">
+                        {{ user_id }}
+                        <i class="fas fa-copy"></i>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">تاريخ الانضمام</div>
+                    <div class="info-value">{{ join_date or 'غير معروف' }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- روابط سريعة -->
+        <div class="quick-links">
+            <a href="/withdraw" class="quick-link">
+                <i class="fas fa-money-bill-transfer"></i>
+                <span>سحب الرصيد</span>
+            </a>
+            <a href="/my_purchases" class="quick-link">
+                <i class="fas fa-shopping-bag"></i>
+                <span>مشترياتي</span>
+            </a>
+            <a href="/wallet" class="quick-link">
+                <i class="fas fa-wallet"></i>
+                <span>المحفظة</span>
+            </a>
+            <a href="/contact-us" class="quick-link">
+                <i class="fas fa-headset"></i>
+                <span>الدعم</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- مودال توثيق البريد -->
+<div class="modal-overlay" id="emailModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeEmailModal()"><i class="fas fa-times"></i></button>
+        <div class="modal-header">
+            <div class="modal-icon"><i class="fas fa-envelope"></i></div>
+            <h2>توثيق البريد الإلكتروني</h2>
+            <p>أضف بريدك الإلكتروني لتأمين حسابك</p>
+        </div>
+        <div id="emailError" class="alert error"></div>
+        <div id="emailSuccess" class="alert success"></div>
+        <div class="modal-body">
+            <div id="emailStep1">
+                <div class="form-group">
+                    <label><i class="fas fa-at"></i> البريد الإلكتروني</label>
+                    <input type="email" id="emailInput" placeholder="example@email.com" dir="ltr">
+                </div>
+            </div>
+            <div id="emailStep2" style="display: none;">
+                <div class="form-group">
+                    <label><i class="fas fa-key"></i> كود التحقق (6 أرقام)</label>
+                    <input type="text" id="emailCodeInput" class="code-input" placeholder="000000" maxlength="6">
+                </div>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeEmailModal()">إلغاء</button>
+            <button class="btn-primary" id="emailStep1Btn" onclick="sendEmailCode()">
+                <i class="fas fa-paper-plane"></i> إرسال كود التحقق
+            </button>
+            <button class="btn-primary" id="emailStep2Btn" onclick="verifyEmailCode()" style="display: none;">
+                <i class="fas fa-check"></i> تأكيد
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- مودال تفعيل 2FA -->
+<div class="modal-overlay" id="setup2FAModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeSetup2FAModal()"><i class="fas fa-times"></i></button>
+        <div class="modal-header">
+            <div class="modal-icon"><i class="fas fa-shield-alt"></i></div>
+            <h2>تفعيل المصادقة الثنائية</h2>
+            <p>استخدم Google Authenticator لحماية حسابك</p>
+        </div>
+        <div id="2faLoading" class="loading-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>جاري التحميل...</span>
+        </div>
+        <div id="2faContent" style="display: none;">
+            <div class="steps-box">
+                <h4><i class="fas fa-list-ol"></i> خطوات التفعيل:</h4>
+                <ol>
+                    <li>حمّل تطبيق Google Authenticator</li>
+                    <li>امسح رمز QR أدناه أو أدخل المفتاح يدوياً</li>
+                    <li>أدخل الكود المكون من 6 أرقام</li>
+                </ol>
+            </div>
+            <div class="qr-container">
+                <img id="qrCodeImg" src="" alt="QR Code">
+            </div>
+            <div class="secret-key" onclick="copySecret()">
+                <span id="secretKey"></span>
+                <small><i class="fas fa-copy"></i> انقر للنسخ</small>
+            </div>
+            <div id="2faError" class="alert error"></div>
+            <div class="form-group">
+                <label><i class="fas fa-key"></i> كود التحقق من التطبيق</label>
+                <input type="text" id="totpCode" class="code-input" placeholder="000000" maxlength="6">
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeSetup2FAModal()">إلغاء</button>
+            <button class="btn-primary" onclick="verify2FASetup()">
+                <i class="fas fa-check"></i> تفعيل
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- مودال تعطيل 2FA -->
+<div class="modal-overlay" id="disable2FAModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeDisable2FAModal()"><i class="fas fa-times"></i></button>
+        <div class="modal-header">
+            <div class="modal-icon danger"><i class="fas fa-exclamation-triangle"></i></div>
+            <h2>تعطيل المصادقة الثنائية</h2>
+            <p>أدخل الكود من تطبيق Authenticator للتأكيد</p>
+        </div>
+        <div id="disable2faError" class="alert error"></div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label><i class="fas fa-key"></i> كود التحقق</label>
+                <input type="text" id="disableCode" class="code-input" placeholder="000000" maxlength="6">
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-secondary" onclick="closeDisable2FAModal()">إلغاء</button>
+            <button class="btn-danger" onclick="disable2FA()">
+                <i class="fas fa-times"></i> تعطيل
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .settings-page {
+        min-height: 100vh;
+        padding: 20px;
+    }
+    
+    .settings-container {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    .page-header {
+        text-align: center;
+        margin-bottom: 15px;
+    }
+    
+    .page-header i {
+        font-size: 45px;
+        color: #6c5ce7;
+        margin-bottom: 10px;
+    }
+    
+    .page-header h1 {
+        color: #fff;
+        font-size: 26px;
+        margin: 0;
+    }
+    
+    .intro-text {
+        text-align: center;
+        color: #888;
+        font-size: 14px;
+        margin-bottom: 30px;
+    }
+    
+    /* أقسام الإعدادات */
+    .settings-section {
+        background: linear-gradient(145deg, #1a1a2e, #16213e);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(108, 92, 231, 0.2);
+    }
+    
+    .section-title {
+        color: #fff;
+        font-size: 16px;
+        margin: 0 0 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .section-title i {
+        color: #6c5ce7;
+    }
+    
+    /* عناصر الإعدادات */
+    .setting-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        background: rgba(0,0,0,0.2);
+        border-radius: 12px;
+        margin-bottom: 12px;
+    }
+    
+    .setting-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .setting-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .setting-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+    
+    .setting-icon.email {
+        background: rgba(0, 206, 201, 0.15);
+        color: #00cec9;
+    }
+    
+    .setting-icon.twofa {
+        background: rgba(108, 92, 231, 0.15);
+        color: #6c5ce7;
+    }
+    
+    .setting-text h3 {
+        color: #fff;
+        font-size: 15px;
+        margin: 0 0 4px;
+    }
+    
+    .setting-text p {
+        color: #888;
+        font-size: 12px;
+        margin: 0;
+    }
+    
+    .setting-action {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .status-badge {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    
+    .status-badge.verified {
+        background: rgba(0, 184, 148, 0.15);
+        color: #00b894;
+    }
+    
+    .action-btn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: none;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        background: #6c5ce7;
+        color: white;
+        transition: all 0.3s;
+    }
+    
+    .action-btn:hover {
+        background: #5b4cdb;
+        transform: translateY(-2px);
+    }
+    
+    .action-btn.danger {
+        background: rgba(231, 76, 60, 0.2);
+        color: #e74c3c;
+    }
+    
+    .action-btn.danger:hover {
+        background: #e74c3c;
+        color: white;
+    }
+    
+    /* معلومات الحساب */
+    .account-info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+    
+    .info-card {
+        background: rgba(0,0,0,0.2);
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+    }
+    
+    .info-label {
+        font-size: 11px;
+        color: #888;
+        margin-bottom: 5px;
+    }
+    
+    .info-value {
+        font-size: 14px;
+        color: #fff;
+        font-weight: 600;
+    }
+    
+    .info-value.copyable {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+    }
+    
+    .info-value.copyable:hover {
+        color: #6c5ce7;
+    }
+    
+    .info-value.copyable i {
+        font-size: 11px;
+        opacity: 0.5;
+    }
+    
+    /* روابط سريعة */
+    .quick-links {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+    }
+    
+    .quick-link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 18px 10px;
+        background: linear-gradient(145deg, #1a1a2e, #16213e);
+        border: 1px solid rgba(108, 92, 231, 0.2);
+        border-radius: 12px;
+        text-decoration: none;
+        color: #b2bec3;
+        transition: all 0.3s;
+    }
+    
+    .quick-link:hover {
+        border-color: #6c5ce7;
+        color: #fff;
+        transform: translateY(-3px);
+    }
+    
+    .quick-link i {
+        font-size: 22px;
+        color: #6c5ce7;
+    }
+    
+    .quick-link span {
+        font-size: 12px;
+    }
+    
+    /* المودال */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.85);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    
+    .modal-overlay.show {
+        display: flex;
+    }
+    
+    .modal-content {
+        background: linear-gradient(145deg, #1a1a2e, #16213e);
+        border-radius: 20px;
+        width: 100%;
+        max-width: 420px;
+        position: relative;
+        border: 1px solid rgba(108, 92, 231, 0.3);
+    }
+    
+    .modal-close {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background: rgba(255,255,255,0.1);
+        border: none;
+        color: #888;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+    
+    .modal-close:hover {
+        background: rgba(231, 76, 60, 0.2);
+        color: #e74c3c;
+    }
+    
+    .modal-header {
+        text-align: center;
+        padding: 30px 20px 20px;
+    }
+    
+    .modal-icon {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 15px;
+        background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+    }
+    
+    .modal-icon.danger {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+    }
+    
+    .modal-header h2 {
+        color: #fff;
+        font-size: 20px;
+        margin: 0 0 8px;
+    }
+    
+    .modal-header p {
+        color: #888;
+        font-size: 13px;
+        margin: 0;
+    }
+    
+    .modal-body {
+        padding: 0 25px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group label {
+        display: block;
+        color: #b2bec3;
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+    
+    .form-group label i {
+        margin-left: 5px;
+        color: #6c5ce7;
+    }
+    
+    .form-group input {
+        width: 100%;
+        padding: 14px 16px;
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 10px;
+        color: #fff;
+        font-size: 15px;
+        font-family: inherit;
+        transition: all 0.3s;
+    }
+    
+    .form-group input:focus {
+        outline: none;
+        border-color: #6c5ce7;
+    }
+    
+    .code-input {
+        text-align: center !important;
+        letter-spacing: 8px;
+        font-size: 22px !important;
+        font-weight: 700;
+    }
+    
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        padding: 20px 25px 25px;
+    }
+    
+    .btn-secondary, .btn-primary, .btn-danger {
+        flex: 1;
+        padding: 14px;
+        border-radius: 10px;
+        border: none;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.3s;
+    }
+    
+    .btn-secondary {
+        background: rgba(255,255,255,0.1);
+        color: #b2bec3;
+    }
+    
+    .btn-secondary:hover {
+        background: rgba(255,255,255,0.15);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(108, 92, 231, 0.3);
+    }
+    
+    .btn-danger {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(231, 76, 60, 0.3);
+    }
+    
+    .alert {
+        padding: 12px;
+        border-radius: 8px;
+        margin: 0 25px 15px;
+        font-size: 13px;
+        display: none;
+    }
+    
+    .alert.error {
+        background: rgba(231, 76, 60, 0.1);
+        color: #e74c3c;
+        border: 1px solid rgba(231, 76, 60, 0.3);
+    }
+    
+    .alert.success {
+        background: rgba(0, 184, 148, 0.1);
+        color: #00b894;
+        border: 1px solid rgba(0, 184, 148, 0.3);
+    }
+    
+    .loading-state {
+        text-align: center;
+        padding: 40px;
+        color: #888;
+    }
+    
+    .loading-state i {
+        font-size: 30px;
+        margin-bottom: 10px;
+        color: #6c5ce7;
+    }
+    
+    .steps-box {
+        background: rgba(108, 92, 231, 0.1);
+        border-radius: 12px;
+        padding: 15px 20px;
+        margin: 0 25px 20px;
+    }
+    
+    .steps-box h4 {
+        color: #a29bfe;
+        font-size: 14px;
+        margin: 0 0 10px;
+    }
+    
+    .steps-box ol {
+        margin: 0;
+        padding-right: 20px;
+        color: #b2bec3;
+        font-size: 13px;
+        line-height: 1.8;
+    }
+    
+    .qr-container {
+        text-align: center;
+        margin: 20px 0;
+    }
+    
+    .qr-container img {
+        background: white;
+        padding: 15px;
+        border-radius: 12px;
+        max-width: 180px;
+    }
+    
+    .secret-key {
+        text-align: center;
+        margin: 0 25px 20px;
+        padding: 12px;
+        background: rgba(0,0,0,0.3);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .secret-key:hover {
+        background: rgba(108, 92, 231, 0.2);
+    }
+    
+    .secret-key span {
+        font-family: monospace;
+        font-size: 14px;
+        color: #fff;
+        letter-spacing: 2px;
+    }
+    
+    .secret-key small {
+        display: block;
+        margin-top: 5px;
+        color: #6c5ce7;
+        font-size: 11px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 600px) {
+        .settings-page {
+            padding: 15px;
+        }
+        
+        .page-header i {
+            font-size: 36px;
+        }
+        
+        .page-header h1 {
+            font-size: 22px;
+        }
+        
+        .settings-section {
+            padding: 15px;
+        }
+        
+        .setting-item {
+            flex-direction: column;
+            gap: 12px;
+            text-align: center;
+        }
+        
+        .setting-info {
+            flex-direction: column;
+        }
+        
+        .account-info-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .quick-links {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .modal-content {
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+    }
+</style>
+
+<script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('تم النسخ ✅');
+        });
+    }
+    
+    function openEmailModal() {
+        document.getElementById('emailModal').classList.add('show');
+    }
+    
+    function closeEmailModal() {
+        document.getElementById('emailModal').classList.remove('show');
+        document.getElementById('emailError').style.display = 'none';
+        document.getElementById('emailSuccess').style.display = 'none';
+        document.getElementById('emailStep1').style.display = 'block';
+        document.getElementById('emailStep2').style.display = 'none';
+        document.getElementById('emailStep1Btn').style.display = 'block';
+        document.getElementById('emailStep2Btn').style.display = 'none';
+        document.getElementById('emailInput').value = '';
+        document.getElementById('emailCodeInput').value = '';
+    }
+    
+    async function sendEmailCode() {
+        const email = document.getElementById('emailInput').value.trim();
+        const btn = document.getElementById('emailStep1Btn');
+        const errorDiv = document.getElementById('emailError');
+        const successDiv = document.getElementById('emailSuccess');
+        
+        if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+            errorDiv.textContent = 'الرجاء إدخال بريد إلكتروني صحيح';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+        errorDiv.style.display = 'none';
+        
+        try {
+            const response = await fetch('/api/send_email_code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                successDiv.textContent = 'تم إرسال كود التحقق للبريد';
+                successDiv.style.display = 'block';
+                document.getElementById('emailStep1').style.display = 'none';
+                document.getElementById('emailStep2').style.display = 'block';
+                document.getElementById('emailStep1Btn').style.display = 'none';
+                document.getElementById('emailStep2Btn').style.display = 'block';
+            } else {
+                errorDiv.textContent = data.message;
+                errorDiv.style.display = 'block';
+            }
+        } catch (error) {
+            errorDiv.textContent = 'خطأ في الاتصال بالسيرفر';
+            errorDiv.style.display = 'block';
+        }
+        
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال كود التحقق';
+    }
+    
+    async function verifyEmailCode() {
+        const code = document.getElementById('emailCodeInput').value.trim();
+        const btn = document.getElementById('emailStep2Btn');
+        const errorDiv = document.getElementById('emailError');
+        const successDiv = document.getElementById('emailSuccess');
+        
+        if (!code || code.length !== 6) {
+            errorDiv.textContent = 'الرجاء إدخال كود مكون من 6 أرقام';
+            errorDiv.style.display = 'block';
+            successDiv.style.display = 'none';
+            return;
+        }
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
+        errorDiv.style.display = 'none';
+        
+        try {
+            const response = await fetch('/api/verify_email_code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: code })
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                successDiv.textContent = 'تم توثيق البريد الإلكتروني بنجاح!';
+                successDiv.style.display = 'block';
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                errorDiv.textContent = data.message;
+                errorDiv.style.display = 'block';
+            }
+        } catch (error) {
+            errorDiv.textContent = 'خطأ في الاتصال بالسيرفر';
+            errorDiv.style.display = 'block';
+        }
+        
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check"></i> تأكيد';
+    }
+    
+    function openSetup2FAModal() {
+        const modal = document.getElementById('setup2FAModal');
+        modal.classList.add('show');
+        document.getElementById('2faLoading').style.display = 'block';
+        document.getElementById('2faContent').style.display = 'none';
+        
+        fetch('/api/setup_2fa', { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('qrCodeImg').src = data.qr_code;
+                    document.getElementById('secretKey').textContent = data.secret;
+                    document.getElementById('2faLoading').style.display = 'none';
+                    document.getElementById('2faContent').style.display = 'block';
+                }
+            })
+            .catch(() => {
+                alert('خطأ في تحميل البيانات');
+                closeSetup2FAModal();
+            });
+    }
+    
+    function closeSetup2FAModal() {
+        document.getElementById('setup2FAModal').classList.remove('show');
+        document.getElementById('totpCode').value = '';
+        document.getElementById('2faError').style.display = 'none';
+    }
+    
+    function copySecret() {
+        const secret = document.getElementById('secretKey').textContent;
+        navigator.clipboard.writeText(secret).then(() => {
+            alert('تم نسخ المفتاح ✅');
+        });
+    }
+    
+    async function verify2FASetup() {
+        const code = document.getElementById('totpCode').value.trim();
+        const errorDiv = document.getElementById('2faError');
+        
+        if (!code || code.length !== 6) {
+            errorDiv.textContent = 'الرجاء إدخال كود مكون من 6 أرقام';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/verify_2fa_setup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: code })
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('تم تفعيل المصادقة الثنائية بنجاح! ✅');
+                location.reload();
+            } else {
+                errorDiv.textContent = data.message;
+                errorDiv.style.display = 'block';
+            }
+        } catch (error) {
+            errorDiv.textContent = 'خطأ في الاتصال بالسيرفر';
+            errorDiv.style.display = 'block';
+        }
+    }
+    
+    function openDisable2FAModal() {
+        document.getElementById('disable2FAModal').classList.add('show');
+    }
+    
+    function closeDisable2FAModal() {
+        document.getElementById('disable2FAModal').classList.remove('show');
+        document.getElementById('disableCode').value = '';
+        document.getElementById('disable2faError').style.display = 'none';
+    }
+    
+    async function disable2FA() {
+        const code = document.getElementById('disableCode').value.trim();
+        const errorDiv = document.getElementById('disable2faError');
+        
+        if (!code || code.length !== 6) {
+            errorDiv.textContent = 'الرجاء إدخال كود مكون من 6 أرقام';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/disable_2fa', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: code })
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('تم تعطيل المصادقة الثنائية ✅');
+                location.reload();
+            } else {
+                errorDiv.textContent = data.message;
+                errorDiv.style.display = 'block';
+            }
+        } catch (error) {
+            errorDiv.textContent = 'خطأ في الاتصال بالسيرفر';
+            errorDiv.style.display = 'block';
+        }
+    }
+</script>
+{% endblock %}

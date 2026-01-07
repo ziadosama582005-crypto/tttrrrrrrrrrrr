@@ -272,7 +272,17 @@ def profile():
         normal_withdraw_amount = round(normal_withdraw_amount, 2)
         can_withdraw_normal = normal_withdraw_amount > 0
         
-        return render_template('profile.html',
+        # تاريخ الانضمام
+        join_date = user_data.get('created_at', None)
+        if join_date:
+            if hasattr(join_date, 'strftime'):
+                join_date = join_date.strftime('%Y-%m-%d')
+            else:
+                join_date = str(join_date)[:10]
+        else:
+            join_date = 'غير محدد'
+        
+        return render_template('profile_new.html',
             user_name=user_data.get('name', 'المستخدم'),
             user_id=user_id,
             profile_photo=profile_photo,
@@ -289,7 +299,9 @@ def profile():
             frozen_balance=frozen_balance,
             min_minutes_left=minutes_until_next,
             minutes_until_withdraw=minutes_until_next,
-            recent_charges=recent_charges
+            recent_charges=recent_charges,
+            # بيانات إضافية للقالب الجديد
+            join_date=join_date
         )
     
     except Exception as e:
