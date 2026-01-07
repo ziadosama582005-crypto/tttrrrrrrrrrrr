@@ -89,6 +89,79 @@ def get_user_profile_photo(user_id):
         print(f"⚠️ خطأ في جلب صورة البروفايل: {e}")
     return None
 
+
+# ===================== النسخ الاحتياطي =====================
+import io
+import datetime
+
+@bot.message_handler(commands=['backup'])
+def manual_backup(message):
+    """نسخة احتياطية يدوية - للمالك فقط"""
+    # التحقق من أن الطالب هو المالك
+    if str(message.from_user.id) != str(ADMIN_ID):
+        return
+    
+    try:
+        bot.reply_to(message, "⏳ جاري تحضير النسخة الاحتياطية...")
+        
+        # تجميع البيانات من جميع الـ collections
+        collections = ['users', 'products', 'orders', 'categories', 'charge_keys', 
+                      'charge_history', 'withdrawal_requests', 'pending_payments', 'invoices']
+        backup_data = {}
+        total_docs = 0
+
+        for col in collections:
+            try:
+                docs = db.collection(col).stream()
+                items = []
+                for doc in docs:
+                    item = doc.to_dict()
+                    item['_id'] = doc.id
+                    # تحويل التواريخ لنص
+                    for k, v in item.items():
+                        if hasattr(v, 'timestamp') or hasattr(v, 'isoformat'):
+                            item[k] = str(v)
+                    items.append(item)
+                backup_data[col] = items
+                total_docs += len(items)
+            except Exception as e:
+                backup_data[col] = {'error': str(e)}
+
+        # تحويل البيانات لملف JSON
+        json_bytes = json.dumps(backup_data, indent=2, ensure_ascii=False).encode('utf-8')
+        file_stream = io.BytesIO(json_bytes)
+        
+        # اسم الملف بالتاريخ والوقت
+        date_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
+        file_name = f"Backup_{date_str}.json"
+
+        # حساب حجم الملف
+        file_size = len(json_bytes) / 1024  # KB
+        
+        # الإرسال
+        caption = f"""📦 **نسخة احتياطية يدوية**
+
+📅 التاريخ: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}
+📊 عدد الـ Collections: {len(collections)}
+📄 إجمالي المستندات: {total_docs}
+💾 حجم الملف: {file_size:.1f} KB
+
+✅ تم النسخ بنجاح!"""
+        
+        bot.send_document(
+            message.chat.id, 
+            file_stream, 
+            visible_file_name=file_name,
+            caption=caption,
+            parse_mode='Markdown'
+        )
+        print(f"✅ تم إرسال النسخة الاحتياطية للمالك ({total_docs} مستند)")
+
+    except Exception as e:
+        print(f"❌ فشل النسخ الاحتياطي: {e}")
+        bot.reply_to(message, f"❌ فشل النسخ الاحتياطي!\nالخطأ: {e}")
+
+
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     log_message(message, "معالج /start")
