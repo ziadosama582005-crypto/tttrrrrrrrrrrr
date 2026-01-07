@@ -868,10 +868,10 @@ def submit_withdraw():
         except:
             return jsonify({'success': False, 'message': 'المبلغ غير صحيح'}), 400
         
-        # التحقق من الاسم (3 أجزاء على الأقل)
+        # التحقق من الاسم (جزئين على الأقل - فلان بن فلان)
         name_parts = full_name.split()
-        if len(name_parts) < 3:
-            return jsonify({'success': False, 'message': 'يجب إدخال الاسم الثلاثي كاملاً'}), 400
+        if len(name_parts) < 2:
+            return jsonify({'success': False, 'message': 'يجب إدخال الاسم الثنائي على الأقل (مثال: محمد بن أحمد)'}), 400
         
         # الحصول على بيانات المستخدم
         user_ref = db.collection('users').document(user_id)

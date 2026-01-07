@@ -1005,13 +1005,7 @@
                     <div id="walletFields">
                         <div class="form-group">
                             <label>نوع المحفظة</label>
-                            <select id="walletType" required>
-                                <option value="">اختر المحفظة</option>
-                                <option value="stcpay">STC Pay</option>
-                                <option value="urpay">Urpay</option>
-                                <option value="alinma_pay">Alinma Pay</option>
-                                <option value="mobily_pay">Mobily Pay</option>
-                            </select>
+                            <input type="text" id="walletType" placeholder="مثال: STC Pay, Urpay, الراجحي باي..." required>
                         </div>
                         <div class="form-group">
                             <label>رقم المحفظة</label>
@@ -1023,18 +1017,7 @@
                     <div id="bankFields" style="display: none;">
                         <div class="form-group">
                             <label>اسم البنك</label>
-                            <select id="bankName" required>
-                                <option value="">اختر البنك</option>
-                                <option value="الراجحي">مصرف الراجحي</option>
-                                <option value="الأهلي">البنك الأهلي</option>
-                                <option value="الإنماء">بنك الإنماء</option>
-                                <option value="الرياض">بنك الرياض</option>
-                                <option value="البلاد">بنك البلاد</option>
-                                <option value="الجزيرة">بنك الجزيرة</option>
-                                <option value="العربي">البنك العربي</option>
-                                <option value="سامبا">بنك سامبا</option>
-                                <option value="الفرنسي">البنك السعودي الفرنسي</option>
-                            </select>
+                            <input type="text" id="bankName" placeholder="مثال: الراجحي، الأهلي، الإنماء..." required>
                         </div>
                         <div class="form-group">
                             <label>رقم الآيبان (IBAN)</label>
@@ -1044,8 +1027,8 @@
                     
                     <!-- الاسم الكامل -->
                     <div class="form-group">
-                        <label>الاسم الكامل (كما هو مسجل)</label>
-                        <input type="text" id="fullName" placeholder="الاسم الثلاثي" required>
+                        <label>الاسم (كما هو مسجل في البنك/المحفظة)</label>
+                        <input type="text" id="fullName" placeholder="مثال: محمد بن أحمد" required>
                     </div>
                     
                     <button type="submit" class="submit-btn" id="submitBtn">
