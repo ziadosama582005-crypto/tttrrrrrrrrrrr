@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سحب الرصيد - المتجر الرقمي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding-bottom: 30px;
+        }
+        .header {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid rgba(108, 92, 231, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            background: rgba(108, 92, 231, 0.2);
+            border: 1px solid rgba(108, 92, 231, 0.4);
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        .back-btn:hover {
+            background: rgba(108, 92, 231, 0.4);
+        }
+        .header-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* بطاقة الرصيد */
+        .balance-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .balance-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        }
+        .balance-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+        .balance-info .label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        .balance-info .amount {
+            font-size: 36px;
+            font-weight: 800;
+        }
+        .balance-info .amount small {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+        .available-badge {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid rgba(0, 255, 136, 0.4);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #00ff88;
+        }
+        
+        /* الإحصائيات */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: rgba(40, 40, 60, 0.6);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 15px;
+            padding: 15px 10px;
+            text-align: center;
+        }
+        .stat-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 3px;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+        }
+        
+        /* أزرار السحب */
+        .withdraw-section {
+            background: rgba(40, 40, 60, 0.6);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .section-header i {
+            color: #00ff88;
+        }
+        .withdraw-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .withdraw-btn {
+            flex: 1;
+            padding: 18px 15px;
+            border-radius: 15px;
+            border: none;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        .withdraw-btn.normal {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+        }
+        .withdraw-btn.instant {
+            background: linear-gradient(135deg, #e17055, #d63031);
+            color: white;
+        }
+        .withdraw-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        .withdraw-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .withdraw-btn .fee {
+            font-size: 12px;
+            opacity: 0.9;
+            background: rgba(0,0,0,0.2);
+            padding: 3px 10px;
+            border-radius: 10px;
+        }
+        .withdraw-btn i {
+            font-size: 24px;
+        }
+        
+        /* معلومات السحب */
+        .withdraw-info-box {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 13px;
+            color: #ffc107;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .withdraw-info-box i {
+            font-size: 18px;
+            margin-top: 2px;
+        }
+        .withdraw-info-box.frozen {
+            background: rgba(99, 179, 237, 0.1);
+            border-color: rgba(99, 179, 237, 0.3);
+            color: #63b3ed;
+        }
+        
+        /* سجل العمليات */
+        .activity-section {
+            background: rgba(40, 40, 60, 0.6);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 20px;
+            padding: 20px;
+        }
+        .activity-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+        .activity-tab {
+            padding: 10px 18px;
+            background: rgba(108, 92, 231, 0.1);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 20px;
+            color: rgba(255,255,255,0.7);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .activity-tab.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: transparent;
+            color: #fff;
+        }
+        .activity-tab:hover:not(.active) {
+            background: rgba(108, 92, 231, 0.2);
+        }
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            transition: background 0.3s;
+        }
+        .activity-item:hover {
+            background: rgba(255,255,255,0.06);
+        }
+        .activity-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        .activity-icon.charge {
+            background: rgba(0, 184, 148, 0.15);
+            color: #00b894;
+        }
+        .activity-icon.purchase {
+            background: rgba(108, 92, 231, 0.15);
+            color: #a29bfe;
+        }
+        .activity-icon.withdraw {
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+        }
+        .activity-icon.invoice {
+            background: rgba(241, 196, 15, 0.15);
+            color: #f1c40f;
+        }
+        .activity-details {
+            flex: 1;
+            min-width: 0;
+        }
+        .activity-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .activity-date {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+        }
+        .activity-amount {
+            font-size: 15px;
+            font-weight: 700;
+            text-align: left;
+        }
+        .activity-amount.positive {
+            color: #00b894;
+        }
+        .activity-amount.negative {
+            color: #e74c3c;
+        }
+        .activity-status {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 8px;
+            margin-top: 3px;
+            display: inline-block;
+        }
+        .activity-status.pending {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+        .activity-status.completed {
+            background: rgba(0, 184, 148, 0.2);
+            color: #00b894;
+        }
+        .activity-status.rejected {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255,255,255,0.5);
+        }
+        .empty-state i {
+            font-size: 50px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        /* مودال السحب */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(108, 92, 231, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h2 {
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        .modal-close:hover {
+            opacity: 1;
+        }
+        .modal-body {
+            padding: 20px;
+        }
+        
+        /* حقل المبلغ */
+        .amount-section {
+            margin-bottom: 20px;
+        }
+        .amount-section label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .amount-input-wrapper {
+            display: flex;
+            align-items: center;
+            background: rgba(30, 30, 50, 0.8);
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+            padding: 5px;
+            transition: all 0.3s;
+        }
+        .amount-input-wrapper:focus-within {
+            border-color: #00ff88;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+        }
+        .amount-input-wrapper input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #00ff88;
+            font-size: 24px;
+            font-weight: 700;
+            padding: 12px 15px;
+            outline: none;
+            text-align: right;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .amount-input-wrapper input::placeholder {
+            color: #555;
+        }
+        .currency-label {
+            color: #888;
+            font-size: 14px;
+            padding-right: 10px;
+        }
+        .max-btn {
+            background: linear-gradient(135deg, #c8ff00 0%, #9acd32 100%);
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: 'Tajawal', sans-serif;
+            margin-right: 5px;
+        }
+        .max-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        /* ملخص السحب */
+        .withdraw-summary {
+            background: rgba(108, 92, 231, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 14px;
+        }
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+        .summary-row.total {
+            font-weight: 700;
+            font-size: 18px;
+            color: #00b894;
+            padding-top: 12px;
+            margin-top: 5px;
+            border-top: 2px solid rgba(0, 184, 148, 0.3);
+        }
+        
+        /* طريقة التحويل */
+        .method-section {
+            margin-bottom: 20px;
+        }
+        .method-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .method-option {
+            flex: 1;
+            padding: 15px;
+            background: rgba(50, 50, 70, 0.6);
+            border: 2px solid rgba(108, 92, 231, 0.3);
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .method-option:hover {
+            border-color: rgba(108, 92, 231, 0.6);
+        }
+        .method-option.selected {
+            border-color: #6c5ce7;
+            background: rgba(108, 92, 231, 0.2);
+        }
+        .method-option i {
+            font-size: 28px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .method-option span {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        /* حقول الإدخال */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.8);
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(50, 50, 70, 0.8);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 14px;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #6c5ce7;
+        }
+        .form-group select option {
+            background: #1a1a2e;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(108, 92, 231, 0.4);
+        }
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #333;
+            color: #fff;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 14px;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        .toast.success {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+        }
+        .toast.error {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/" class="back-btn">
+            <i class="fas fa-arrow-right"></i>
+        </a>
+        <h1 class="header-title">💸 سحب الرصيد</h1>
+    </div>
+    
+    <div class="container">
+        <!-- بطاقة الرصيد -->
+        <div class="balance-hero">
+            <div class="balance-row">
+                <div class="balance-info">
+                    <div class="label">رصيدك الحالي</div>
+                    <div class="amount">{{ "%.2f"|format(balance|float) }} <small>ر.س</small></div>
+                </div>
+                <div class="available-badge">
+                    <i class="fas fa-unlock"></i>
+                    متاح: {{ "%.2f"|format(available_for_normal|float) }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- الإحصائيات -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-value">{{ total_charges }}</div>
+                <div class="stat-label">إجمالي الشحن</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🛒</div>
+                <div class="stat-value">{{ purchases_count }}</div>
+                <div class="stat-label">المشتريات</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📤</div>
+                <div class="stat-value">{{ withdrawals_count }}</div>
+                <div class="stat-label">السحوبات</div>
+            </div>
+        </div>
+        
+        <!-- قسم السحب -->
+        <div class="withdraw-section">
+            <div class="section-header">
+                <i class="fas fa-money-bill-transfer"></i>
+                <span>اختر نوع السحب</span>
+            </div>
+            
+            <div class="withdraw-buttons">
+                <button class="withdraw-btn normal" onclick="openWithdrawModal('normal')" {% if available_for_normal <= 0 %}disabled{% endif %}>
+                    <i class="fas fa-clock"></i>
+                    <span>سحب عادي</span>
+                    <span class="fee">رسوم 6.5%</span>
+                </button>
+                <button class="withdraw-btn instant" onclick="openWithdrawModal('instant')" {% if balance <= 0 %}disabled{% endif %}>
+                    <i class="fas fa-bolt"></i>
+                    <span>سحب فوري</span>
+                    <span class="fee">رسوم 8%</span>
+                </button>
+            </div>
+            
+            {% if frozen_amount > 0 %}
+            <div class="withdraw-info-box frozen">
+                <i class="fas fa-snowflake"></i>
+                <div>
+                    <strong>رصيد مجمد:</strong> {{ "%.2f"|format(frozen_amount|float) }} ر.س<br>
+                    <span style="font-size: 12px;">سيكون متاحاً للسحب العادي بعد {{ freeze_time_left }}</span>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="withdraw-info-box">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>السحب العادي:</strong> متاح بعد 72 ساعة من الشحن<br>
+                    <strong>السحب الفوري:</strong> متاح مباشرة برسوم أعلى
+                </div>
+            </div>
+        </div>
+        
+        <!-- سجل العمليات -->
+        <div class="activity-section">
+            <div class="section-header">
+                <i class="fas fa-history"></i>
+                <span>سجل العمليات</span>
+            </div>
+            
+            <div class="activity-tabs">
+                <div class="activity-tab active" onclick="filterActivity('all')">الكل</div>
+                <div class="activity-tab" onclick="filterActivity('charge')">الشحن</div>
+                <div class="activity-tab" onclick="filterActivity('purchase')">المشتريات</div>
+                <div class="activity-tab" onclick="filterActivity('withdraw')">السحوبات</div>
+            </div>
+            
+            <div class="activity-list" id="activityList">
+                {% if activities %}
+                    {% for activity in activities %}
+                    <div class="activity-item" data-type="{{ activity.type }}">
+                        <div class="activity-icon {{ activity.type }}">
+                            {% if activity.type == 'charge' %}
+                                <i class="fas fa-plus"></i>
+                            {% elif activity.type == 'purchase' %}
+                                <i class="fas fa-shopping-bag"></i>
+                            {% elif activity.type == 'withdraw' %}
+                                <i class="fas fa-arrow-up"></i>
+                            {% else %}
+                                <i class="fas fa-file-invoice"></i>
+                            {% endif %}
+                        </div>
+                        <div class="activity-details">
+                            <div class="activity-title">{{ activity.title }}</div>
+                            <div class="activity-date">{{ activity.date }}</div>
+                            {% if activity.status %}
+                            <span class="activity-status {{ activity.status }}">
+                                {% if activity.status == 'pending' %}قيد المراجعة
+                                {% elif activity.status == 'completed' %}مكتمل
+                                {% elif activity.status == 'rejected' %}مرفوض
+                                {% else %}{{ activity.status }}{% endif %}
+                            </span>
+                            {% endif %}
+                        </div>
+                        <div class="activity-amount {% if activity.type == 'charge' %}positive{% else %}negative{% endif %}">
+                            {% if activity.type == 'charge' %}+{% else %}-{% endif %}{{ "%.2f"|format(activity.amount|float) }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>لا توجد عمليات بعد</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- مودال السحب -->
+    <div class="modal-overlay" id="withdrawModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">
+                    <i class="fas fa-money-bill-transfer"></i>
+                    <span>سحب عادي</span>
+                </h2>
+                <button class="modal-close" onclick="closeWithdrawModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="withdrawForm" onsubmit="submitWithdraw(event)">
+                    <input type="hidden" id="withdrawType" value="normal">
+                    
+                    <!-- المبلغ -->
+                    <div class="amount-section">
+                        <label>المبلغ المراد سحبه</label>
+                        <div class="amount-input-wrapper">
+                            <button type="button" class="max-btn" onclick="setMaxAmount()">كامل</button>
+                            <input type="number" id="withdrawAmount" placeholder="0.00" min="10" step="0.01" required oninput="updateSummary()">
+                            <span class="currency-label">ر.س</span>
+                        </div>
+                        <p id="availableText" style="text-align: center; margin-top: 10px; color: #888; font-size: 13px;">
+                            المتاح: <span style="color: #00ff88;">{{ "%.2f"|format(available_for_normal|float) }}</span> ر.س
+                        </p>
+                    </div>
+                    
+                    <!-- ملخص -->
+                    <div class="withdraw-summary">
+                        <div class="summary-row">
+                            <span>المبلغ</span>
+                            <span id="summaryAmount">0.00 ر.س</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>الرسوم (<span id="feePercent">6.5</span>%)</span>
+                            <span id="summaryFee">0.00 ر.س</span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>المبلغ الصافي</span>
+                            <span id="summaryNet">0.00 ر.س</span>
+                        </div>
+                    </div>
+                    
+                    <!-- طريقة التحويل -->
+                    <div class="method-section">
+                        <label>طريقة التحويل</label>
+                        <div class="method-options">
+                            <div class="method-option selected" onclick="selectMethod('wallet')">
+                                <i class="fas fa-wallet"></i>
+                                <span>محفظة إلكترونية</span>
+                            </div>
+                            <div class="method-option" onclick="selectMethod('bank')">
+                                <i class="fas fa-university"></i>
+                                <span>حوالة بنكية</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- بيانات المحفظة -->
+                    <div id="walletFields">
+                        <div class="form-group">
+                            <label>نوع المحفظة</label>
+                            <select id="walletType" required>
+                                <option value="">اختر المحفظة</option>
+                                <option value="stcpay">STC Pay</option>
+                                <option value="urpay">Urpay</option>
+                                <option value="alinma_pay">Alinma Pay</option>
+                                <option value="mobily_pay">Mobily Pay</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>رقم المحفظة</label>
+                            <input type="tel" id="walletNumber" placeholder="05xxxxxxxx" required>
+                        </div>
+                    </div>
+                    
+                    <!-- بيانات البنك -->
+                    <div id="bankFields" style="display: none;">
+                        <div class="form-group">
+                            <label>اسم البنك</label>
+                            <select id="bankName" required>
+                                <option value="">اختر البنك</option>
+                                <option value="الراجحي">مصرف الراجحي</option>
+                                <option value="الأهلي">البنك الأهلي</option>
+                                <option value="الإنماء">بنك الإنماء</option>
+                                <option value="الرياض">بنك الرياض</option>
+                                <option value="البلاد">بنك البلاد</option>
+                                <option value="الجزيرة">بنك الجزيرة</option>
+                                <option value="العربي">البنك العربي</option>
+                                <option value="سامبا">بنك سامبا</option>
+                                <option value="الفرنسي">البنك السعودي الفرنسي</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>رقم الآيبان (IBAN)</label>
+                            <input type="text" id="iban" placeholder="SA..." maxlength="24" style="text-transform: uppercase;">
+                        </div>
+                    </div>
+                    
+                    <!-- الاسم الكامل -->
+                    <div class="form-group">
+                        <label>الاسم الكامل (كما هو مسجل)</label>
+                        <input type="text" id="fullName" placeholder="الاسم الثلاثي" required>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <i class="fas fa-paper-plane"></i>
+                        إرسال طلب السحب
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        const balance = {{ balance|float }};
+        const availableForNormal = {{ available_for_normal|float }};
+        let currentMethod = 'wallet';
+        let currentType = 'normal';
+        let currentFeePercent = 6.5;
+        
+        function openWithdrawModal(type) {
+            currentType = type;
+            document.getElementById('withdrawType').value = type;
+            
+            if (type === 'normal') {
+                document.getElementById('modalTitle').innerHTML = '<i class="fas fa-clock"></i><span>سحب عادي</span>';
+                currentFeePercent = 6.5;
+                document.getElementById('availableText').innerHTML = 'المتاح: <span style="color: #00ff88;">' + availableForNormal.toFixed(2) + '</span> ر.س';
+            } else {
+                document.getElementById('modalTitle').innerHTML = '<i class="fas fa-bolt"></i><span>سحب فوري</span>';
+                currentFeePercent = 8;
+                document.getElementById('availableText').innerHTML = 'المتاح: <span style="color: #00ff88;">' + balance.toFixed(2) + '</span> ر.س';
+            }
+            
+            document.getElementById('feePercent').textContent = currentFeePercent;
+            document.getElementById('withdrawAmount').value = '';
+            updateSummary();
+            
+            document.getElementById('withdrawModal').classList.add('active');
+        }
+        
+        function closeWithdrawModal() {
+            document.getElementById('withdrawModal').classList.remove('active');
+        }
+        
+        function setMaxAmount() {
+            const max = currentType === 'normal' ? availableForNormal : balance;
+            document.getElementById('withdrawAmount').value = max.toFixed(2);
+            updateSummary();
+        }
+        
+        function updateSummary() {
+            const amount = parseFloat(document.getElementById('withdrawAmount').value) || 0;
+            const fee = amount * (currentFeePercent / 100);
+            const net = amount - fee;
+            
+            document.getElementById('summaryAmount').textContent = amount.toFixed(2) + ' ر.س';
+            document.getElementById('summaryFee').textContent = fee.toFixed(2) + ' ر.س';
+            document.getElementById('summaryNet').textContent = net.toFixed(2) + ' ر.س';
+        }
+        
+        function selectMethod(method) {
+            currentMethod = method;
+            document.querySelectorAll('.method-option').forEach(el => el.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+            
+            if (method === 'wallet') {
+                document.getElementById('walletFields').style.display = 'block';
+                document.getElementById('bankFields').style.display = 'none';
+                document.getElementById('walletType').required = true;
+                document.getElementById('walletNumber').required = true;
+                document.getElementById('bankName').required = false;
+                document.getElementById('iban').required = false;
+            } else {
+                document.getElementById('walletFields').style.display = 'none';
+                document.getElementById('bankFields').style.display = 'block';
+                document.getElementById('walletType').required = false;
+                document.getElementById('walletNumber').required = false;
+                document.getElementById('bankName').required = true;
+                document.getElementById('iban').required = true;
+            }
+        }
+        
+        function filterActivity(type) {
+            document.querySelectorAll('.activity-tab').forEach(tab => tab.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            document.querySelectorAll('.activity-item').forEach(item => {
+                if (type === 'all' || item.dataset.type === type) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+        
+        async function submitWithdraw(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+            
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            const maxAmount = currentType === 'normal' ? availableForNormal : balance;
+            
+            if (amount < 10) {
+                showToast('الحد الأدنى للسحب 10 ريال', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال طلب السحب';
+                return;
+            }
+            
+            if (amount > maxAmount) {
+                showToast('المبلغ أكبر من المتاح', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال طلب السحب';
+                return;
+            }
+            
+            const data = {
+                amount: amount,
+                withdraw_type: currentType,
+                method: currentMethod,
+                full_name: document.getElementById('fullName').value
+            };
+            
+            if (currentMethod === 'wallet') {
+                data.wallet_type = document.getElementById('walletType').value;
+                data.wallet_number = document.getElementById('walletNumber').value;
+            } else {
+                data.bank_name = document.getElementById('bankName').value;
+                data.iban = document.getElementById('iban').value;
+            }
+            
+            try {
+                const response = await fetch('/api/withdraw', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('تم إرسال طلب السحب بنجاح! ✅', 'success');
+                    closeWithdrawModal();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(result.message || 'حدث خطأ', 'error');
+                }
+            } catch (error) {
+                showToast('حدث خطأ في الاتصال', 'error');
+            }
+            
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال طلب السحب';
+        }
+        
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type + ' show';
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+        // إغلاق المودال بالنقر خارجه
+        document.getElementById('withdrawModal').addEventListener('click', function(e) {
+            if (e.target === this) closeWithdrawModal();
+        });
+    </script>
+</body>
+</html>

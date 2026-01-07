@@ -296,6 +296,221 @@ def profile():
         return redirect(url_for('auth.login'))
 
 
+@profile_bp.route('/withdraw')
+def withdraw_page():
+    """صفحة سحب الرصيد مع سجل العمليات"""
+    try:
+        # التحقق من تسجيل الدخول
+        if 'user_id' not in session or not session['user_id']:
+            return redirect(url_for('auth.login'))
+        
+        user_id = session['user_id']
+        
+        # جلب بيانات المستخدم
+        user_ref = db.collection('users').document(user_id)
+        user_doc = user_ref.get()
+        
+        if not user_doc.exists:
+            return redirect(url_for('auth.login'))
+        
+        user_data = user_doc.to_dict()
+        balance = user_data.get('balance', 0)
+        
+        # === حساب الرصيد المتاح للسحب العادي ===
+        import datetime as dt
+        now = dt.datetime.now(dt.timezone.utc)
+        FREEZE_MINUTES = 10  # غيّرها إلى 72*60 للإنتاج
+        
+        total_frozen = 0.0
+        min_minutes_left = 0
+        
+        try:
+            user_charges = db.collection('charge_history').where('user_id', '==', user_id).get()
+            
+            for charge_doc in user_charges:
+                charge = charge_doc.to_dict()
+                charge_amount = float(charge.get('amount', 0))
+                charge_ts = charge.get('timestamp')
+                
+                if charge_ts:
+                    try:
+                        if hasattr(charge_ts, 'timestamp'):
+                            charge_dt = dt.datetime.fromtimestamp(charge_ts.timestamp(), dt.timezone.utc)
+                        elif isinstance(charge_ts, (int, float)):
+                            charge_dt = dt.datetime.fromtimestamp(charge_ts, dt.timezone.utc)
+                        else:
+                            charge_dt = now
+                        
+                        minutes_passed = (now - charge_dt).total_seconds() / 60
+                        
+                        if minutes_passed < FREEZE_MINUTES:
+                            total_frozen += charge_amount
+                            remaining = FREEZE_MINUTES - minutes_passed
+                            if remaining > min_minutes_left:
+                                min_minutes_left = int(remaining)
+                    except:
+                        pass
+        except Exception as e:
+            logger.error(f"خطأ في حساب الرصيد المجمد: {e}")
+        
+        available_for_normal = max(0, balance - total_frozen)
+        
+        # تحويل الدقائق لنص مقروء
+        if min_minutes_left > 60:
+            hours = min_minutes_left // 60
+            mins = min_minutes_left % 60
+            freeze_time_left = f"{hours} ساعة و {mins} دقيقة"
+        else:
+            freeze_time_left = f"{min_minutes_left} دقيقة"
+        
+        # === جلب الإحصائيات ===
+        total_charges = 0
+        purchases_count = 0
+        withdrawals_count = 0
+        
+        # إجمالي الشحن
+        try:
+            charges = db.collection('charge_history').where('user_id', '==', user_id).get()
+            for c in charges:
+                total_charges += float(c.to_dict().get('amount', 0))
+        except:
+            pass
+        
+        # عدد المشتريات
+        try:
+            orders = db.collection('orders').where('buyer_id', '==', user_id).get()
+            purchases_count = len(list(orders))
+        except:
+            pass
+        
+        # عدد السحوبات
+        try:
+            withdrawals = db.collection('withdrawal_requests').where('user_id', '==', user_id).get()
+            withdrawals_count = len(list(withdrawals))
+        except:
+            pass
+        
+        # === جلب سجل العمليات ===
+        activities = []
+        
+        # 1. الشحنات
+        try:
+            charges_ref = db.collection('charge_history').where('user_id', '==', user_id).get()
+            for doc in charges_ref:
+                data = doc.to_dict()
+                
+                # تحويل التاريخ
+                date_str = data.get('date', '')
+                if not date_str and data.get('timestamp'):
+                    ts = data['timestamp']
+                    try:
+                        if hasattr(ts, 'timestamp'):
+                            date_str = dt.datetime.fromtimestamp(ts.timestamp()).strftime('%Y-%m-%d %H:%M')
+                        elif isinstance(ts, (int, float)):
+                            date_str = dt.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M')
+                    except:
+                        date_str = 'غير محدد'
+                
+                activities.append({
+                    'type': 'charge',
+                    'title': f"شحن رصيد ({data.get('method', 'كود')})",
+                    'amount': data.get('amount', 0),
+                    'date': date_str,
+                    'timestamp': data.get('timestamp', 0),
+                    'status': None
+                })
+        except Exception as e:
+            logger.error(f"خطأ في جلب الشحنات: {e}")
+        
+        # 2. المشتريات
+        try:
+            orders_ref = db.collection('orders').where('buyer_id', '==', user_id).get()
+            for doc in orders_ref:
+                data = doc.to_dict()
+                
+                date_str = 'غير محدد'
+                timestamp_val = 0
+                if data.get('created_at'):
+                    try:
+                        created = data['created_at']
+                        if hasattr(created, 'timestamp'):
+                            timestamp_val = created.timestamp()
+                            date_str = dt.datetime.fromtimestamp(created.timestamp()).strftime('%Y-%m-%d %H:%M')
+                    except:
+                        pass
+                
+                activities.append({
+                    'type': 'purchase',
+                    'title': f"شراء: {data.get('item_name', 'منتج')}",
+                    'amount': data.get('price', 0),
+                    'date': date_str,
+                    'timestamp': timestamp_val,
+                    'status': None
+                })
+        except Exception as e:
+            logger.error(f"خطأ في جلب المشتريات: {e}")
+        
+        # 3. السحوبات
+        try:
+            withdraw_ref = db.collection('withdrawal_requests').where('user_id', '==', user_id).get()
+            for doc in withdraw_ref:
+                data = doc.to_dict()
+                
+                date_str = 'غير محدد'
+                timestamp_val = 0
+                if data.get('created_at'):
+                    try:
+                        created = data['created_at']
+                        if hasattr(created, 'timestamp'):
+                            timestamp_val = created.timestamp()
+                            date_str = dt.datetime.fromtimestamp(created.timestamp()).strftime('%Y-%m-%d %H:%M')
+                    except:
+                        pass
+                
+                status = data.get('status', 'pending')
+                status_map = {'pending': 'pending', 'approved': 'completed', 'rejected': 'rejected'}
+                
+                activities.append({
+                    'type': 'withdraw',
+                    'title': f"سحب ({data.get('withdraw_type', 'عادي')})",
+                    'amount': data.get('amount', 0),
+                    'date': date_str,
+                    'timestamp': timestamp_val,
+                    'status': status_map.get(status, status)
+                })
+        except Exception as e:
+            logger.error(f"خطأ في جلب السحوبات: {e}")
+        
+        # ترتيب من الأحدث
+        def get_ts(x):
+            ts = x.get('timestamp', 0)
+            if hasattr(ts, 'timestamp'):
+                return ts.timestamp()
+            elif hasattr(ts, 'seconds'):
+                return ts.seconds
+            elif isinstance(ts, (int, float)):
+                return ts
+            return 0
+        
+        activities.sort(key=get_ts, reverse=True)
+        activities = activities[:50]  # آخر 50 عملية
+        
+        return render_template('withdraw.html',
+            balance=balance,
+            available_for_normal=round(available_for_normal, 2),
+            frozen_amount=round(total_frozen, 2),
+            freeze_time_left=freeze_time_left,
+            total_charges=round(total_charges, 2),
+            purchases_count=purchases_count,
+            withdrawals_count=withdrawals_count,
+            activities=activities
+        )
+    
+    except Exception as e:
+        logger.error(f"خطأ في صفحة السحب: {e}")
+        return redirect('/')
+
+
 @profile_bp.route('/api/profile')
 def api_profile():
     """API لجلب بيانات الحساب"""
@@ -633,7 +848,8 @@ def submit_withdraw():
         user_id = session['user_id']
         data = request.get_json()
         
-        withdraw_type = data.get('type', '')  # normal أو instant
+        # دعم كلا الاسمين: type و withdraw_type
+        withdraw_type = data.get('withdraw_type') or data.get('type', '')  # normal أو instant
         method = data.get('method', '')  # wallet أو bank
         amount = data.get('amount', 0)
         full_name = data.get('full_name', '').strip()
