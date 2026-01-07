@@ -4,6 +4,7 @@ Profile Routes - مسارات صفحة الحساب الشخصي
 from flask import Blueprint, render_template, session, redirect, url_for, jsonify, request
 from extensions import db, logger, bot, ADMIN_ID
 from google.cloud import firestore
+from telebot import types
 import json
 import random
 import time
@@ -1064,7 +1065,22 @@ def submit_withdraw():
 👤 {full_name}
 {details}
 """
-                bot.send_message(ADMIN_ID, admin_message, parse_mode='HTML')
+                # الحصول على ID الطلب من withdraw_ref (tuple)
+                request_id = withdraw_ref[1].id
+                
+                # إنشاء أزرار inline
+                markup = types.InlineKeyboardMarkup(row_width=2)
+                btn_approve = types.InlineKeyboardButton(
+                    "✅ تم التحويل", 
+                    callback_data=f"withdraw_approve_{request_id}_{user_id}"
+                )
+                btn_reject = types.InlineKeyboardButton(
+                    "❌ رفض", 
+                    callback_data=f"withdraw_reject_{request_id}_{user_id}"
+                )
+                markup.add(btn_approve, btn_reject)
+                
+                bot.send_message(ADMIN_ID, admin_message, parse_mode='HTML', reply_markup=markup)
                 logger.info(f"✅ تم إرسال إشعار السحب للأدمن {ADMIN_ID}")
         except Exception as e:
             logger.error(f"خطأ في إرسال إشعار للأدمن: {e}")

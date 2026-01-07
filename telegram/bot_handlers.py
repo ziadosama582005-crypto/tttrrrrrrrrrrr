@@ -1760,3 +1760,148 @@ def complete_manual_order(call):
         print(f"❌ خطأ في إكمال الطلب: {e}")
         bot.answer_callback_query(call.id, f"❌ حدث خطأ: {str(e)}", show_alert=True)
 
+
+# ===================== معالجات طلبات السحب =====================
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('withdraw_approve_'))
+def handle_withdraw_approve(call):
+    """معالج الموافقة على طلب السحب"""
+    try:
+        # استخراج البيانات من callback_data
+        parts = call.data.split('_')
+        if len(parts) < 4:
+            bot.answer_callback_query(call.id, "❌ بيانات غير صحيحة", show_alert=True)
+            return
+        
+        request_id = parts[2]
+        user_id = parts[3]
+        
+        # جلب بيانات الطلب
+        request_doc = db.collection('withdrawal_requests').document(request_id).get()
+        if not request_doc.exists:
+            bot.answer_callback_query(call.id, "❌ الطلب غير موجود", show_alert=True)
+            return
+        
+        request_data = request_doc.to_dict()
+        
+        # التحقق من أن الطلب لم تتم معالجته
+        if request_data.get('status') != 'pending':
+            bot.answer_callback_query(call.id, "⚠️ هذا الطلب تم معالجته مسبقاً", show_alert=True)
+            return
+        
+        # تحديث حالة الطلب
+        db.collection('withdrawal_requests').document(request_id).update({
+            'status': 'approved',
+            'approved_at': firestore.SERVER_TIMESTAMP,
+            'approved_by': str(call.from_user.id)
+        })
+        
+        # إرسال إشعار للمستخدم
+        amount = request_data.get('amount', 0)
+        net_amount = request_data.get('net_amount', 0)
+        
+        try:
+            user_message = f"""
+✅ تم تحويل المبلغ بنجاح!
+
+💰 المبلغ المطلوب: {amount:.2f} ريال
+💵 المبلغ المحول: {net_amount:.2f} ريال
+
+شكراً لتعاملك معنا! 🙏
+"""
+            bot.send_message(int(user_id), user_message)
+        except Exception as e:
+            print(f"⚠️ فشل إشعار المستخدم: {e}")
+        
+        # تحديث رسالة الأدمن
+        try:
+            new_text = call.message.text + "\n\n✅ تم التحويل ✅"
+            bot.edit_message_text(
+                new_text,
+                call.message.chat.id,
+                call.message.message_id,
+                reply_markup=None
+            )
+        except:
+            pass
+        
+        bot.answer_callback_query(call.id, "✅ تم التحويل وإشعار العميل!")
+        
+    except Exception as e:
+        print(f"❌ خطأ في الموافقة على السحب: {e}")
+        bot.answer_callback_query(call.id, f"❌ حدث خطأ: {str(e)}", show_alert=True)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('withdraw_reject_'))
+def handle_withdraw_reject(call):
+    """معالج رفض طلب السحب"""
+    try:
+        # استخراج البيانات من callback_data
+        parts = call.data.split('_')
+        if len(parts) < 4:
+            bot.answer_callback_query(call.id, "❌ بيانات غير صحيحة", show_alert=True)
+            return
+        
+        request_id = parts[2]
+        user_id = parts[3]
+        
+        # جلب بيانات الطلب
+        request_doc = db.collection('withdrawal_requests').document(request_id).get()
+        if not request_doc.exists:
+            bot.answer_callback_query(call.id, "❌ الطلب غير موجود", show_alert=True)
+            return
+        
+        request_data = request_doc.to_dict()
+        
+        # التحقق من أن الطلب لم تتم معالجته
+        if request_data.get('status') != 'pending':
+            bot.answer_callback_query(call.id, "⚠️ هذا الطلب تم معالجته مسبقاً", show_alert=True)
+            return
+        
+        amount = request_data.get('amount', 0)
+        
+        # إرجاع الرصيد للمستخدم
+        user_ref = db.collection('users').document(str(user_id))
+        user_doc = user_ref.get()
+        if user_doc.exists:
+            current_balance = user_doc.to_dict().get('balance', 0)
+            user_ref.update({'balance': current_balance + amount})
+        
+        # تحديث حالة الطلب
+        db.collection('withdrawal_requests').document(request_id).update({
+            'status': 'rejected',
+            'rejected_at': firestore.SERVER_TIMESTAMP,
+            'rejected_by': str(call.from_user.id)
+        })
+        
+        # إرسال إشعار للمستخدم
+        try:
+            user_message = f"""
+❌ تم رفض طلب السحب
+
+💰 المبلغ: {amount:.2f} ريال
+
+تم إرجاع المبلغ لرصيدك.
+للاستفسار راسلنا 📞
+"""
+            bot.send_message(int(user_id), user_message)
+        except Exception as e:
+            print(f"⚠️ فشل إشعار المستخدم: {e}")
+        
+        # تحديث رسالة الأدمن
+        try:
+            new_text = call.message.text + "\n\n❌ تم الرفض وإرجاع الرصيد ❌"
+            bot.edit_message_text(
+                new_text,
+                call.message.chat.id,
+                call.message.message_id,
+                reply_markup=None
+            )
+        except:
+            pass
+        
+        bot.answer_callback_query(call.id, "❌ تم الرفض وإرجاع الرصيد للعميل")
+        
+    except Exception as e:
+        print(f"❌ خطأ في رفض السحب: {e}")
+        bot.answer_callback_query(call.id, f"❌ حدث خطأ: {str(e)}", show_alert=True)
