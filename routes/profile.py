@@ -412,9 +412,21 @@ def withdraw_page():
                     except:
                         date_str = 'غير محدد'
                 
+                # ترجمة طريقة الشحن للعربي
+                method = data.get('method', 'كود')
+                method_arabic = {
+                    'telegram_key': 'كود تيليجرام',
+                    'edfapay': 'بطاقة ائتمانية',
+                    'key': 'كود شحن',
+                    'code': 'كود شحن',
+                    'card': 'بطاقة',
+                    'admin': 'من الإدارة',
+                    'manual': 'يدوي'
+                }.get(method, method)
+                
                 activities.append({
                     'type': 'charge',
-                    'title': f"شحن رصيد ({data.get('method', 'كود')})",
+                    'title': f"شحن رصيد ({method_arabic})",
                     'amount': data.get('amount', 0),
                     'date': date_str,
                     'timestamp': data.get('timestamp', 0),
@@ -471,9 +483,16 @@ def withdraw_page():
                 status = data.get('status', 'pending')
                 status_map = {'pending': 'pending', 'approved': 'completed', 'rejected': 'rejected'}
                 
+                # ترجمة نوع السحب للعربي
+                withdraw_type = data.get('withdraw_type', 'normal')
+                type_arabic = {
+                    'normal': 'عادي',
+                    'instant': 'فوري'
+                }.get(withdraw_type, withdraw_type)
+                
                 activities.append({
                     'type': 'withdraw',
-                    'title': f"سحب ({data.get('withdraw_type', 'عادي')})",
+                    'title': f"سحب ({type_arabic})",
                     'amount': data.get('amount', 0),
                     'date': date_str,
                     'timestamp': timestamp_val,
