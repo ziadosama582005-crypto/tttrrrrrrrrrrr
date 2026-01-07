@@ -406,22 +406,81 @@
         transform: translateY(-2px);
     }
     
-    @media (max-width: 600px) {
+    @media (max-width: 480px) {
+        .policy-page {
+            padding: 10px;
+        }
+        
         .policy-container {
-            padding: 20px;
+            padding: 15px;
+            border-radius: 15px;
+        }
+        
+        .policy-header i {
+            font-size: 36px;
+        }
+        
+        .policy-header h1 {
+            font-size: 20px;
+        }
+        
+        .intro-text {
+            font-size: 13px;
+            margin-bottom: 20px;
         }
         
         .faq-categories {
-            gap: 8px;
+            gap: 6px;
+            margin-bottom: 20px;
         }
         
         .faq-cat {
-            padding: 8px 15px;
-            font-size: 13px;
+            padding: 6px 12px;
+            font-size: 11px;
+            border-radius: 20px;
+        }
+        
+        .faq-list {
+            gap: 10px;
+        }
+        
+        .faq-question {
+            padding: 12px 14px;
         }
         
         .faq-question span {
-            font-size: 14px;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .faq-question i {
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        
+        .faq-answer p, .faq-answer ul, .faq-answer ol {
+            padding: 0 14px;
+            margin: 10px 0;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        
+        .faq-answer ul, .faq-answer ol {
+            padding-right: 30px;
+        }
+        
+        .faq-footer {
+            margin-top: 25px;
+            padding-top: 20px;
+        }
+        
+        .faq-footer p {
+            font-size: 13px;
+        }
+        
+        .contact-btn {
+            padding: 10px 20px;
+            font-size: 13px;
         }
     }
 </style>

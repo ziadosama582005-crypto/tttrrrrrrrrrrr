@@ -327,17 +327,105 @@
         color: #b2bec3;
     }
     
-    @media (max-width: 600px) {
-        .policy-container {
-            padding: 20px;
+    @media (max-width: 480px) {
+        .policy-page {
+            padding: 10px;
         }
         
-        .guarantee-grid {
-            grid-template-columns: 1fr;
+        .policy-container {
+            padding: 15px;
+            border-radius: 15px;
+        }
+        
+        .policy-header i {
+            font-size: 36px;
+        }
+        
+        .policy-header h1 {
+            font-size: 20px;
+        }
+        
+        .intro-text {
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+        
+        .contact-grid {
+            gap: 12px;
         }
         
         .contact-box {
-            padding: 20px;
+            padding: 18px;
+            border-radius: 12px;
+        }
+        
+        .contact-icon {
+            width: 45px;
+            height: 45px;
+            font-size: 20px;
+        }
+        
+        .contact-box h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .contact-box p {
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .contact-status {
+            font-size: 11px;
+            padding: 4px 12px;
+        }
+        
+        .info-section {
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .info-section h3 {
+            font-size: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .hour-row {
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+        
+        .note {
+            font-size: 11px;
+        }
+        
+        .tips-list li {
+            font-size: 13px;
+            padding: 10px 0;
+            gap: 12px;
+        }
+        
+        .tips-list li i {
+            font-size: 14px;
+        }
+        
+        .guarantee-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        
+        .guarantee-item {
+            padding: 12px 5px;
+            border-radius: 8px;
+        }
+        
+        .guarantee-item i {
+            font-size: 18px;
+        }
+        
+        .guarantee-item span {
+            font-size: 10px;
         }
     }
 </style>
