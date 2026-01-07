@@ -142,3 +142,45 @@ def page_not_found():
 def handle_404(e):
     """معالج خطأ 404"""
     return render_template('404.html'), 404
+
+
+# ===================== الصفحات القانونية والعامة =====================
+from datetime import datetime
+
+@web_bp.route('/privacy-policy')
+def privacy_policy():
+    """صفحة سياسة الخصوصية"""
+    return render_template('pages/privacy.html', 
+                          title="سياسة الخصوصية",
+                          current_year=datetime.now().year)
+
+@web_bp.route('/terms-of-service')
+def terms_of_service():
+    """صفحة شروط الاستخدام"""
+    return render_template('pages/terms.html', 
+                          title="شروط الاستخدام",
+                          current_year=datetime.now().year)
+
+@web_bp.route('/refund-policy')
+def refund_policy():
+    """صفحة سياسة الاسترجاع"""
+    return render_template('pages/refund.html', 
+                          title="سياسة الاسترجاع",
+                          current_year=datetime.now().year)
+
+@web_bp.route('/contact-us')
+def contact_us():
+    """صفحة اتصل بنا"""
+    return render_template('pages/contact.html', 
+                          title="اتصل بنا",
+                          contact_bot_url=CONTACT_BOT_URL,
+                          contact_whatsapp=CONTACT_WHATSAPP,
+                          current_year=datetime.now().year)
+
+@web_bp.route('/faq')
+def faq():
+    """صفحة الأسئلة الشائعة"""
+    return render_template('pages/faq.html', 
+                          title="الأسئلة الشائعة",
+                          current_year=datetime.now().year)
+

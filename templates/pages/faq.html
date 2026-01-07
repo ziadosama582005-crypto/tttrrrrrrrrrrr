@@ -1,0 +1,462 @@
+{% extends "base.html" %}
+{% block title %}الأسئلة الشائعة - متجر TR{% endblock %}
+
+{% block content %}
+<div class="policy-page">
+    <a href="/" class="back-btn">
+        <i class="fas fa-arrow-right"></i>
+        الرجوع للرئيسية
+    </a>
+    
+    <div class="policy-container faq-page">
+        <div class="policy-header">
+            <i class="fas fa-question-circle"></i>
+            <h1>الأسئلة الشائعة</h1>
+        </div>
+        
+        <p class="intro-text">إجابات سريعة على أكثر الأسئلة شيوعاً. لم تجد إجابتك؟ <a href="/contact-us">تواصل معنا</a></p>
+
+        <div class="faq-categories">
+            <button class="faq-cat active" onclick="filterFAQ('all')">الكل</button>
+            <button class="faq-cat" onclick="filterFAQ('payment')">الدفع والشحن</button>
+            <button class="faq-cat" onclick="filterFAQ('products')">المنتجات</button>
+            <button class="faq-cat" onclick="filterFAQ('account')">الحساب</button>
+            <button class="faq-cat" onclick="filterFAQ('support')">الدعم</button>
+        </div>
+
+        <div class="faq-list">
+            <!-- الدفع والشحن -->
+            <div class="faq-item" data-cat="payment">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>كيف أشحن رصيدي؟</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>يمكنك شحن رصيدك عبر عدة طرق:</p>
+                    <ul>
+                        <li><strong>بطاقة ائتمان/مدى:</strong> من خلال بوابة الدفع الآمنة</li>
+                        <li><strong>Apple Pay:</strong> متاح لمستخدمي أجهزة Apple</li>
+                        <li><strong>كود شحن:</strong> يمكنك شراؤه من موزعينا أو عبر البوت</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="faq-item" data-cat="payment">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>هل الدفع آمن؟</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>نعم، نستخدم بوابات دفع مرخصة ومشفرة بمعايير PCI-DSS. لا نخزن بيانات بطاقتك الكاملة على خوادمنا.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-cat="payment">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>كم تستغرق عملية الشحن؟</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p><strong>فورياً!</strong> بمجرد إتمام الدفع، يُضاف الرصيد تلقائياً لحسابك.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-cat="payment">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>كيف أسحب رصيدي؟</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>من صفحة <a href="/withdraw">سحب الرصيد</a>، اختر:</p>
+                    <ul>
+                        <li><strong>سحب عادي (6.5%):</strong> متاح بعد 72 ساعة من الشحن</li>
+                        <li><strong>سحب فوري (8%):</strong> متاح مباشرة</li>
+                    </ul>
+                    <p>يتم التحويل خلال 12-24 ساعة عمل.</p>
+                </div>
+            </div>
+
+            <!-- المنتجات -->
+            <div class="faq-item" data-cat="products">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>كيف أستلم المنتج بعد الشراء؟</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>بعد إتمام عملية الشراء:</p>
+                    <ul>
+                        <li>تظهر لك الأكواد مباشرة في الموقع</li>
+                        <li>تُرسل نسخة للبوت على تيليجرام</li>
+                        <li>يمكنك الوصول إليها من صفحة "مشترياتي"</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="faq-item" data-cat="products">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>الكود لا يعمل، ماذا أفعل؟</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>تأكد أولاً من:</p>
+                    <ul>
+                        <li>نسخ الكود بالكامل بدون مسافات</li>
+                        <li>اختيار المنطقة/البلد الصحيح</li>
+                        <li>عدم استخدام الكود مسبقاً</li>
+                    </ul>
+                    <p>إذا استمرت المشكلة، <a href="/contact-us">تواصل معنا</a> خلال 24 ساعة مع إرفاق صورة للخطأ.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-cat="products">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>هل المنتجات أصلية ومضمونة؟</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>نعم، جميع منتجاتنا أصلية 100% ونضمن صلاحيتها وقت الشراء. في حال وجود أي خلل، نقدم بديلاً أو استرداداً.</p>
+                </div>
+            </div>
+
+            <!-- الحساب -->
+            <div class="faq-item" data-cat="account">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>كيف أسجل في الموقع؟</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>التسجيل سهل وسريع عبر تيليجرام:</p>
+                    <ol>
+                        <li>اضغط على "تسجيل الدخول"</li>
+                        <li>سيفتح لك البوت على تيليجرام</li>
+                        <li>اضغط "Start" وستحصل على رمز تحقق</li>
+                        <li>أدخل الرمز في الموقع وانتهى!</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="faq-item" data-cat="account">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>نسيت حسابي، كيف أسترجعه؟</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>حسابك مرتبط بحساب تيليجرام الخاص بك. طالما تستخدم نفس رقم تيليجرام، يمكنك تسجيل الدخول دائماً.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-cat="account">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>أين أجد مشترياتي السابقة؟</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>من القائمة الجانبية، اضغط على <a href="/purchases">📦 مشترياتي</a> لعرض جميع طلباتك السابقة والأكواد.</p>
+                </div>
+            </div>
+
+            <!-- الدعم -->
+            <div class="faq-item" data-cat="support">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>كيف أتواصل مع الدعم؟</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>يمكنك التواصل معنا عبر:</p>
+                    <ul>
+                        <li><strong>بوت تيليجرام:</strong> الأسرع - متاح على مدار الساعة</li>
+                        <li><strong>واتساب:</strong> خلال ساعات العمل</li>
+                    </ul>
+                    <p>زر صفحة <a href="/contact-us">اتصل بنا</a> للروابط المباشرة.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-cat="support">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>كم تستغرق الاستجابة؟</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>نرد على جميع الاستفسارات خلال <strong>24 ساعة</strong> كحد أقصى. معظم الردود تكون خلال ساعات قليلة.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-cat="support">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>هل يمكنني استرجاع أموالي؟</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>نعم، في حالات معينة. راجع <a href="/refund-policy">سياسة الاسترجاع</a> لمعرفة الشروط والإجراءات.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-footer">
+            <p>لم تجد إجابتك؟</p>
+            <a href="/contact-us" class="contact-btn">
+                <i class="fas fa-headset"></i>
+                تواصل مع الدعم
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .policy-page {
+        min-height: 100vh;
+        padding: 20px;
+        background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+    }
+    
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #a29bfe;
+        text-decoration: none;
+        font-size: 14px;
+        margin-bottom: 20px;
+        transition: all 0.3s;
+    }
+    
+    .back-btn:hover {
+        color: #6c5ce7;
+        transform: translateX(-5px);
+    }
+    
+    .policy-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px;
+        background: linear-gradient(145deg, #1a1a2e, #16213e);
+        border-radius: 20px;
+        color: #e0e0e0;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        border: 1px solid rgba(108, 92, 231, 0.2);
+    }
+    
+    .policy-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .policy-header i {
+        font-size: 50px;
+        color: #6c5ce7;
+        margin-bottom: 15px;
+    }
+    
+    .policy-header h1 {
+        color: #fff;
+        font-size: 28px;
+        margin: 0;
+    }
+    
+    .intro-text {
+        text-align: center;
+        color: #b2bec3;
+        font-size: 16px;
+        margin-bottom: 30px;
+    }
+    
+    .intro-text a {
+        color: #6c5ce7;
+        text-decoration: none;
+    }
+    
+    .faq-categories {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 30px;
+    }
+    
+    .faq-cat {
+        padding: 10px 20px;
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 25px;
+        color: #b2bec3;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-family: inherit;
+        font-size: 14px;
+    }
+    
+    .faq-cat:hover {
+        border-color: rgba(108, 92, 231, 0.5);
+    }
+    
+    .faq-cat.active {
+        background: #6c5ce7;
+        border-color: #6c5ce7;
+        color: white;
+    }
+    
+    .faq-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .faq-item {
+        background: rgba(0,0,0,0.2);
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.05);
+        transition: all 0.3s;
+    }
+    
+    .faq-item:hover {
+        border-color: rgba(108, 92, 231, 0.3);
+    }
+    
+    .faq-item.hidden {
+        display: none;
+    }
+    
+    .faq-question {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .faq-question:hover {
+        background: rgba(108, 92, 231, 0.1);
+    }
+    
+    .faq-question span {
+        font-size: 16px;
+        font-weight: 500;
+        color: #fff;
+    }
+    
+    .faq-question i {
+        color: #6c5ce7;
+        transition: transform 0.3s;
+    }
+    
+    .faq-item.open .faq-question i {
+        transform: rotate(180deg);
+    }
+    
+    .faq-answer {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+        background: rgba(0,0,0,0.1);
+    }
+    
+    .faq-item.open .faq-answer {
+        max-height: 500px;
+    }
+    
+    .faq-answer p, .faq-answer ul, .faq-answer ol {
+        padding: 0 20px;
+        margin: 15px 0;
+        color: #b2bec3;
+        line-height: 1.7;
+    }
+    
+    .faq-answer ul, .faq-answer ol {
+        padding-right: 40px;
+    }
+    
+    .faq-answer li {
+        margin: 8px 0;
+    }
+    
+    .faq-answer a {
+        color: #6c5ce7;
+        text-decoration: none;
+    }
+    
+    .faq-answer a:hover {
+        text-decoration: underline;
+    }
+    
+    .faq-footer {
+        text-align: center;
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .faq-footer p {
+        color: #636e72;
+        margin-bottom: 15px;
+    }
+    
+    .contact-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 30px;
+        background: #6c5ce7;
+        color: white;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    
+    .contact-btn:hover {
+        background: #5b4cdb;
+        transform: translateY(-2px);
+    }
+    
+    @media (max-width: 600px) {
+        .policy-container {
+            padding: 20px;
+        }
+        
+        .faq-categories {
+            gap: 8px;
+        }
+        
+        .faq-cat {
+            padding: 8px 15px;
+            font-size: 13px;
+        }
+        
+        .faq-question span {
+            font-size: 14px;
+        }
+    }
+</style>
+
+<script>
+    function toggleFAQ(element) {
+        const item = element.parentElement;
+        const isOpen = item.classList.contains('open');
+        
+        // إغلاق الكل
+        document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+        
+        // فتح المحدد
+        if (!isOpen) {
+            item.classList.add('open');
+        }
+    }
+    
+    function filterFAQ(category) {
+        // تحديث الأزرار
+        document.querySelectorAll('.faq-cat').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        // فلترة الأسئلة
+        document.querySelectorAll('.faq-item').forEach(item => {
+            if (category === 'all' || item.dataset.cat === category) {
+                item.classList.remove('hidden');
+            } else {
+                item.classList.add('hidden');
+            }
+        });
+    }
+</script>
+{% endblock %}

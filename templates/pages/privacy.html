@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% block title %}سياسة الخصوصية - متجر TR{% endblock %}
+
+{% block content %}
+<div class="policy-page">
+    <a href="/" class="back-btn">
+        <i class="fas fa-arrow-right"></i>
+        الرجوع للرئيسية
+    </a>
+    
+    <div class="policy-container">
+        <div class="policy-header">
+            <i class="fas fa-shield-alt"></i>
+            <h1>سياسة الخصوصية</h1>
+        </div>
+        
+        <p class="intro-text">في متجر TR، نأخذ خصوصية بياناتك على محمل الجد. توضح هذه السياسة كيف نجمع ونستخدم معلوماتك الشخصية.</p>
+
+        <div class="policy-content">
+            <div class="policy-section">
+                <h3><i class="fas fa-database"></i> 1. المعلومات التي نجمعها</h3>
+                <p>لإتمام طلباتك وتحسين تجربتك، قد نجمع البيانات التالية:</p>
+                <ul>
+                    <li><strong>بيانات الحساب:</strong> رقم المعرف (Telegram ID)، الاسم، والصورة الرمزية (لغرض تسجيل الدخول).</li>
+                    <li><strong>بيانات الطلب:</strong> تفاصيل المنتجات المشتراة، وتاريخ العمليات.</li>
+                    <li><strong>بيانات الدفع:</strong> يتم معالجة عمليات الدفع عبر بوابات آمنة ومشفرة، ولا نقوم بتخزين بيانات بطاقتك الائتمانية الكاملة على خوادمنا.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-cogs"></i> 2. كيف نستخدم معلوماتك</h3>
+                <ul>
+                    <li>لمعالجة الطلبات وتسليم الأكواد الرقمية.</li>
+                    <li>للتواصل معك في حال وجود مشكلة في الطلب.</li>
+                    <li>لتحسين أداء المتجر ومنع الاحتيال.</li>
+                    <li>لإرسال إشعارات مهمة متعلقة بحسابك أو طلباتك.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-user-shield"></i> 3. مشاركة البيانات</h3>
+                <p>نحن لا نبيع أو نؤجر بياناتك لأي طرف ثالث. قد نشارك الحد الأدنى من المعلومات مع:</p>
+                <ul>
+                    <li>مزودي خدمات الدفع لإتمام المعاملات المالية.</li>
+                    <li>الجهات القانونية إذا طُلب منا ذلك بموجب القانون.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-cookie-bite"></i> 4. ملفات الارتباط (Cookies)</h3>
+                <p>نستخدم ملفات تعريف الارتباط "كوكيز" للأغراض التالية:</p>
+                <ul>
+                    <li>ضمان بقائك مسجلاً للدخول أثناء التصفح.</li>
+                    <li>حفظ محتويات سلة التسوق مؤقتاً.</li>
+                    <li>تحسين تجربة المستخدم.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-lock"></i> 5. أمان البيانات</h3>
+                <p>نستخدم تقنيات تشفير متقدمة لحماية بياناتك، بما في ذلك:</p>
+                <ul>
+                    <li>تشفير SSL لجميع الاتصالات.</li>
+                    <li>تشفير البيانات الحساسة (مثل بيانات الدفع) قبل التخزين.</li>
+                    <li>مراجعة أمنية دورية لأنظمتنا.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-envelope"></i> 6. تواصل معنا</h3>
+                <p>إذا كانت لديك أي أسئلة حول سياسة الخصوصية، يمكنك التواصل معنا عبر صفحة <a href="/contact-us">اتصل بنا</a>.</p>
+            </div>
+        </div>
+        
+        <div class="policy-footer">
+            <p>آخر تحديث: يناير {{ current_year }}</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .policy-page {
+        min-height: 100vh;
+        padding: 20px;
+        background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+    }
+    
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #a29bfe;
+        text-decoration: none;
+        font-size: 14px;
+        margin-bottom: 20px;
+        transition: all 0.3s;
+    }
+    
+    .back-btn:hover {
+        color: #6c5ce7;
+        transform: translateX(-5px);
+    }
+    
+    .policy-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px;
+        background: linear-gradient(145deg, #1a1a2e, #16213e);
+        border-radius: 20px;
+        color: #e0e0e0;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        border: 1px solid rgba(108, 92, 231, 0.2);
+    }
+    
+    .policy-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .policy-header i {
+        font-size: 50px;
+        color: #6c5ce7;
+        margin-bottom: 15px;
+    }
+    
+    .policy-header h1 {
+        color: #fff;
+        font-size: 28px;
+        margin: 0;
+    }
+    
+    .intro-text {
+        text-align: center;
+        color: #b2bec3;
+        font-size: 16px;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .policy-section {
+        margin-bottom: 25px;
+        padding: 20px;
+        background: rgba(0,0,0,0.2);
+        border-radius: 12px;
+        border-right: 3px solid #6c5ce7;
+    }
+    
+    .policy-section h3 {
+        color: #a29bfe;
+        margin: 0 0 15px 0;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .policy-section h3 i {
+        color: #6c5ce7;
+    }
+    
+    .policy-section ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .policy-section ul li {
+        padding: 8px 0;
+        padding-right: 20px;
+        position: relative;
+        line-height: 1.7;
+        color: #b2bec3;
+    }
+    
+    .policy-section ul li::before {
+        content: '✓';
+        position: absolute;
+        right: 0;
+        color: #00b894;
+    }
+    
+    .policy-section p {
+        line-height: 1.8;
+        color: #b2bec3;
+        margin: 0 0 10px 0;
+    }
+    
+    .policy-section a {
+        color: #6c5ce7;
+        text-decoration: none;
+    }
+    
+    .policy-section a:hover {
+        text-decoration: underline;
+    }
+    
+    .policy-footer {
+        text-align: center;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        color: #636e72;
+        font-size: 13px;
+    }
+    
+    @media (max-width: 600px) {
+        .policy-container {
+            padding: 20px;
+            border-radius: 15px;
+        }
+        
+        .policy-header h1 {
+            font-size: 22px;
+        }
+        
+        .policy-section {
+            padding: 15px;
+        }
+        
+        .policy-section h3 {
+            font-size: 16px;
+        }
+    }
+</style>
+{% endblock %}
