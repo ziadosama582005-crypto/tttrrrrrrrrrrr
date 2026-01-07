@@ -141,44 +141,55 @@ def add_security_headers(response):
     return response
 
 
-# --- حظر المسارات المشبوهة والهجمات ---
+# --- حظر المسارات المشبوهة والهجمات (محسّن لتجنب الإيجابيات الخاطئة) ---
 @app.before_request
 def block_suspicious_requests():
-    """حظر الطلبات المشبوهة قبل معالجتها"""
+    """حظر الطلبات المشبوهة قبل معالجتها وتخفيف الضغط"""
     path = request.path.lower()
     
-    # قائمة المسارات المحظورة (ملفات PHP وWordPress)
-    blocked_patterns = [
-        '.php', 'wp-admin', 'wp-login', 'wp-includes', 'wp-content',
-        'wordpress', 'xmlrpc', '.asp', '.aspx', '.jsp',
-        'phpmyadmin', 'admin.php', 'shell', 'cmd'
+    # 1. قائمة الامتدادات المحظورة (يجب أن تكون في نهاية الرابط)
+    # نستخدم endswith للتأكد أنها امتداد ملف وليست جزءاً من كلمة
+    blocked_extensions = ('.php', '.aspx', '.jsp', '.env', '.git', '.sql', '.bak')
+    
+    if path.endswith(blocked_extensions):
+        logger.warning(f"🚫 حظر مسار مشبوه (امتداد): {path} من {request.remote_addr}")
+        return "Forbidden", 403
+    
+    # 2. كلمات محظورة كمسارات (وليس كجزء من اسم منتج)
+    # هذه خطيرة فقط إذا جاءت كمسار أساسي في بداية الرابط
+    suspicious_paths = [
+        '/wp-admin', '/wp-login', '/wp-content', '/wp-includes',
+        '/xmlrpc', '/phpmyadmin', '/actuator', '/.env', '/.git',
+        '/config.js', '/admin.php', '/shell.php'
     ]
     
-    # حظر أي مسار يحتوي على أنماط مشبوهة
-    for pattern in blocked_patterns:
-        if pattern in path:
-            # سجل محاولة الاختراق بصمت (بدون traceback)
-            logger.warning(f"🚫 محاولة اختراق محظورة: {path} من {request.remote_addr}")
+    # فحص إذا كان المسار يبدأ بأحد المسارات المشبوهة
+    for suspicious in suspicious_paths:
+        if path.startswith(suspicious) or path == suspicious.lstrip('/'):
+            logger.warning(f"🚫 حظر مسار مشبوه: {path} من {request.remote_addr}")
             return "Forbidden", 403
     
-    # حظر POST على المسارات التي لا تدعمها
+    # 3. حظر المسارات التي تحتوي على /wordpress/ كمجلد
+    if '/wordpress/' in path or path.startswith('/wordpress'):
+        logger.warning(f"🚫 حظر مسار WordPress: {path} من {request.remote_addr}")
+        return "Forbidden", 403
+    
+    # 4. معالجة طلبات POST العشوائية على الصفحة الرئيسية
     if request.method == 'POST':
         # المسارات المسموح بها للـ POST
-        allowed_post_paths = [
-            '/webhook', '/api/', '/auth/', '/payment/', '/cart/',
-            '/admin/', '/profile/', '/wallet/', '/charge', '/login',
-            '/telegram-auth', '/update_', '/confirm', '/order'
+        allowed_post_prefixes = [
+            '/webhook', '/api', '/auth', '/payment', '/cart',
+            '/admin', '/profile', '/wallet', '/charge', '/login',
+            '/telegram-auth', '/update', '/confirm', '/order',
+            '/checkout', '/contact', '/search', '/category'
         ]
         
-        # تحقق إذا كان المسار مسموحاً
-        is_allowed = False
-        for allowed in allowed_post_paths:
-            if allowed in path or path.startswith(allowed):
-                is_allowed = True
-                break
+        # تحقق إذا كان المسار يبدأ بأحد المسارات المسموحة
+        is_allowed = any(path.startswith(prefix) for prefix in allowed_post_prefixes)
         
-        # إذا POST على مسار غير مسموح (مثل / أو /index)
-        if not is_allowed and path in ['/', '/index', '/home']:
+        # حظر POST على الصفحة الرئيسية فقط (وليس كل المسارات)
+        if not is_allowed and path in ['/', '/index', '/index.php', '/home']:
+            logger.warning(f"🚫 حظر POST عشوائي على الرئيسية من {request.remote_addr}")
             return "Forbidden", 403
 
 
