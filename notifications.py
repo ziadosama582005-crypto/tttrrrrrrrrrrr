@@ -7,6 +7,12 @@
 import logging
 from extensions import bot, BOT_ACTIVE, ADMIN_ID, db
 
+try:
+    from google.cloud.firestore_v1.base_query import FieldFilter
+    USE_FIELD_FILTER = True
+except ImportError:
+    USE_FIELD_FILTER = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -84,7 +90,10 @@ def is_admin_or_owner(telegram_id):
         
         # التحقق من جدول المشرفين
         if db:
-            admins = db.collection('admins').where('telegram_id', '==', str(telegram_id)).get()
+            if USE_FIELD_FILTER:
+                admins = db.collection('admins').where(filter=FieldFilter('telegram_id', '==', str(telegram_id))).get()
+            else:
+                admins = db.collection('admins').where('telegram_id', '==', str(telegram_id)).get()
             return len(list(admins)) > 0
         
         return False

@@ -4,6 +4,7 @@ Profile Routes - مسارات صفحة الحساب الشخصي
 from flask import Blueprint, render_template, session, redirect, url_for, jsonify, request
 from extensions import db, logger, bot, ADMIN_ID
 from google.cloud import firestore
+from google.cloud.firestore_v1.base_query import FieldFilter
 from telebot import types
 import json
 import random
@@ -147,7 +148,7 @@ def profile():
             # جلب شحنات المستخدم
             try:
                 all_user_charges = db.collection('charge_history')\
-                    .where('user_id', '==', user_id)\
+                    .where(filter=FieldFilter('user_id', '==', user_id))\
                     .get()
             except Exception as query_error:
                 print(f"⚠️ Query failed: {query_error}")
@@ -194,14 +195,14 @@ def profile():
             # جلب آخر 3 شحنات للعرض (بدون order_by لتجنب مشكلة الـ Index)
             try:
                 all_recent_charges = db.collection('charge_history')\
-                    .where('user_id', '==', user_id)\
+                    .where(filter=FieldFilter('user_id', '==', user_id))\
                     .order_by('timestamp', direction=firestore.Query.DESCENDING)\
                     .limit(3)\
                     .get()
             except:
                 # fallback بدون order_by
                 all_recent_charges = db.collection('charge_history')\
-                    .where('user_id', '==', user_id)\
+                    .where(filter=FieldFilter('user_id', '==', user_id))\
                     .limit(3)\
                     .get()
             
@@ -338,7 +339,7 @@ def withdraw_page():
         min_minutes_left = 0
         
         try:
-            user_charges = db.collection('charge_history').where('user_id', '==', user_id).get()
+            user_charges = db.collection('charge_history').where(filter=FieldFilter('user_id', '==', user_id)).get()
             
             for charge_doc in user_charges:
                 charge = charge_doc.to_dict()
@@ -383,7 +384,7 @@ def withdraw_page():
         
         # إجمالي الشحن
         try:
-            charges = db.collection('charge_history').where('user_id', '==', user_id).get()
+            charges = db.collection('charge_history').where(filter=FieldFilter('user_id', '==', user_id)).get()
             for c in charges:
                 total_charges += float(c.to_dict().get('amount', 0))
         except:
@@ -391,14 +392,14 @@ def withdraw_page():
         
         # عدد المشتريات
         try:
-            orders = db.collection('orders').where('buyer_id', '==', user_id).get()
+            orders = db.collection('orders').where(filter=FieldFilter('buyer_id', '==', user_id)).get()
             purchases_count = len(list(orders))
         except:
             pass
         
         # عدد السحوبات
         try:
-            withdrawals = db.collection('withdrawal_requests').where('user_id', '==', user_id).get()
+            withdrawals = db.collection('withdrawal_requests').where(filter=FieldFilter('user_id', '==', user_id)).get()
             withdrawals_count = len(list(withdrawals))
         except:
             pass
@@ -408,7 +409,7 @@ def withdraw_page():
         
         # 1. الشحنات
         try:
-            charges_ref = db.collection('charge_history').where('user_id', '==', user_id).get()
+            charges_ref = db.collection('charge_history').where(filter=FieldFilter('user_id', '==', user_id)).get()
             for doc in charges_ref:
                 data = doc.to_dict()
                 
@@ -449,7 +450,7 @@ def withdraw_page():
         
         # 2. المشتريات
         try:
-            orders_ref = db.collection('orders').where('buyer_id', '==', user_id).get()
+            orders_ref = db.collection('orders').where(filter=FieldFilter('buyer_id', '==', user_id)).get()
             for doc in orders_ref:
                 data = doc.to_dict()
                 
@@ -477,7 +478,7 @@ def withdraw_page():
         
         # 3. السحوبات
         try:
-            withdraw_ref = db.collection('withdrawal_requests').where('user_id', '==', user_id).get()
+            withdraw_ref = db.collection('withdrawal_requests').where(filter=FieldFilter('user_id', '==', user_id)).get()
             for doc in withdraw_ref:
                 data = doc.to_dict()
                 
@@ -936,7 +937,7 @@ def submit_withdraw():
             try:
                 # جلب شحنات المستخدم
                 all_user_charges = db.collection('charge_history')\
-                    .where('user_id', '==', user_id)\
+                    .where(filter=FieldFilter('user_id', '==', user_id))\
                     .get()
                 
                 for charge_doc in all_user_charges:

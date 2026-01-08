@@ -6,6 +6,7 @@
 
 from flask import Blueprint, render_template, request, jsonify, session, redirect
 from google.cloud import firestore
+from google.cloud.firestore_v1.base_query import FieldFilter
 import time
 import random
 import uuid
@@ -105,7 +106,7 @@ def count_products_in_category(category_name):
     """عد المنتجات في قسم"""
     try:
         if db:
-            products = db.collection('products').where('category', '==', category_name).stream()
+            products = db.collection('products').where(filter=FieldFilter('category', '==', category_name)).stream()
             return len(list(products))
         return 0
     except Exception as e:
@@ -147,7 +148,7 @@ def delete_product(product_id):
 
 def query_where(ref, field, op, value):
     """استعلام بشرط"""
-    return ref.where(field, op, value)
+    return ref.where(filter=FieldFilter(field, op, value))
 
 
 # ===================== إعدادات الشريط أعلى الهيدر =====================
@@ -609,17 +610,17 @@ def api_dashboard_stats():
             
             # الفواتير المعلقة
             try:
-                invoices = list(db.collection('merchant_invoices').where('status', '==', 'pending').stream())
+                invoices = list(db.collection('merchant_invoices').where(filter=FieldFilter('status', '==', 'pending')).stream())
                 stats['pending_invoices'] = len(invoices)
             except:
                 pass
             
             # طلبات الدفع
             try:
-                pending = list(db.collection('pending_payments').where('status', '==', 'pending').stream())
+                pending = list(db.collection('pending_payments').where(filter=FieldFilter('status', '==', 'pending')).stream())
                 stats['pending_payments'] = len(pending)
                 
-                completed = list(db.collection('pending_payments').where('status', '==', 'completed').stream())
+                completed = list(db.collection('pending_payments').where(filter=FieldFilter('status', '==', 'completed')).stream())
                 stats['completed_payments'] = len(completed)
             except:
                 pass
@@ -1016,7 +1017,7 @@ def api_get_user_history():
                 return jsonify({'status': 'error', 'message': 'المستخدم غير موجود'})
             
             # 2. سجل الشحنات (نبحث بـ string و number)
-            charges_ref = db.collection('charge_history').where('user_id', '==', str(user_id))
+            charges_ref = db.collection('charge_history').where(filter=FieldFilter('user_id', '==', str(user_id)))
             for doc in charges_ref.stream():
                 data = doc.to_dict()
                 # تحويل timestamp لرقم
@@ -1040,7 +1041,7 @@ def api_get_user_history():
             # البحث أيضاً بـ number إذا لم نجد
             if len(result['charges']) == 0:
                 try:
-                    charges_ref2 = db.collection('charge_history').where('user_id', '==', int(user_id))
+                    charges_ref2 = db.collection('charge_history').where(filter=FieldFilter('user_id', '==', int(user_id)))
                     for doc in charges_ref2.stream():
                         data = doc.to_dict()
                         # تحويل timestamp لرقم
@@ -1065,7 +1066,7 @@ def api_get_user_history():
             
             # 2.1 جلب الشحنات من pending_payments المكتملة (للشحنات القديمة)
             try:
-                payments_ref = db.collection('pending_payments').where('user_id', '==', str(user_id)).where('status', '==', 'completed')
+                payments_ref = db.collection('pending_payments').where(filter=FieldFilter('user_id', '==', str(user_id))).where(filter=FieldFilter('status', '==', 'completed'))
                 for doc in payments_ref.stream():
                     data = doc.to_dict()
                     # تحقق أنها غير مضافة مسبقاً
@@ -1098,7 +1099,7 @@ def api_get_user_history():
             
             # 3. طلبات السحب
             try:
-                withdrawals_ref = db.collection('withdrawal_requests').where('user_id', '==', str(user_id))
+                withdrawals_ref = db.collection('withdrawal_requests').where(filter=FieldFilter('user_id', '==', str(user_id)))
                 for doc in withdrawals_ref.stream():
                     data = doc.to_dict()
                     result['withdrawals'].append({
@@ -1115,7 +1116,7 @@ def api_get_user_history():
             
             # 4. سجل الرصيد (آخر 50)
             try:
-                logs_ref = db.collection('balance_logs').where('user_id', '==', str(user_id)).limit(50)
+                logs_ref = db.collection('balance_logs').where(filter=FieldFilter('user_id', '==', str(user_id))).limit(50)
                 for doc in logs_ref.stream():
                     data = doc.to_dict()
                     result['balance_logs'].append({
@@ -1719,7 +1720,7 @@ def api_get_customers():
                 last_activity = None
                 
                 try:
-                    orders = db.collection('orders').where('buyer_id', '==', user_id).stream()
+                    orders = db.collection('orders').where(filter=FieldFilter('buyer_id', '==', user_id)).stream()
                     for order in orders:
                         order_data = order.to_dict()
                         orders_count += 1
@@ -1790,7 +1791,7 @@ def api_get_customer_details():
         orders = []
         total_spent = 0
         try:
-            orders_ref = db.collection('orders').where('buyer_id', '==', user_id).stream()
+            orders_ref = db.collection('orders').where(filter=FieldFilter('buyer_id', '==', user_id)).stream()
             for doc in orders_ref:
                 order = doc.to_dict()
                 order['id'] = doc.id
@@ -1804,7 +1805,7 @@ def api_get_customer_details():
         # جلب سجل الرصيد
         balance_logs = []
         try:
-            logs_ref = db.collection('balance_logs').where('user_id', '==', user_id).order_by('created_at', direction=firestore.Query.DESCENDING).limit(50).stream()
+            logs_ref = db.collection('balance_logs').where(filter=FieldFilter('user_id', '==', user_id)).order_by('created_at', direction=firestore.Query.DESCENDING).limit(50).stream()
             for doc in logs_ref:
                 log = doc.to_dict()
                 log['id'] = doc.id
@@ -2074,7 +2075,7 @@ def api_add_manager():
         
         if db:
             # التحقق من عدم وجود المشرف مسبقاً
-            existing = db.collection('admins').where('telegram_id', '==', telegram_id).get()
+            existing = db.collection('admins').where(filter=FieldFilter('telegram_id', '==', telegram_id)).get()
             if list(existing):
                 return jsonify({'status': 'error', 'message': 'هذا المشرف موجود مسبقاً'})
             

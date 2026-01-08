@@ -18,6 +18,13 @@ import uuid
 import requests
 from datetime import datetime
 
+# استيراد FieldFilter للنسخ الجديدة من Firestore
+try:
+    from google.cloud.firestore_v1.base_query import FieldFilter
+    USE_FIELD_FILTER = True
+except ImportError:
+    USE_FIELD_FILTER = False
+
 # === استيراد الملفات المفصولة ===
 from extensions import (
     db, FIREBASE_AVAILABLE, logger,
@@ -619,7 +626,10 @@ def send_code_by_email():
         
         # البحث عن الحساب المرتبط بهذا البريد
         users_ref = db.collection('users')
-        query = users_ref.where('email', '==', email).where('email_verified', '==', True).limit(1)
+        if USE_FIELD_FILTER:
+            query = users_ref.where(filter=FieldFilter('email', '==', email)).where(filter=FieldFilter('email_verified', '==', True)).limit(1)
+        else:
+            query = users_ref.where('email', '==', email).where('email_verified', '==', True).limit(1)
         results = list(query.stream())
         
         if not results:

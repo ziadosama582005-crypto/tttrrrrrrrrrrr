@@ -21,6 +21,13 @@ try:
 except ImportError:
     firestore = None
 
+# استيراد FieldFilter للنسخ الجديدة
+try:
+    from google.cloud.firestore_v1.base_query import FieldFilter
+    USE_FIELD_FILTER = True
+except ImportError:
+    USE_FIELD_FILTER = False
+
 # استيراد دوال Firebase
 from firebase_utils import (
     get_balance, add_balance, deduct_balance,
@@ -1633,7 +1640,10 @@ def claim_manual_order(call):
     
     if not is_owner and db:
         try:
-            admins = db.collection('admins').where('telegram_id', '==', str(admin_id)).get()
+            if USE_FIELD_FILTER:
+                admins = db.collection('admins').where(filter=FieldFilter('telegram_id', '==', str(admin_id))).get()
+            else:
+                admins = db.collection('admins').where('telegram_id', '==', str(admin_id)).get()
             is_manager = len(list(admins)) > 0
         except:
             pass
