@@ -1128,6 +1128,22 @@
             currentType = type;
             document.getElementById('withdrawType').value = type;
             
+            // إعادة تعيين حالة OTP
+            skipOTP = false;
+            otpRequested = false;
+            document.getElementById('otpSection').style.display = 'none';
+            document.getElementById('otpCode').value = '';
+            document.getElementById('requestOtpBtn').style.display = 'block';
+            document.getElementById('requestOtpBtn').disabled = false;
+            document.getElementById('requestOtpBtn').innerHTML = '<i class="fas fa-shield-alt"></i> طلب رمز التحقق';
+            document.getElementById('submitBtn').style.display = 'none';
+            if (otpTimer) {
+                clearInterval(otpTimer);
+                otpTimer = null;
+            }
+            const existingTimerDisplay = document.getElementById('otpTimerDisplay');
+            if (existingTimerDisplay) existingTimerDisplay.remove();
+            
             if (type === 'normal') {
                 document.getElementById('modalTitle').innerHTML = '<i class="fas fa-clock"></i><span>سحب عادي</span>';
                 currentFeePercent = 6;
@@ -1203,6 +1219,7 @@
         // متغير لتتبع حالة OTP
         let otpRequested = false;
         let otpTimer = null;
+        let skipOTP = false;  // هل OTP مطلوب أم لا
         
         async function requestOTP() {
             const btn = document.getElementById('requestOtpBtn');
@@ -1232,6 +1249,7 @@
                 if (data.success) {
                     // إذا كان OTP غير مطلوب (skip_otp)
                     if (data.skip_otp) {
+                        skipOTP = true;  // تسجيل أن OTP غير مطلوب
                         document.getElementById('submitBtn').style.display = 'block';
                         document.getElementById('requestOtpBtn').style.display = 'none';
                         showToast('يمكنك إرسال الطلب الآن', 'success');
@@ -1316,9 +1334,9 @@
                 return;
             }
             
-            // التحقق من OTP
+            // التحقق من OTP (فقط إذا كان مطلوباً)
             const otpCode = document.getElementById('otpCode').value.trim();
-            if (!otpCode || otpCode.length !== 6) {
+            if (!skipOTP && (!otpCode || otpCode.length !== 6)) {
                 showToast('يجب إدخال رمز التحقق المكون من 6 أرقام', 'error');
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال طلب السحب';
@@ -1331,7 +1349,8 @@
                 withdraw_type: currentType,
                 method: currentMethod,
                 full_name: document.getElementById('fullName').value,
-                otp_code: otpCode
+                otp_code: skipOTP ? '' : otpCode,  // إرسال فارغ إذا كان OTP غير مطلوب
+                skip_otp: skipOTP  // إرسال علامة تخطي OTP للخادم
             };
             
             if (currentMethod === 'wallet') {
