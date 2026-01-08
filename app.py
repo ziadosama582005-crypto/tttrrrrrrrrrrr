@@ -188,10 +188,10 @@ def block_suspicious_requests():
     
     # 4. معالجة طلبات POST العشوائية على الصفحة الرئيسية
     if request.method == 'POST':
-        # المسارات المسموح بها للـ POST
+        # المسارات المسموح بها للـ POST (يجب أن تكون دقيقة)
         allowed_post_prefixes = [
-            '/webhook', '/api', '/auth', '/payment', '/cart',
-            '/admin', '/profile', '/wallet', '/charge', '/login',
+            '/webhook', '/api/', '/auth/', '/payment/', '/cart/',
+            '/admin/', '/profile/', '/wallet/', '/charge/', '/login',
             '/telegram-auth', '/update', '/confirm', '/order',
             '/checkout', '/contact', '/search', '/category'
         ]
@@ -199,9 +199,10 @@ def block_suspicious_requests():
         # تحقق إذا كان المسار يبدأ بأحد المسارات المسموحة
         is_allowed = any(path.startswith(prefix) for prefix in allowed_post_prefixes)
         
-        # حظر POST على الصفحة الرئيسية فقط (وليس كل المسارات)
-        if not is_allowed and path in ['/', '/index', '/index.php', '/home']:
-            logger.warning(f"🚫 حظر POST عشوائي على الرئيسية من {request.remote_addr}")
+        # حظر POST على المسارات غير المسموحة
+        blocked_post_paths = ['/', '/index', '/index.php', '/home', '/admin', '/api']
+        if not is_allowed and path in blocked_post_paths:
+            logger.warning(f"🚫 حظر POST عشوائي على {path} من {request.remote_addr}")
             return "Forbidden", 403
 
 
