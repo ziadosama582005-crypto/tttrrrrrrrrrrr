@@ -39,17 +39,6 @@ except ImportError:
     notify_withdrawal_request = lambda *args, **kwargs: None
     notify_owner = lambda *args, **kwargs: None
 
-# استيراد OTP للسحب
-try:
-    from security_middleware import (
-        send_withdrawal_otp, verify_withdrawal_otp, 
-        get_otp_data, generate_withdrawal_otp
-    )
-    OTP_AVAILABLE = True
-except ImportError:
-    OTP_AVAILABLE = False
-    print("⚠️ security_middleware غير متوفرة - OTP لن تعمل")
-
 profile_bp = Blueprint('profile', __name__)
 
 # تخزين مؤقت لأكواد التحقق من الإيميل
@@ -877,50 +866,6 @@ def disable_2fa():
     except Exception as e:
         logger.error(f"خطأ في disable_2fa: {e}")
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
-
-
-# ==================== OTP للسحب ====================
-
-@profile_bp.route('/api/withdraw/request-otp', methods=['POST'])
-def request_withdraw_otp():
-    """طلب رمز OTP لتأكيد السحب"""
-    try:
-        if 'user_id' not in session:
-            return jsonify({'success': False, 'message': 'يجب تسجيل الدخول أولاً'}), 401
-        
-        if not OTP_AVAILABLE:
-            # إذا OTP غير متاح، نتخطى هذه الخطوة
-            return jsonify({'success': True, 'message': 'OTP غير مطلوب', 'skip_otp': True})
-        
-        user_id = session['user_id']
-        data = request.get_json()
-        
-        withdraw_type = data.get('withdraw_type') or data.get('type', 'normal')
-        amount = float(data.get('amount', 0))
-        
-        if amount <= 0:
-            return jsonify({'success': False, 'message': 'المبلغ غير صحيح'}), 400
-        
-        # حساب الرسوم والصافي
-        fee_percent = 6.0 if withdraw_type == 'normal' else 8.5
-        fee_amount = amount * (fee_percent / 100)
-        net_amount = amount - fee_amount
-        
-        # إرسال OTP
-        success, message = send_withdrawal_otp(bot, user_id, amount, withdraw_type, net_amount)
-        
-        if success:
-            return jsonify({
-                'success': True,
-                'message': message,
-                'expires_in': 300  # 5 دقائق
-            })
-        else:
-            return jsonify({'success': False, 'message': message}), 400
-    
-    except Exception as e:
-        logger.error(f"خطأ في request_withdraw_otp: {e}")
-        return jsonify({'success': False, 'message': 'حدث خطأ في إرسال رمز التحقق'}), 500
 
 
 # ==================== طلبات السحب ====================
