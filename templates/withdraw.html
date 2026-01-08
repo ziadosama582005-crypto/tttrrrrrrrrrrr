@@ -1087,26 +1087,8 @@
                         <input type="text" id="fullName" placeholder="مثال: محمد بن أحمد" required>
                     </div>
                     
-                    <!-- OTP للتأكيد -->
-                    <div id="otpSection" style="display: none;">
-                        <div class="form-group">
-                            <label>🔐 رمز التحقق (مرسل إلى تيليجرام)</label>
-                            <div style="display: flex; gap: 10px;">
-                                <input type="text" id="otpCode" placeholder="أدخل الرمز المكون من 6 أرقام" 
-                                       maxlength="6" pattern="[0-9]{6}" style="flex: 1; text-align: center; font-size: 1.2rem; letter-spacing: 5px;">
-                            </div>
-                            <small style="color: var(--text-muted);">⏰ صالح لمدة 5 دقائق</small>
-                        </div>
-                    </div>
-                    
-                    <!-- زر طلب OTP -->
-                    <button type="button" class="submit-btn" id="requestOtpBtn" onclick="requestOTP()" style="background: linear-gradient(135deg, #f39c12, #e74c3c);">
-                        <i class="fas fa-shield-alt"></i>
-                        طلب رمز التحقق
-                    </button>
-                    
-                    <!-- زر إرسال السحب (مخفي حتى يتم إرسال OTP) -->
-                    <button type="submit" class="submit-btn" id="submitBtn" style="display: none;">
+                    <!-- زر إرسال السحب -->
+                    <button type="submit" class="submit-btn" id="submitBtn">
                         <i class="fas fa-paper-plane"></i>
                         إرسال طلب السحب
                     </button>
@@ -1127,22 +1109,6 @@
         function openWithdrawModal(type) {
             currentType = type;
             document.getElementById('withdrawType').value = type;
-            
-            // إعادة تعيين حالة OTP
-            skipOTP = false;
-            otpRequested = false;
-            document.getElementById('otpSection').style.display = 'none';
-            document.getElementById('otpCode').value = '';
-            document.getElementById('requestOtpBtn').style.display = 'block';
-            document.getElementById('requestOtpBtn').disabled = false;
-            document.getElementById('requestOtpBtn').innerHTML = '<i class="fas fa-shield-alt"></i> طلب رمز التحقق';
-            document.getElementById('submitBtn').style.display = 'none';
-            if (otpTimer) {
-                clearInterval(otpTimer);
-                otpTimer = null;
-            }
-            const existingTimerDisplay = document.getElementById('otpTimerDisplay');
-            if (existingTimerDisplay) existingTimerDisplay.remove();
             
             if (type === 'normal') {
                 document.getElementById('modalTitle').innerHTML = '<i class="fas fa-clock"></i><span>سحب عادي</span>';
@@ -1216,99 +1182,7 @@
             });
         }
         
-        // متغير لتتبع حالة OTP
-        let otpRequested = false;
-        let otpTimer = null;
-        let skipOTP = false;  // هل OTP مطلوب أم لا
-        
-        async function requestOTP() {
-            const btn = document.getElementById('requestOtpBtn');
-            const amount = parseFloat(document.getElementById('withdrawAmount').value);
-            
-            // التحقق من المبلغ
-            if (!amount || amount <= 0) {
-                showToast('يجب إدخال المبلغ أولاً', 'error');
-                return;
-            }
-            
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
-            
-            try {
-                const response = await fetch('/api/withdraw/request-otp', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        withdraw_type: currentType,
-                        amount: amount
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    // إذا كان OTP غير مطلوب (skip_otp)
-                    if (data.skip_otp) {
-                        skipOTP = true;  // تسجيل أن OTP غير مطلوب
-                        document.getElementById('submitBtn').style.display = 'block';
-                        document.getElementById('requestOtpBtn').style.display = 'none';
-                        showToast('يمكنك إرسال الطلب الآن', 'success');
-                        return;
-                    }
-                    
-                    otpRequested = true;
-                    document.getElementById('otpSection').style.display = 'block';
-                    document.getElementById('submitBtn').style.display = 'block';
-                    document.getElementById('requestOtpBtn').style.display = 'none';
-                    document.getElementById('otpCode').focus();
-                    
-                    showToast('✅ ' + data.message, 'success');
-                    
-                    // عداد تنازلي للوقت المتبقي
-                    startOTPTimer(data.expires_in || 300);
-                } else {
-                    showToast(data.message || 'فشل في إرسال رمز التحقق', 'error');
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-shield-alt"></i> طلب رمز التحقق';
-                }
-            } catch (error) {
-                showToast('حدث خطأ في الاتصال', 'error');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-shield-alt"></i> طلب رمز التحقق';
-            }
-        }
-        
-        function startOTPTimer(seconds) {
-            if (otpTimer) clearInterval(otpTimer);
-            
-            let remaining = seconds;
-            const timerDisplay = document.createElement('div');
-            timerDisplay.id = 'otpTimerDisplay';
-            timerDisplay.style.cssText = 'text-align: center; color: #f39c12; font-weight: bold; margin-top: 10px;';
-            
-            const otpSection = document.getElementById('otpSection');
-            const existingTimer = document.getElementById('otpTimerDisplay');
-            if (existingTimer) existingTimer.remove();
-            otpSection.appendChild(timerDisplay);
-            
-            otpTimer = setInterval(() => {
-                const mins = Math.floor(remaining / 60);
-                const secs = remaining % 60;
-                timerDisplay.textContent = `⏰ الوقت المتبقي: ${mins}:${secs.toString().padStart(2, '0')}`;
-                
-                if (remaining <= 0) {
-                    clearInterval(otpTimer);
-                    timerDisplay.textContent = '⚠️ انتهت صلاحية الرمز - اطلب رمزاً جديداً';
-                    timerDisplay.style.color = '#e74c3c';
-                    
-                    // إعادة إظهار زر طلب OTP
-                    document.getElementById('requestOtpBtn').style.display = 'block';
-                    document.getElementById('requestOtpBtn').disabled = false;
-                    document.getElementById('requestOtpBtn').innerHTML = '<i class="fas fa-shield-alt"></i> طلب رمز جديد';
-                }
-                remaining--;
-            }, 1000);
-        }
+
         
         async function submitWithdraw(e) {
             e.preventDefault();
@@ -1334,23 +1208,11 @@
                 return;
             }
             
-            // التحقق من OTP (فقط إذا كان مطلوباً)
-            const otpCode = document.getElementById('otpCode').value.trim();
-            if (!skipOTP && (!otpCode || otpCode.length !== 6)) {
-                showToast('يجب إدخال رمز التحقق المكون من 6 أرقام', 'error');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال طلب السحب';
-                document.getElementById('otpCode').focus();
-                return;
-            }
-            
             const data = {
                 amount: amount,
                 withdraw_type: currentType,
                 method: currentMethod,
-                full_name: document.getElementById('fullName').value,
-                otp_code: skipOTP ? '' : otpCode,  // إرسال فارغ إذا كان OTP غير مطلوب
-                skip_otp: skipOTP  // إرسال علامة تخطي OTP للخادم
+                full_name: document.getElementById('fullName').value
             };
             
             if (currentMethod === 'wallet') {
@@ -1371,16 +1233,10 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    if (otpTimer) clearInterval(otpTimer);
                     showToast('تم إرسال طلب السحب بنجاح! ✅', 'success');
                     closeWithdrawModal();
                     setTimeout(() => location.reload(), 1500);
                 } else {
-                    // إذا كان الخطأ متعلق بـ OTP
-                    if (result.require_otp) {
-                        document.getElementById('otpSection').style.display = 'block';
-                        document.getElementById('otpCode').focus();
-                    }
                     showToast(result.message || 'حدث خطأ', 'error');
                 }
             } catch (error) {

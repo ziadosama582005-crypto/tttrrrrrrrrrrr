@@ -935,24 +935,6 @@ def submit_withdraw():
         user_id = session['user_id']
         data = request.get_json()
         
-        # التحقق من OTP أولاً
-        otp_code = data.get('otp_code', '').strip()
-        skip_otp_flag = data.get('skip_otp', False)  # هل تم تخطي OTP؟
-        
-        if OTP_AVAILABLE and not skip_otp_flag and otp_code:
-            # التحقق من رمز OTP
-            otp_valid, otp_message = verify_withdrawal_otp(user_id, otp_code)
-            if not otp_valid:
-                return jsonify({'success': False, 'message': otp_message}), 400
-        elif OTP_AVAILABLE and not skip_otp_flag and not otp_code:
-            # OTP مطلوب لكن لم يتم إرساله
-            return jsonify({
-                'success': False, 
-                'message': 'يجب إدخال رمز التحقق المرسل إلى تيليجرام',
-                'require_otp': True
-            }), 400
-        # إذا skip_otp_flag = True، نتخطى التحقق من OTP
-        
         # دعم كلا الاسمين: type و withdraw_type
         withdraw_type = data.get('withdraw_type') or data.get('type', '')  # normal أو instant
         method = data.get('method', '')  # wallet أو bank
