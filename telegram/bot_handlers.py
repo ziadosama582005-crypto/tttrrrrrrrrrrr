@@ -2075,11 +2075,10 @@ def acc_step1_service(call):
     try:
         markup = types.InlineKeyboardMarkup(row_width=2)
         markup.add(
-            types.InlineKeyboardButton("💜 تمارا", callback_data="acc_srv_tamara"),
-            types.InlineKeyboardButton("💙 تابي", callback_data="acc_srv_tabby")
+            types.InlineKeyboardButton("تمارا", callback_data="acc_srv_tamara"),
+            types.InlineKeyboardButton("تابي", callback_data="acc_srv_tabby")
         )
         markup.add(
-            types.InlineKeyboardButton("🟢 STC Pay", callback_data="acc_srv_stcpay"),
             types.InlineKeyboardButton("📦 أخرى", callback_data="acc_srv_other")
         )
         markup.add(types.InlineKeyboardButton("🔙 إلغاء", callback_data="acc_main"))
@@ -2108,9 +2107,8 @@ def acc_step2_name(call):
         
         # أسماء الخدمات
         service_names = {
-            'tamara': '💜 تمارا',
-            'tabby': '💙 تابي',
-            'stcpay': '🟢 STC Pay',
+            'tamara': 'تمارا',
+            'tabby': 'تابي',
             'other': '📦 أخرى'
         }
         
@@ -2281,9 +2279,8 @@ def finish_ledger_transaction(user_id, message_obj, reminder):
         
         # أسماء الخدمات
         service_names = {
-            'tamara': '💜 تمارا',
-            'tabby': '💙 تابي',
-            'stcpay': '🟢 STC Pay',
+            'tamara': 'تمارا',
+            'tabby': 'تابي',
             'other': '📦 أخرى'
         }
         
@@ -2447,7 +2444,7 @@ def acc_partner_details(call):
             else:
                 date_str = "..."
             
-            service_icons = {'tamara': '💜', 'tabby': '💙', 'stcpay': '🟢', 'other': '📦'}
+            service_icons = {'tamara': '🟣', 'tabby': '��', 'other': '📦'}
             srv_icon = service_icons.get(service, '📦')
             
             line = f"{icon} {srv_icon} `{amount:.0f}` ر.س"
