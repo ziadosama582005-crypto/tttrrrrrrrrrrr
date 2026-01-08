@@ -1138,7 +1138,22 @@
         }
         
         function updateSummary() {
-            const amount = parseFloat(document.getElementById('withdrawAmount').value) || 0;
+            const input = document.getElementById('withdrawAmount');
+            let amount = parseFloat(input.value) || 0;
+            const maxAmount = currentType === 'normal' ? availableForNormal : balance;
+            
+            // منع إدخال مبلغ أكبر من المتاح
+            if (amount > maxAmount) {
+                amount = maxAmount;
+                input.value = maxAmount.toFixed(2);
+            }
+            
+            // منع إدخال مبلغ سالب
+            if (amount < 0) {
+                amount = 0;
+                input.value = '0';
+            }
+            
             const fee = amount * (currentFeePercent / 100);
             const net = amount - fee;
             
