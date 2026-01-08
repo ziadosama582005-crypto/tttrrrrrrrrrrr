@@ -1006,7 +1006,7 @@
                 <button class="modal-close" onclick="closeWithdrawModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="withdrawForm" onsubmit="submitWithdraw(event)">
+                <div id="withdrawFormContainer">
                     <input type="hidden" id="withdrawType" value="normal">
                     
                     <!-- المبلغ -->
@@ -1088,11 +1088,11 @@
                     </div>
                     
                     <!-- زر إرسال السحب -->
-                    <button type="submit" class="submit-btn" id="submitBtn">
+                    <button type="button" class="submit-btn" id="submitBtn" onclick="submitWithdraw()">
                         <i class="fas fa-paper-plane"></i>
                         إرسال طلب السحب
                     </button>
-                </form>
+                </div>
             </div>
         </div>
     </div>
@@ -1184,14 +1184,12 @@
         
 
         
-        async function submitWithdraw(e) {
-            e.preventDefault();
-            
+        async function submitWithdraw() {
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
             
-            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            const amount = parseFloat(document.getElementById('withdrawAmount').value) || 0;
             const maxAmount = currentType === 'normal' ? availableForNormal : balance;
             
             if (amount < 10) {
@@ -1208,11 +1206,47 @@
                 return;
             }
             
+            // التحقق من الاسم
+            const fullName = document.getElementById('fullName').value.trim();
+            if (!fullName || fullName.split(' ').length < 2) {
+                showToast('يجب إدخال الاسم الثنائي على الأقل', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال طلب السحب';
+                return;
+            }
+            
+            // التحقق من حقول المحفظة/البنك
+            if (currentMethod === 'wallet') {
+                const walletType = document.getElementById('walletType').value.trim();
+                const walletNumber = document.getElementById('walletNumber').value.trim();
+                if (!walletType || !walletNumber) {
+                    showToast('يجب ملء جميع حقول المحفظة', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال طلب السحب';
+                    return;
+                }
+            } else {
+                const bankName = document.getElementById('bankName').value.trim();
+                const iban = document.getElementById('iban').value.trim().toUpperCase();
+                if (!bankName || !iban) {
+                    showToast('يجب ملء جميع حقول البنك', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال طلب السحب';
+                    return;
+                }
+                if (!iban.startsWith('SA') || iban.length !== 24) {
+                    showToast('رقم الآيبان غير صحيح (يجب أن يبدأ بـ SA ويكون 24 حرف)', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال طلب السحب';
+                    return;
+                }
+            }
+            
             const data = {
                 amount: amount,
                 withdraw_type: currentType,
                 method: currentMethod,
-                full_name: document.getElementById('fullName').value
+                full_name: fullName
             };
             
             if (currentMethod === 'wallet') {
