@@ -1077,17 +1077,28 @@ def get_pending_reminders():
         return []
 
 
-def get_ledger_transaction_by_id(transaction_id):
-    """جلب عملية بمعرفها"""
+def get_ledger_transaction_by_id(owner_id, transaction_id_partial):
+    """جلب عملية بمعرفها (كامل أو جزئي)"""
     try:
         if not db:
             return None
         
-        doc = db.collection('ledger').document(transaction_id).get()
+        # أولاً نجرب المعرف الكامل
+        doc = db.collection('ledger').document(transaction_id_partial).get()
         if doc.exists:
             data = doc.to_dict()
-            data['id'] = doc.id
-            return data
+            if data.get('owner_id') == str(owner_id):
+                data['id'] = doc.id
+                return data
+        
+        # إذا لم نجد، نبحث بالمعرف الجزئي
+        docs = query_where(db.collection('ledger'), 'owner_id', '==', str(owner_id)).stream()
+        for doc in docs:
+            if doc.id.startswith(transaction_id_partial):
+                data = doc.to_dict()
+                data['id'] = doc.id
+                return data
+        
         return None
     except Exception as e:
         print(f"❌ خطأ في جلب العملية: {e}")

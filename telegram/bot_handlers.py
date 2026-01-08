@@ -1992,7 +1992,7 @@ from firebase_utils import (
     settle_single_transaction, delete_ledger_transaction,
     get_ledger_transaction_by_id
 )
-from utils import get_next_weekday, get_weekday_name_arabic, format_date_arabic
+from utils import get_next_weekday, get_weekday_name_arabic, format_date_arabic, get_weekday_after_weeks
 
 # مخزن مؤقت للمسودات (مع وقت الإنشاء للتنظيف التلقائي)
 acc_drafts = {}  # {user_id: {'data': {...}, 'created_at': timestamp}}
@@ -2176,13 +2176,23 @@ def acc_step4_day(message):
             # أزرار اختيار اليوم
             markup = types.InlineKeyboardMarkup(row_width=2)
             
-            # حساب التواريخ وعرضها
+            # حساب التواريخ وعرضها - الأسبوع القادم
             tue_date = get_next_weekday('tuesday')
             wed_date = get_next_weekday('wednesday')
             
+            # بعد أسبوعين
+            tue_date_2w = get_weekday_after_weeks('tuesday', 2)
+            wed_date_2w = get_weekday_after_weeks('wednesday', 2)
+            
+            # صف 1: الأسبوع القادم
             markup.add(
                 types.InlineKeyboardButton(f"الثلاثاء ({tue_date})", callback_data="acc_day_tuesday"),
                 types.InlineKeyboardButton(f"الأربعاء ({wed_date})", callback_data="acc_day_wednesday")
+            )
+            # صف 2: بعد أسبوعين
+            markup.add(
+                types.InlineKeyboardButton(f"الثلاثاء ({tue_date_2w})", callback_data="acc_day_tuesday2w"),
+                types.InlineKeyboardButton(f"الأربعاء ({wed_date_2w})", callback_data="acc_day_wednesday2w")
             )
             markup.add(
                 types.InlineKeyboardButton("⏭️ تخطي التذكير", callback_data="acc_day_skip")
@@ -2191,7 +2201,9 @@ def acc_step4_day(message):
             bot.send_message(
                 message.chat.id,
                 f"✅ المبلغ: **{amount:.2f}** ر.س\n\n"
-                "4️⃣ **متى تريد التذكير بالتحويل؟**",
+                "4️⃣ **متى تريد التذكير بالتحويل؟**\n\n"
+                "📅 الأسبوع القادم:\n"
+                "🗓️ بعد أسبوعين:",
                 reply_markup=markup,
                 parse_mode="Markdown"
             )
@@ -2208,7 +2220,7 @@ def acc_step5_time_or_save(call):
     """الخطوة 5: اختيار الوقت أو الحفظ مباشرة"""
     try:
         user_id = call.from_user.id
-        choice = call.data.split("_")[2]
+        choice = call.data.replace("acc_day_", "")  # tuesday, wednesday, tuesday2w, wednesday2w, skip
         
         if user_id not in acc_drafts:
             bot.answer_callback_query(call.id, "انتهت الجلسة!")
@@ -2218,8 +2230,16 @@ def acc_step5_time_or_save(call):
             # حفظ مباشر بدون تذكير
             finish_ledger_transaction(user_id, call.message, reminder=None)
         else:
-            # حفظ التاريخ والانتقال لاختيار الساعة
-            date_str = get_next_weekday(choice)
+            # معالجة خيارات التاريخ
+            if choice.endswith('2w'):
+                # بعد أسبوعين
+                day_name = choice.replace('2w', '')  # tuesday أو wednesday
+                date_str = get_weekday_after_weeks(day_name, 2)
+            else:
+                # الأسبوع القادم
+                day_name = choice
+                date_str = get_next_weekday(day_name)
+            
             acc_drafts[user_id]['data']['temp_date'] = date_str
             
             markup = types.InlineKeyboardMarkup(row_width=3)
@@ -2232,9 +2252,9 @@ def acc_step5_time_or_save(call):
                 types.InlineKeyboardButton("08:00 م", callback_data="acc_time_20")
             )
             
-            day_name = get_weekday_name_arabic(choice)
+            day_name_ar = get_weekday_name_arabic(day_name)
             bot.edit_message_text(
-                f"📅 **التاريخ:** {day_name} - {date_str}\n\n"
+                f"📅 **التاريخ:** {day_name_ar} - {date_str}\n\n"
                 "🕐 **اختر ساعة التذكير:**",
                 call.message.chat.id, call.message.message_id,
                 reply_markup=markup, parse_mode="Markdown"
@@ -2428,11 +2448,13 @@ def acc_partner_details(call):
         
         msg_lines = [f"👤 **كشف حساب: {partner_name}**\n"]
         total_pending = 0
+        pending_transactions = []
         
         for tx in transactions[:10]:  # آخر 10 عمليات
             icon = "⏳" if tx['status'] == 'pending' else "✅"
             amount = tx['amount']
             service = tx.get('service', '')
+            tx_id = tx.get('id', '')
             
             # تنسيق التاريخ
             created = tx.get('created_at')
@@ -2444,23 +2466,32 @@ def acc_partner_details(call):
             else:
                 date_str = "..."
             
-            service_icons = {'tamara': '🟣', 'tabby': '��', 'other': '📦'}
-            srv_icon = service_icons.get(service, '📦')
+            service_names = {'tamara': 'تمارا', 'tabby': 'تابي', 'other': 'أخرى'}
+            srv_name = service_names.get(service, 'أخرى')
             
-            line = f"{icon} {srv_icon} `{amount:.0f}` ر.س"
+            line = f"{icon} {srv_name} - `{amount:.0f}` ر.س ({date_str})"
             msg_lines.append(line)
             
             if tx['status'] == 'pending':
                 total_pending += float(amount)
+                pending_transactions.append({
+                    'id': tx_id,
+                    'amount': amount,
+                    'service': service,
+                    'date': date_str
+                })
         
         msg_lines.append(f"\nـــــــــــــــــــــــــــ\n💰 **المستحق:** `{total_pending:.2f}` ر.س")
         
         markup = types.InlineKeyboardMarkup(row_width=1)
         
-        if total_pending > 0:
+        # زر تسديد لكل عملية غير مسددة
+        for tx in pending_transactions:
+            service_names = {'tamara': 'تمارا', 'tabby': 'تابي', 'other': 'أخرى'}
+            srv_name = service_names.get(tx['service'], 'أخرى')
             markup.add(types.InlineKeyboardButton(
-                "✅ تسديد الكل", 
-                callback_data=f"acc_confirm_settle_{partner_id}"
+                f"✅ تسديد {srv_name} - {tx['amount']:.0f} ر.س ({tx['date']})", 
+                callback_data=f"acc_settle_tx_{tx['id'][:20]}"
             ))
         
         markup.add(types.InlineKeyboardButton("🔙 رجوع", callback_data="acc_show_pending"))
@@ -2501,6 +2532,47 @@ def acc_confirm_settle(call):
         )
     except Exception as e:
         print(f"❌ خطأ في acc_confirm_settle: {e}")
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("acc_settle_tx_"))
+def acc_settle_single_transaction(call):
+    """تسديد عملية واحدة"""
+    try:
+        user_id = call.from_user.id
+        tx_id_partial = call.data.replace("acc_settle_tx_", "")
+        
+        # البحث عن العملية الكاملة
+        tx = get_ledger_transaction_by_id(user_id, tx_id_partial)
+        
+        if not tx:
+            bot.answer_callback_query(call.id, "لم يتم العثور على العملية!")
+            return
+        
+        # تسديد العملية
+        success = settle_single_transaction(user_id, tx['id'])
+        
+        if success:
+            bot.answer_callback_query(call.id, f"✅ تم تسديد {tx['amount']:.0f} ر.س")
+            
+            # الرجوع للسجل
+            markup = types.InlineKeyboardMarkup()
+            markup.add(types.InlineKeyboardButton("🔙 رجوع للسجل", callback_data="acc_show_pending"))
+            
+            service_names = {'tamara': 'تمارا', 'tabby': 'تابي', 'other': 'أخرى'}
+            srv_name = service_names.get(tx.get('service', ''), 'أخرى')
+            
+            bot.edit_message_text(
+                f"✅ **تم التسديد بنجاح!**\n\n"
+                f"👤 الشريك: {tx['partner_name']}\n"
+                f"📦 الخدمة: {srv_name}\n"
+                f"💰 المبلغ: {tx['amount']:.2f} ر.س",
+                call.message.chat.id, call.message.message_id,
+                reply_markup=markup, parse_mode="Markdown"
+            )
+        else:
+            bot.answer_callback_query(call.id, "حدث خطأ في التسديد!")
+    except Exception as e:
+        print(f"❌ خطأ في acc_settle_single_transaction: {e}")
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("acc_do_settle_"))

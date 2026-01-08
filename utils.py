@@ -20,6 +20,7 @@ def get_next_weekday(weekday_name):
     
     Args:
         weekday_name: 'tuesday' أو 'wednesday'
+        weeks_ahead: عدد الأسابيع الإضافية (0 = القادم، 1 = بعد أسبوع، 2 = بعد أسبوعين)
     
     Returns:
         str: التاريخ بصيغة YYYY-MM-DD
@@ -33,6 +34,33 @@ def get_next_weekday(weekday_name):
     
     if days_ahead <= 0:  # إذا كان اليوم هو نفس اليوم المطلوب أو مضى
         days_ahead += 7
+        
+    next_date = today + datetime.timedelta(days=days_ahead)
+    return next_date.strftime("%Y-%m-%d")
+
+
+def get_weekday_after_weeks(weekday_name, weeks=2):
+    """
+    حساب تاريخ يوم محدد بعد عدد معين من الأسابيع
+    
+    Args:
+        weekday_name: 'tuesday' أو 'wednesday'
+        weeks: عدد الأسابيع (2 = بعد أسبوعين)
+    
+    Returns:
+        str: التاريخ بصيغة YYYY-MM-DD
+    """
+    weekdays = {'tuesday': 1, 'wednesday': 2, 'thursday': 3, 'friday': 4, 'saturday': 5, 'sunday': 6, 'monday': 0}
+    target_day = weekdays.get(weekday_name.lower(), 1)
+    
+    today = datetime.date.today()
+    days_ahead = target_day - today.weekday()
+    
+    if days_ahead <= 0:
+        days_ahead += 7
+    
+    # إضافة الأسابيع المطلوبة
+    days_ahead += (weeks * 7)
         
     next_date = today + datetime.timedelta(days=days_ahead)
     return next_date.strftime("%Y-%m-%d")
