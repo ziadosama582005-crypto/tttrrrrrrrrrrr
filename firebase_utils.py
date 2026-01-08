@@ -838,3 +838,258 @@ def get_all_categories_sales():
         print(f"⚠️ خطأ في جلب مبيعات الفئات: {e}")
         return {}
 
+
+# ===================== نظام المحاسبة الشخصية (دفتر الديون) =====================
+
+def add_ledger_transaction(owner_id, data):
+    """
+    إضافة عملية جديدة في دفتر الحسابات
+    
+    Args:
+        owner_id: معرف المستخدم صاحب الدفتر
+        data: dict يحتوي على:
+            - partner_name: اسم التاجر/العميل
+            - service: نوع الخدمة (tamara, tabby, other)
+            - amount: المبلغ
+            - reminder_date: تاريخ التذكير (اختياري)
+    
+    Returns:
+        str: معرف العملية الجديدة
+    """
+    try:
+        if not db:
+            return None
+        
+        transaction_data = {
+            'owner_id': str(owner_id),
+            'partner_name': data.get('partner_name', ''),
+            'service': data.get('service', 'other'),
+            'amount': float(data.get('amount', 0)),
+            'reminder_date': data.get('reminder_date'),
+            'status': 'pending',  # pending, paid
+            'notes': data.get('notes', ''),
+            'created_at': firestore.SERVER_TIMESTAMP
+        }
+        
+        doc_ref = db.collection('ledger').add(transaction_data)
+        print(f"✅ تم إضافة عملية محاسبة: {transaction_data['partner_name']} - {transaction_data['amount']}")
+        return doc_ref[1].id
+    except Exception as e:
+        print(f"❌ خطأ في إضافة عملية المحاسبة: {e}")
+        return None
+
+
+def get_user_ledger_stats(owner_id):
+    """
+    جلب ملخص وإحصائيات حسابات المستخدم
+    
+    Args:
+        owner_id: معرف المستخدم
+    
+    Returns:
+        dict: {total_debt, partners_count, transactions, partners_summary}
+    """
+    try:
+        if not db:
+            return {'total_debt': 0, 'partners_count': 0, 'transactions': [], 'partners_summary': {}}
+        
+        docs = query_where(db.collection('ledger'), 'owner_id', '==', str(owner_id)).stream()
+        
+        total_debt = 0
+        partners = {}
+        transactions = []
+        
+        for doc in docs:
+            data = doc.to_dict()
+            data['id'] = doc.id
+            transactions.append(data)
+            
+            partner = data.get('partner_name', 'غير معروف')
+            amount = float(data.get('amount', 0))
+            status = data.get('status', 'pending')
+            
+            if partner not in partners:
+                partners[partner] = {'total': 0, 'pending': 0, 'paid': 0, 'count': 0}
+            
+            partners[partner]['total'] += amount
+            partners[partner]['count'] += 1
+            
+            if status == 'pending':
+                partners[partner]['pending'] += amount
+                total_debt += amount
+            else:
+                partners[partner]['paid'] += amount
+        
+        # ترتيب العمليات من الأحدث للأقدم
+        transactions.sort(key=lambda x: x.get('created_at', 0) if x.get('created_at') else 0, reverse=True)
+        
+        return {
+            'total_debt': total_debt,
+            'partners_count': len(partners),
+            'transactions': transactions,
+            'partners_summary': partners
+        }
+    except Exception as e:
+        print(f"❌ خطأ في جلب إحصائيات المحاسبة: {e}")
+        return {'total_debt': 0, 'partners_count': 0, 'transactions': [], 'partners_summary': {}}
+
+
+def get_partner_transactions(owner_id, partner_name):
+    """جلب عمليات شريك معين"""
+    try:
+        if not db:
+            return []
+        
+        docs = query_where(db.collection('ledger'), 'owner_id', '==', str(owner_id)).stream()
+        
+        transactions = []
+        for doc in docs:
+            data = doc.to_dict()
+            if data.get('partner_name') == partner_name:
+                data['id'] = doc.id
+                transactions.append(data)
+        
+        # ترتيب من الأحدث
+        transactions.sort(key=lambda x: x.get('created_at', 0) if x.get('created_at') else 0, reverse=True)
+        return transactions
+    except Exception as e:
+        print(f"❌ خطأ في جلب عمليات الشريك: {e}")
+        return []
+
+
+def settle_partner_debt(owner_id, partner_name):
+    """
+    تسديد كل ديون شريك معين
+    
+    Returns:
+        tuple: (عدد العمليات المسددة, المبلغ الإجمالي)
+    """
+    try:
+        if not db:
+            return 0, 0
+        
+        docs = query_where(db.collection('ledger'), 'owner_id', '==', str(owner_id)).stream()
+        
+        batch = db.batch()
+        count = 0
+        total_amount = 0
+        
+        for doc in docs:
+            data = doc.to_dict()
+            if data.get('partner_name') == partner_name and data.get('status') == 'pending':
+                batch.update(doc.reference, {
+                    'status': 'paid',
+                    'paid_at': firestore.SERVER_TIMESTAMP
+                })
+                count += 1
+                total_amount += float(data.get('amount', 0))
+        
+        if count > 0:
+            batch.commit()
+            print(f"✅ تم تسديد {count} عمليات لـ {partner_name} بمبلغ {total_amount}")
+        
+        return count, total_amount
+    except Exception as e:
+        print(f"❌ خطأ في تسديد الديون: {e}")
+        return 0, 0
+
+
+def settle_single_transaction(owner_id, transaction_id):
+    """تسديد عملية واحدة"""
+    try:
+        if not db:
+            return False
+        
+        doc_ref = db.collection('ledger').document(transaction_id)
+        doc = doc_ref.get()
+        
+        if not doc.exists:
+            return False
+        
+        data = doc.to_dict()
+        if data.get('owner_id') != str(owner_id):
+            return False  # ليس صاحب العملية
+        
+        doc_ref.update({
+            'status': 'paid',
+            'paid_at': firestore.SERVER_TIMESTAMP
+        })
+        print(f"✅ تم تسديد عملية {transaction_id}")
+        return True
+    except Exception as e:
+        print(f"❌ خطأ في تسديد العملية: {e}")
+        return False
+
+
+def delete_ledger_transaction(owner_id, transaction_id):
+    """حذف عملية من الدفتر"""
+    try:
+        if not db:
+            return False
+        
+        doc_ref = db.collection('ledger').document(transaction_id)
+        doc = doc_ref.get()
+        
+        if not doc.exists:
+            return False
+        
+        data = doc.to_dict()
+        if data.get('owner_id') != str(owner_id):
+            return False
+        
+        doc_ref.delete()
+        print(f"✅ تم حذف عملية {transaction_id}")
+        return True
+    except Exception as e:
+        print(f"❌ خطأ في حذف العملية: {e}")
+        return False
+
+
+def get_pending_reminders():
+    """
+    جلب التذكيرات المستحقة (للـ scheduler)
+    يُستخدم مع cron job أو APScheduler
+    
+    Returns:
+        list: قائمة العمليات التي حان وقت تذكيرها
+    """
+    try:
+        if not db:
+            return []
+        
+        import datetime
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:00")
+        
+        # جلب العمليات المعلقة التي لها تذكير
+        docs = query_where(db.collection('ledger'), 'status', '==', 'pending').stream()
+        
+        reminders = []
+        for doc in docs:
+            data = doc.to_dict()
+            reminder = data.get('reminder_date')
+            if reminder and reminder <= now:
+                data['id'] = doc.id
+                reminders.append(data)
+        
+        return reminders
+    except Exception as e:
+        print(f"❌ خطأ في جلب التذكيرات: {e}")
+        return []
+
+
+def get_ledger_transaction_by_id(transaction_id):
+    """جلب عملية بمعرفها"""
+    try:
+        if not db:
+            return None
+        
+        doc = db.collection('ledger').document(transaction_id).get()
+        if doc.exists:
+            data = doc.to_dict()
+            data['id'] = doc.id
+            return data
+        return None
+    except Exception as e:
+        print(f"❌ خطأ في جلب العملية: {e}")
+        return None
+

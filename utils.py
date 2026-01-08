@@ -9,7 +9,68 @@
 import html
 import secrets
 import time
+import datetime
 from flask import session
+
+
+# === دوال التواريخ للمحاسبة ===
+def get_next_weekday(weekday_name):
+    """
+    حساب تاريخ يوم محدد قادم (الثلاثاء أو الأربعاء)
+    
+    Args:
+        weekday_name: 'tuesday' أو 'wednesday'
+    
+    Returns:
+        str: التاريخ بصيغة YYYY-MM-DD
+    """
+    # 0 = Monday, 1 = Tuesday, 2 = Wednesday, ..., 6 = Sunday
+    weekdays = {'tuesday': 1, 'wednesday': 2, 'thursday': 3, 'friday': 4, 'saturday': 5, 'sunday': 6, 'monday': 0}
+    target_day = weekdays.get(weekday_name.lower(), 1)
+    
+    today = datetime.date.today()
+    days_ahead = target_day - today.weekday()
+    
+    if days_ahead <= 0:  # إذا كان اليوم هو نفس اليوم المطلوب أو مضى
+        days_ahead += 7
+        
+    next_date = today + datetime.timedelta(days=days_ahead)
+    return next_date.strftime("%Y-%m-%d")
+
+
+def get_weekday_name_arabic(weekday_name):
+    """ترجمة اسم اليوم للعربية"""
+    names = {
+        'tuesday': 'الثلاثاء',
+        'wednesday': 'الأربعاء',
+        'thursday': 'الخميس',
+        'friday': 'الجمعة',
+        'saturday': 'السبت',
+        'sunday': 'الأحد',
+        'monday': 'الإثنين'
+    }
+    return names.get(weekday_name.lower(), weekday_name)
+
+
+def format_date_arabic(date_str):
+    """تنسيق التاريخ بشكل عربي مقروء"""
+    try:
+        if isinstance(date_str, str):
+            date_obj = datetime.datetime.strptime(date_str.split()[0], "%Y-%m-%d")
+        else:
+            date_obj = date_str
+        
+        days = ['الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد']
+        months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
+                  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر']
+        
+        day_name = days[date_obj.weekday()]
+        month_name = months[date_obj.month - 1]
+        
+        return f"{day_name} {date_obj.day} {month_name}"
+    except:
+        return str(date_str)
+
 
 # === دالة تنظيف XSS ===
 def sanitize(text):

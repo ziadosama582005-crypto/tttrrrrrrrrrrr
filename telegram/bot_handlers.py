@@ -213,7 +213,9 @@ def send_welcome(message):
         markup = types.InlineKeyboardMarkup(row_width=2)
         btn_shop = types.InlineKeyboardButton("🏪 افتح السوق", callback_data="open_shop")
         btn_myid = types.InlineKeyboardButton("🆔 معرفي", callback_data="my_id")
+        btn_acc = types.InlineKeyboardButton("📒 المحاسبة", callback_data="acc_main")
         markup.add(btn_shop, btn_myid)
+        markup.add(btn_acc)
         
         # إرسال الرسالة
         print(f"📤 إرسال رسالة الترحيب...")
@@ -1979,3 +1981,628 @@ def handle_withdraw_reject(call):
     except Exception as e:
         print(f"❌ خطأ في رفض السحب: {e}")
         bot.answer_callback_query(call.id, f"❌ حدث خطأ: {str(e)}", show_alert=True)
+
+
+# ===================== نظام المحاسبة الشخصية (دفتر الديون) =====================
+
+# استيراد دوال المحاسبة
+from firebase_utils import (
+    add_ledger_transaction, get_user_ledger_stats,
+    get_partner_transactions, settle_partner_debt,
+    settle_single_transaction, delete_ledger_transaction,
+    get_ledger_transaction_by_id
+)
+from utils import get_next_weekday, get_weekday_name_arabic, format_date_arabic
+
+# مخزن مؤقت للمسودات (مع وقت الإنشاء للتنظيف التلقائي)
+acc_drafts = {}  # {user_id: {'data': {...}, 'created_at': timestamp}}
+
+# تنظيف المسودات القديمة (أكثر من ساعة)
+def cleanup_old_drafts():
+    """تنظيف المسودات المنتهية"""
+    now = time.time()
+    expired = [k for k, v in acc_drafts.items() if now - v.get('created_at', 0) > 3600]
+    for k in expired:
+        del acc_drafts[k]
+    if expired:
+        print(f"🧹 تم حذف {len(expired)} مسودات محاسبة منتهية")
+
+
+# ==================== القائمة الرئيسية للمحاسبة ====================
+
+@bot.callback_query_handler(func=lambda call: call.data == "acc_main")
+def accounting_main_menu(call):
+    """القائمة الرئيسية لنظام المحاسبة"""
+    try:
+        cleanup_old_drafts()  # تنظيف المسودات القديمة
+        
+        stats = get_user_ledger_stats(call.from_user.id)
+        
+        msg = f"""
+📒 **نظام المحاسبة الشخصي**
+ـــــــــــــــــــــــــــــــــــــ
+💰 **مبالغ بانتظار التحويل:** `{stats['total_debt']:.2f}` ر.س
+👥 **عدد الشركاء/التجار:** {stats['partners_count']}
+📊 **إجمالي العمليات:** {len(stats['transactions'])}
+ـــــــــــــــــــــــــــــــــــــ
+اختر ما تريد:
+        """
+        
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        markup.add(
+            types.InlineKeyboardButton("➕ عملية جديدة", callback_data="acc_new_step1"),
+            types.InlineKeyboardButton("📂 السجل / المستخدمون", callback_data="acc_registry"),
+            types.InlineKeyboardButton("📊 ملخص سريع", callback_data="acc_summary"),
+            types.InlineKeyboardButton("🔙 رجوع", callback_data="back_to_start")
+        )
+        
+        bot.edit_message_text(
+            msg, call.message.chat.id, call.message.message_id,
+            reply_markup=markup, parse_mode="Markdown"
+        )
+    except Exception as e:
+        print(f"❌ خطأ في acc_main: {e}")
+        bot.answer_callback_query(call.id, "حدث خطأ!")
+
+
+@bot.callback_query_handler(func=lambda call: call.data == "back_to_start")
+def back_to_start_menu(call):
+    """العودة للقائمة الرئيسية"""
+    try:
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        btn_shop = types.InlineKeyboardButton("🏪 افتح السوق", callback_data="open_shop")
+        btn_myid = types.InlineKeyboardButton("🆔 معرفي", callback_data="my_id")
+        btn_acc = types.InlineKeyboardButton("📒 المحاسبة", callback_data="acc_main")
+        markup.add(btn_shop, btn_myid)
+        markup.add(btn_acc)
+        
+        bot.edit_message_text(
+            "🌟 *أهلاً بك في السوق الآمن!* 🛡️\n\n"
+            "منصة آمنة للبيع والشراء مع نظام حماية الأموال ❄️\n\n"
+            "📌 *اختر من الأزرار أدناه:*",
+            call.message.chat.id, call.message.message_id,
+            reply_markup=markup, parse_mode="Markdown"
+        )
+    except Exception as e:
+        print(f"❌ خطأ في back_to_start: {e}")
+
+
+# ==================== إضافة عملية جديدة (Wizard) ====================
+
+@bot.callback_query_handler(func=lambda call: call.data == "acc_new_step1")
+def acc_step1_service(call):
+    """الخطوة 1: اختيار نوع الخدمة"""
+    try:
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        markup.add(
+            types.InlineKeyboardButton("💜 تمارا", callback_data="acc_srv_tamara"),
+            types.InlineKeyboardButton("💙 تابي", callback_data="acc_srv_tabby")
+        )
+        markup.add(
+            types.InlineKeyboardButton("🟢 STC Pay", callback_data="acc_srv_stcpay"),
+            types.InlineKeyboardButton("📦 أخرى", callback_data="acc_srv_other")
+        )
+        markup.add(types.InlineKeyboardButton("🔙 إلغاء", callback_data="acc_main"))
+        
+        bot.edit_message_text(
+            "1️⃣ **اختر نوع العملية/الخدمة:**",
+            call.message.chat.id, call.message.message_id,
+            reply_markup=markup, parse_mode="Markdown"
+        )
+    except Exception as e:
+        print(f"❌ خطأ في acc_step1: {e}")
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("acc_srv_"))
+def acc_step2_name(call):
+    """الخطوة 2: إدخال اسم التاجر/العميل"""
+    try:
+        service = call.data.split("_")[2]
+        user_id = call.from_user.id
+        
+        # حفظ المسودة
+        acc_drafts[user_id] = {
+            'data': {'service': service},
+            'created_at': time.time()
+        }
+        
+        # أسماء الخدمات
+        service_names = {
+            'tamara': '💜 تمارا',
+            'tabby': '💙 تابي',
+            'stcpay': '🟢 STC Pay',
+            'other': '📦 أخرى'
+        }
+        
+        msg = bot.edit_message_text(
+            f"✅ النوع: {service_names.get(service, service)}\n\n"
+            "2️⃣ **أرسل اسم التاجر أو العميل:**\n"
+            "(اكتب الاسم وأرسله)",
+            call.message.chat.id, call.message.message_id,
+            parse_mode="Markdown"
+        )
+        
+        bot.register_next_step_handler(msg, acc_step3_amount)
+    except Exception as e:
+        print(f"❌ خطأ في acc_step2: {e}")
+
+
+def acc_step3_amount(message):
+    """الخطوة 3: إدخال المبلغ"""
+    try:
+        user_id = message.from_user.id
+        
+        if message.text and message.text.startswith('/'):
+            # أمر إلغاء
+            acc_drafts.pop(user_id, None)
+            return bot.reply_to(message, "❌ تم إلغاء العملية")
+        
+        if user_id not in acc_drafts:
+            return bot.reply_to(message, "⚠️ انتهت الجلسة. ابدأ من جديد بالضغط على 📒 المحاسبة")
+        
+        # حفظ الاسم
+        acc_drafts[user_id]['data']['partner_name'] = message.text.strip()
+        
+        msg = bot.send_message(
+            message.chat.id,
+            f"✅ الاسم: **{message.text.strip()}**\n\n"
+            "3️⃣ **كم المبلغ الصافي؟**\n"
+            "(أرقام فقط، مثال: 1500)",
+            parse_mode="Markdown"
+        )
+        
+        bot.register_next_step_handler(msg, acc_step4_day)
+    except Exception as e:
+        print(f"❌ خطأ في acc_step3: {e}")
+
+
+def acc_step4_day(message):
+    """الخطوة 4: اختيار يوم التذكير"""
+    try:
+        user_id = message.from_user.id
+        
+        if message.text and message.text.startswith('/'):
+            acc_drafts.pop(user_id, None)
+            return bot.reply_to(message, "❌ تم إلغاء العملية")
+        
+        if user_id not in acc_drafts:
+            return bot.reply_to(message, "⚠️ انتهت الجلسة. ابدأ من جديد")
+        
+        try:
+            amount = float(message.text.replace(',', '').replace('٫', '.'))
+            if amount <= 0:
+                raise ValueError("المبلغ يجب أن يكون أكبر من صفر")
+            
+            acc_drafts[user_id]['data']['amount'] = amount
+            
+            # أزرار اختيار اليوم
+            markup = types.InlineKeyboardMarkup(row_width=2)
+            
+            # حساب التواريخ وعرضها
+            tue_date = get_next_weekday('tuesday')
+            wed_date = get_next_weekday('wednesday')
+            
+            markup.add(
+                types.InlineKeyboardButton(f"الثلاثاء ({tue_date})", callback_data="acc_day_tuesday"),
+                types.InlineKeyboardButton(f"الأربعاء ({wed_date})", callback_data="acc_day_wednesday")
+            )
+            markup.add(
+                types.InlineKeyboardButton("⏭️ تخطي التذكير", callback_data="acc_day_skip")
+            )
+            
+            bot.send_message(
+                message.chat.id,
+                f"✅ المبلغ: **{amount:.2f}** ر.س\n\n"
+                "4️⃣ **متى تريد التذكير بالتحويل؟**",
+                reply_markup=markup,
+                parse_mode="Markdown"
+            )
+            
+        except ValueError as ve:
+            msg = bot.send_message(message.chat.id, f"❌ {ve}\nأرسل رقماً صحيحاً:")
+            bot.register_next_step_handler(msg, acc_step4_day)
+    except Exception as e:
+        print(f"❌ خطأ في acc_step4: {e}")
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("acc_day_"))
+def acc_step5_time_or_save(call):
+    """الخطوة 5: اختيار الوقت أو الحفظ مباشرة"""
+    try:
+        user_id = call.from_user.id
+        choice = call.data.split("_")[2]
+        
+        if user_id not in acc_drafts:
+            bot.answer_callback_query(call.id, "انتهت الجلسة!")
+            return
+        
+        if choice == 'skip':
+            # حفظ مباشر بدون تذكير
+            finish_ledger_transaction(user_id, call.message, reminder=None)
+        else:
+            # حفظ التاريخ والانتقال لاختيار الساعة
+            date_str = get_next_weekday(choice)
+            acc_drafts[user_id]['data']['temp_date'] = date_str
+            
+            markup = types.InlineKeyboardMarkup(row_width=3)
+            markup.add(
+                types.InlineKeyboardButton("10:00 ص", callback_data="acc_time_10"),
+                types.InlineKeyboardButton("12:00 م", callback_data="acc_time_12"),
+                types.InlineKeyboardButton("04:00 م", callback_data="acc_time_16")
+            )
+            markup.add(
+                types.InlineKeyboardButton("08:00 م", callback_data="acc_time_20")
+            )
+            
+            day_name = get_weekday_name_arabic(choice)
+            bot.edit_message_text(
+                f"📅 **التاريخ:** {day_name} - {date_str}\n\n"
+                "🕐 **اختر ساعة التذكير:**",
+                call.message.chat.id, call.message.message_id,
+                reply_markup=markup, parse_mode="Markdown"
+            )
+    except Exception as e:
+        print(f"❌ خطأ في acc_step5: {e}")
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("acc_time_"))
+def acc_final_save(call):
+    """الخطوة الأخيرة: حفظ مع التذكير"""
+    try:
+        user_id = call.from_user.id
+        hour = call.data.split("_")[2]
+        
+        if user_id not in acc_drafts:
+            bot.answer_callback_query(call.id, "انتهت الجلسة!")
+            return
+        
+        date_str = acc_drafts[user_id]['data'].get('temp_date')
+        reminder_dt = f"{date_str} {hour}:00"
+        
+        finish_ledger_transaction(user_id, call.message, reminder=reminder_dt)
+    except Exception as e:
+        print(f"❌ خطأ في acc_final_save: {e}")
+
+
+def finish_ledger_transaction(user_id, message_obj, reminder):
+    """حفظ العملية النهائية"""
+    try:
+        if user_id not in acc_drafts:
+            return
+        
+        data = acc_drafts[user_id]['data']
+        data['reminder_date'] = reminder
+        
+        # الحفظ في قاعدة البيانات
+        tx_id = add_ledger_transaction(user_id, data)
+        
+        # تنظيف المسودة
+        del acc_drafts[user_id]
+        
+        # أسماء الخدمات
+        service_names = {
+            'tamara': '💜 تمارا',
+            'tabby': '💙 تابي',
+            'stcpay': '🟢 STC Pay',
+            'other': '📦 أخرى'
+        }
+        
+        # تنسيق التذكير
+        if reminder:
+            reminder_text = format_date_arabic(reminder.split()[0]) + f" - {reminder.split()[1]}"
+        else:
+            reminder_text = 'لا يوجد'
+        
+        done_msg = f"""
+✅ **تم تسجيل العملية بنجاح!**
+ـــــــــــــــــــــــــــــــــــــ
+👤 **الاسم:** {data['partner_name']}
+💰 **المبلغ:** {data['amount']:.2f} ر.س
+🏷️ **النوع:** {service_names.get(data['service'], data['service'])}
+⏰ **التذكير:** {reminder_text}
+        """
+        
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        markup.add(
+            types.InlineKeyboardButton("➕ عملية أخرى", callback_data="acc_new_step1"),
+            types.InlineKeyboardButton("📂 السجل", callback_data="acc_registry")
+        )
+        markup.add(types.InlineKeyboardButton("🏠 القائمة الرئيسية", callback_data="acc_main"))
+        
+        try:
+            bot.edit_message_text(
+                done_msg, message_obj.chat.id, message_obj.message_id,
+                reply_markup=markup, parse_mode="Markdown"
+            )
+        except:
+            bot.send_message(
+                message_obj.chat.id, done_msg,
+                reply_markup=markup, parse_mode="Markdown"
+            )
+    except Exception as e:
+        print(f"❌ خطأ في finish_ledger_transaction: {e}")
+
+
+# ==================== عرض السجل ====================
+
+@bot.callback_query_handler(func=lambda call: call.data == "acc_registry")
+def acc_registry_view(call):
+    """قائمة خيارات السجل"""
+    try:
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        markup.add(
+            types.InlineKeyboardButton("⏳ المستحقات (غير مسددة)", callback_data="acc_show_pending"),
+            types.InlineKeyboardButton("📜 السجل كامل", callback_data="acc_show_all"),
+            types.InlineKeyboardButton("✅ المسددة", callback_data="acc_show_paid"),
+            types.InlineKeyboardButton("🔙 رجوع", callback_data="acc_main")
+        )
+        
+        bot.edit_message_text(
+            "📂 **سجل العمليات**\n\nاختر طريقة العرض:",
+            call.message.chat.id, call.message.message_id,
+            reply_markup=markup, parse_mode="Markdown"
+        )
+    except Exception as e:
+        print(f"❌ خطأ في acc_registry: {e}")
+
+
+@bot.callback_query_handler(func=lambda call: call.data in ["acc_show_all", "acc_show_pending", "acc_show_paid"])
+def acc_show_list(call):
+    """عرض قائمة الشركاء"""
+    try:
+        user_id = call.from_user.id
+        stats = get_user_ledger_stats(user_id)
+        partners = stats['partners_summary']
+        
+        if not partners:
+            bot.answer_callback_query(call.id, "📭 لا توجد عمليات مسجلة")
+            return
+        
+        show_type = call.data.split("_")[2]  # all, pending, paid
+        
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        
+        for name, data in partners.items():
+            # تصفية حسب النوع
+            if show_type == 'pending' and data['pending'] == 0:
+                continue
+            if show_type == 'paid' and data['paid'] == 0:
+                continue
+            
+            # أيقونة الحالة
+            if data['pending'] > 0:
+                status_icon = "🔴"
+                amount_text = f"{data['pending']:.0f}"
+            else:
+                status_icon = "🟢"
+                amount_text = f"{data['paid']:.0f}"
+            
+            btn_text = f"{status_icon} {name} | {amount_text} ر.س ({data['count']})"
+            
+            # استخدام ID مشفر بدلاً من الاسم (للأسماء الطويلة)
+            partner_id = hashlib.md5(name.encode()).hexdigest()[:8]
+            
+            # حفظ الاسم مؤقتاً
+            if user_id not in acc_drafts:
+                acc_drafts[user_id] = {'data': {}, 'created_at': time.time()}
+            if 'partner_map' not in acc_drafts[user_id]:
+                acc_drafts[user_id]['partner_map'] = {}
+            acc_drafts[user_id]['partner_map'][partner_id] = name
+            
+            markup.add(types.InlineKeyboardButton(btn_text, callback_data=f"acc_p_{partner_id}"))
+        
+        markup.add(types.InlineKeyboardButton("🔙 رجوع", callback_data="acc_registry"))
+        
+        titles = {
+            'all': '📜 جميع الشركاء',
+            'pending': '⏳ المستحقات',
+            'paid': '✅ المسددة'
+        }
+        
+        bot.edit_message_text(
+            f"**{titles[show_type]}**\n\n👇 اختر الاسم لعرض التفاصيل:",
+            call.message.chat.id, call.message.message_id,
+            reply_markup=markup, parse_mode="Markdown"
+        )
+    except Exception as e:
+        print(f"❌ خطأ في acc_show_list: {e}")
+        bot.answer_callback_query(call.id, "حدث خطأ!")
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("acc_p_"))
+def acc_partner_details(call):
+    """عرض تفاصيل شريك"""
+    try:
+        user_id = call.from_user.id
+        partner_id = call.data.split("_")[2]
+        
+        # جلب الاسم الحقيقي
+        if user_id in acc_drafts and 'partner_map' in acc_drafts[user_id]:
+            partner_name = acc_drafts[user_id]['partner_map'].get(partner_id)
+        else:
+            bot.answer_callback_query(call.id, "انتهت الجلسة!")
+            return
+        
+        if not partner_name:
+            bot.answer_callback_query(call.id, "لم يتم العثور على الشريك!")
+            return
+        
+        transactions = get_partner_transactions(user_id, partner_name)
+        
+        msg_lines = [f"👤 **كشف حساب: {partner_name}**\n"]
+        total_pending = 0
+        
+        for tx in transactions[:10]:  # آخر 10 عمليات
+            icon = "⏳" if tx['status'] == 'pending' else "✅"
+            amount = tx['amount']
+            service = tx.get('service', '')
+            
+            # تنسيق التاريخ
+            created = tx.get('created_at')
+            if created:
+                if hasattr(created, 'strftime'):
+                    date_str = created.strftime("%m/%d")
+                else:
+                    date_str = "..."
+            else:
+                date_str = "..."
+            
+            service_icons = {'tamara': '💜', 'tabby': '💙', 'stcpay': '🟢', 'other': '📦'}
+            srv_icon = service_icons.get(service, '📦')
+            
+            line = f"{icon} {srv_icon} `{amount:.0f}` ر.س"
+            msg_lines.append(line)
+            
+            if tx['status'] == 'pending':
+                total_pending += float(amount)
+        
+        msg_lines.append(f"\nـــــــــــــــــــــــــــ\n💰 **المستحق:** `{total_pending:.2f}` ر.س")
+        
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        
+        if total_pending > 0:
+            markup.add(types.InlineKeyboardButton(
+                "✅ تسديد الكل", 
+                callback_data=f"acc_confirm_settle_{partner_id}"
+            ))
+        
+        markup.add(types.InlineKeyboardButton("🔙 رجوع", callback_data="acc_show_pending"))
+        
+        bot.edit_message_text(
+            "\n".join(msg_lines),
+            call.message.chat.id, call.message.message_id,
+            reply_markup=markup, parse_mode="Markdown"
+        )
+    except Exception as e:
+        print(f"❌ خطأ في acc_partner_details: {e}")
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("acc_confirm_settle_"))
+def acc_confirm_settle(call):
+    """تأكيد التسديد"""
+    try:
+        user_id = call.from_user.id
+        partner_id = call.data.split("_settle_")[1]
+        
+        if user_id in acc_drafts and 'partner_map' in acc_drafts[user_id]:
+            partner_name = acc_drafts[user_id]['partner_map'].get(partner_id)
+        else:
+            bot.answer_callback_query(call.id, "انتهت الجلسة!")
+            return
+        
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        markup.add(
+            types.InlineKeyboardButton("✅ نعم، تسديد", callback_data=f"acc_do_settle_{partner_id}"),
+            types.InlineKeyboardButton("❌ إلغاء", callback_data=f"acc_p_{partner_id}")
+        )
+        
+        bot.edit_message_text(
+            f"⚠️ **تأكيد التسديد**\n\n"
+            f"هل أنت متأكد من تسديد جميع مستحقات **{partner_name}**؟",
+            call.message.chat.id, call.message.message_id,
+            reply_markup=markup, parse_mode="Markdown"
+        )
+    except Exception as e:
+        print(f"❌ خطأ في acc_confirm_settle: {e}")
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("acc_do_settle_"))
+def acc_perform_settle(call):
+    """تنفيذ التسديد"""
+    try:
+        user_id = call.from_user.id
+        partner_id = call.data.split("_settle_")[1]
+        
+        if user_id in acc_drafts and 'partner_map' in acc_drafts[user_id]:
+            partner_name = acc_drafts[user_id]['partner_map'].get(partner_id)
+        else:
+            bot.answer_callback_query(call.id, "انتهت الجلسة!")
+            return
+        
+        count, total = settle_partner_debt(user_id, partner_name)
+        
+        if count > 0:
+            bot.answer_callback_query(call.id, f"✅ تم تسديد {count} عمليات بمبلغ {total:.0f} ر.س")
+            
+            # تحديث العرض
+            markup = types.InlineKeyboardMarkup()
+            markup.add(types.InlineKeyboardButton("🔙 رجوع للسجل", callback_data="acc_registry"))
+            
+            bot.edit_message_text(
+                f"✅ **تم التسديد بنجاح!**\n\n"
+                f"👤 الشريك: {partner_name}\n"
+                f"📊 العمليات: {count}\n"
+                f"💰 المبلغ: {total:.2f} ر.س",
+                call.message.chat.id, call.message.message_id,
+                reply_markup=markup, parse_mode="Markdown"
+            )
+        else:
+            bot.answer_callback_query(call.id, "لا توجد عمليات للتسديد!")
+    except Exception as e:
+        print(f"❌ خطأ في acc_perform_settle: {e}")
+
+
+# ==================== ملخص سريع ====================
+
+@bot.callback_query_handler(func=lambda call: call.data == "acc_summary")
+def acc_quick_summary(call):
+    """ملخص سريع لجميع الحسابات"""
+    try:
+        user_id = call.from_user.id
+        stats = get_user_ledger_stats(user_id)
+        
+        if not stats['transactions']:
+            bot.answer_callback_query(call.id, "📭 لا توجد عمليات")
+            return
+        
+        msg_lines = ["📊 **ملخص الحسابات**\n", "ـــــــــــــــــــــــــــ"]
+        
+        for name, data in stats['partners_summary'].items():
+            if data['pending'] > 0:
+                msg_lines.append(f"🔴 **{name}**: `{data['pending']:.0f}` ر.س")
+        
+        if stats['total_debt'] > 0:
+            msg_lines.append(f"\nـــــــــــــــــــــــــــ\n💰 **الإجمالي:** `{stats['total_debt']:.2f}` ر.س")
+        else:
+            msg_lines.append("\n✅ **لا توجد مستحقات!**")
+        
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton("🔙 رجوع", callback_data="acc_main"))
+        
+        bot.edit_message_text(
+            "\n".join(msg_lines),
+            call.message.chat.id, call.message.message_id,
+            reply_markup=markup, parse_mode="Markdown"
+        )
+    except Exception as e:
+        print(f"❌ خطأ في acc_summary: {e}")
+
+
+# ==================== أمر المحاسبة المباشر ====================
+
+@bot.message_handler(commands=['accounting', 'ledger', 'محاسبة'])
+def accounting_command(message):
+    """أمر مباشر لفتح المحاسبة"""
+    try:
+        stats = get_user_ledger_stats(message.from_user.id)
+        
+        msg = f"""
+📒 **نظام المحاسبة الشخصي**
+ـــــــــــــــــــــــــــــــــــــ
+💰 **مبالغ بانتظار التحويل:** `{stats['total_debt']:.2f}` ر.س
+👥 **عدد الشركاء/التجار:** {stats['partners_count']}
+ـــــــــــــــــــــــــــــــــــــ
+اختر ما تريد:
+        """
+        
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        markup.add(
+            types.InlineKeyboardButton("➕ عملية جديدة", callback_data="acc_new_step1"),
+            types.InlineKeyboardButton("📂 السجل / المستخدمون", callback_data="acc_registry"),
+            types.InlineKeyboardButton("📊 ملخص سريع", callback_data="acc_summary")
+        )
+        
+        bot.send_message(message.chat.id, msg, reply_markup=markup, parse_mode="Markdown")
+    except Exception as e:
+        print(f"❌ خطأ في accounting_command: {e}")
+        bot.reply_to(message, "حدث خطأ!")
