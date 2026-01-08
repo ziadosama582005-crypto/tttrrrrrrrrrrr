@@ -1,5 +1,13 @@
 {% extends "admin_base.html" %}
 {% block title %}كروت الشحن - لوحة التحكم{% endblock %}
+{% block extra_css %}
+<style>
+    @media (max-width: 480px) {
+        .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        th:nth-child(4), td:nth-child(4) { display: none; }
+    }
+</style>
+{% endblock %}
 {% block content %}
 <div class="top-bar">
     <h1> إدارة كروت الشحن</h1>

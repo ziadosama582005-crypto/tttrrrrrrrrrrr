@@ -165,6 +165,18 @@
         padding: 40px;
         color: var(--muted);
     }
+    
+    /* توافق الجوال */
+    @media (max-width: 480px) {
+        .stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .tabs-container { gap: 5px; }
+        .tab-btn { padding: 10px 12px; font-size: 12px; }
+        th:nth-child(3), td:nth-child(3),
+        th:nth-child(5), td:nth-child(5) { display: none; }
+        .modal-content { width: 95% !important; }
+        .modal-body { padding: 15px; }
+        .detail-row { flex-direction: column; gap: 5px; }
+    }
 </style>
 {% endblock %}
 {% block content %}

@@ -256,6 +256,7 @@
             }
             .main-content {
                 margin-right: 0;
+                padding: 15px 10px;
             }
             .mobile-toggle {
                 display: flex;
@@ -264,6 +265,119 @@
             }
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            .stat-card {
+                padding: 15px 10px;
+            }
+            .stat-card .value {
+                font-size: 22px;
+            }
+            .stat-card .icon {
+                font-size: 26px;
+            }
+            .top-bar {
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px 15px;
+            }
+            .top-bar h1 {
+                font-size: 18px;
+            }
+            .top-bar-actions {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .card {
+                padding: 15px;
+                border-radius: 10px;
+            }
+            .card-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            .btn {
+                padding: 8px 14px;
+                font-size: 13px;
+            }
+            .btn-sm {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+            table {
+                font-size: 12px;
+            }
+            th, td {
+                padding: 8px 6px;
+            }
+        }
+        
+        /* شاشات صغيرة جداً (440px وأقل) */
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 10px 8px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .stat-card {
+                padding: 12px 8px;
+            }
+            .stat-card .value {
+                font-size: 18px;
+            }
+            .stat-card .label {
+                font-size: 11px;
+            }
+            .stat-card .icon {
+                font-size: 22px;
+                margin-bottom: 5px;
+            }
+            .top-bar {
+                padding: 10px 12px;
+                border-radius: 8px;
+                margin-bottom: 15px;
+            }
+            .top-bar h1 {
+                font-size: 16px;
+            }
+            .card {
+                padding: 12px;
+                border-radius: 8px;
+                margin-bottom: 15px;
+            }
+            .card-title {
+                font-size: 14px;
+            }
+            table {
+                font-size: 11px;
+            }
+            th, td {
+                padding: 6px 4px;
+                white-space: nowrap;
+            }
+            .btn {
+                padding: 7px 12px;
+                font-size: 12px;
+                border-radius: 8px;
+            }
+            .btn-sm {
+                padding: 4px 8px;
+                font-size: 10px;
+            }
+            .mobile-toggle {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+                bottom: 15px;
+                left: 15px;
+            }
+            /* إخفاء بعض الأعمدة غير المهمة */
+            .hide-mobile {
+                display: none !important;
             }
         }
         ::-webkit-scrollbar {

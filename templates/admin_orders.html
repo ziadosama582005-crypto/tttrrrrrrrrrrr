@@ -1,5 +1,17 @@
 {% extends "admin_base.html" %}
 {% block title %}الطلبات - لوحة التحكم{% endblock %}
+{% block extra_css %}
+<style>
+    @media (max-width: 480px) {
+        .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        #statusFilter, #deliveryFilter { width: 48%; }
+        #searchInput { width: 100%; margin-top: 10px; }
+        th:nth-child(3), td:nth-child(3),
+        th:nth-child(5), td:nth-child(5),
+        th:nth-child(7), td:nth-child(7) { display: none; }
+    }
+</style>
+{% endblock %}
 {% block content %}
 <div class="top-bar">
     <h1> إدارة الطلبات</h1>

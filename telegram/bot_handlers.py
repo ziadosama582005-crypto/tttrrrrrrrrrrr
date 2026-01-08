@@ -2180,19 +2180,19 @@ def acc_step4_day(message):
             tue_date = get_next_weekday('tuesday')
             wed_date = get_next_weekday('wednesday')
             
-            # بعد أسبوعين
-            tue_date_2w = get_weekday_after_weeks('tuesday', 2)
-            wed_date_2w = get_weekday_after_weeks('wednesday', 2)
+            # بعد أسبوع
+            tue_date_1w = get_weekday_after_weeks('tuesday', 1)
+            wed_date_1w = get_weekday_after_weeks('wednesday', 1)
             
             # صف 1: الأسبوع القادم
             markup.add(
                 types.InlineKeyboardButton(f"الثلاثاء ({tue_date})", callback_data="acc_day_tuesday"),
                 types.InlineKeyboardButton(f"الأربعاء ({wed_date})", callback_data="acc_day_wednesday")
             )
-            # صف 2: بعد أسبوعين
+            # صف 2: بعد أسبوع
             markup.add(
-                types.InlineKeyboardButton(f"الثلاثاء ({tue_date_2w})", callback_data="acc_day_tuesday2w"),
-                types.InlineKeyboardButton(f"الأربعاء ({wed_date_2w})", callback_data="acc_day_wednesday2w")
+                types.InlineKeyboardButton(f"الثلاثاء ({tue_date_1w})", callback_data="acc_day_tuesday1w"),
+                types.InlineKeyboardButton(f"الأربعاء ({wed_date_1w})", callback_data="acc_day_wednesday1w")
             )
             markup.add(
                 types.InlineKeyboardButton("⏭️ تخطي التذكير", callback_data="acc_day_skip")
@@ -2203,7 +2203,7 @@ def acc_step4_day(message):
                 f"✅ المبلغ: **{amount:.2f}** ر.س\n\n"
                 "4️⃣ **متى تريد التذكير بالتحويل؟**\n\n"
                 "📅 الأسبوع القادم:\n"
-                "🗓️ بعد أسبوعين:",
+                "🗓️ بعد أسبوع:",
                 reply_markup=markup,
                 parse_mode="Markdown"
             )
@@ -2220,7 +2220,7 @@ def acc_step5_time_or_save(call):
     """الخطوة 5: اختيار الوقت أو الحفظ مباشرة"""
     try:
         user_id = call.from_user.id
-        choice = call.data.replace("acc_day_", "")  # tuesday, wednesday, tuesday2w, wednesday2w, skip
+        choice = call.data.replace("acc_day_", "")  # tuesday, wednesday, tuesday1w, wednesday1w, skip
         
         if user_id not in acc_drafts:
             bot.answer_callback_query(call.id, "انتهت الجلسة!")
@@ -2231,10 +2231,10 @@ def acc_step5_time_or_save(call):
             finish_ledger_transaction(user_id, call.message, reminder=None)
         else:
             # معالجة خيارات التاريخ
-            if choice.endswith('2w'):
-                # بعد أسبوعين
-                day_name = choice.replace('2w', '')  # tuesday أو wednesday
-                date_str = get_weekday_after_weeks(day_name, 2)
+            if choice.endswith('1w'):
+                # بعد أسبوع
+                day_name = choice.replace('1w', '')  # tuesday أو wednesday
+                date_str = get_weekday_after_weeks(day_name, 1)
             else:
                 # الأسبوع القادم
                 day_name = choice

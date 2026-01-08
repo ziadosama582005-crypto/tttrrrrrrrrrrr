@@ -89,6 +89,17 @@
     .alert.success { border-color: rgba(0,184,148,0.6); color: #b7ffe7; }
     .alert.error { border-color: rgba(231,76,60,0.6); color: #ffd1cc; }
     .actions { display:flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    
+    @media (max-width: 480px) {
+      body { padding: 10px 8px; }
+      .header { flex-direction: column; gap: 10px; }
+      .header h1 { font-size: 18px; }
+      .card { padding: 15px; }
+      .form-group label { font-size: 13px; }
+      .form-group input { padding: 10px; font-size: 14px; }
+      .btn { padding: 10px 16px; font-size: 13px; }
+      .actions { justify-content: center; }
+    }
   </style>
 </head>
 <body>

@@ -1,5 +1,18 @@
 {% extends "admin_base.html" %}
 {% block title %}طلبات السحب - لوحة التحكم{% endblock %}
+{% block extra_css %}
+<style>
+    @media (max-width: 480px) {
+        .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .stat-card { padding: 12px 8px; }
+        .stat-card .value { font-size: 18px; }
+        th:nth-child(4), td:nth-child(4),
+        th:nth-child(5), td:nth-child(5) { display: none; }
+        .withdrawal-actions { flex-direction: column; gap: 5px; }
+        .withdrawal-actions .btn { width: 100%; font-size: 11px; padding: 6px 10px; }
+    }
+</style>
+{% endblock %}
 {% block content %}
 <div class="top-bar">
     <h1>💸 طلبات السحب</h1>

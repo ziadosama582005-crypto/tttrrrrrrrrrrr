@@ -1,5 +1,16 @@
 {% extends 'admin_base.html' %}
 {% block title %}إدارة المشرفين - لوحة التحكم{% endblock %}
+{% block extra_css %}
+<style>
+    @media (max-width: 480px) {
+        .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        .owner-info { padding: 15px; }
+        .admin-card { padding: 15px; }
+        .admin-actions { flex-direction: column; gap: 8px; }
+        .admin-actions .btn { width: 100%; justify-content: center; }
+    }
+</style>
+{% endblock %}
 {% block content %}
 <div class="top-bar">
     <h1> إدارة المشرفين</h1>

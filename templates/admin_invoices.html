@@ -301,6 +301,22 @@
             table { min-width: 600px; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
+        
+        @media (max-width: 480px) {
+            body { padding: 10px 8px; }
+            .header { flex-direction: column; gap: 10px; }
+            .header h1 { font-size: 18px; }
+            .header-actions { width: 100%; justify-content: center; flex-wrap: wrap; }
+            .stats-grid { gap: 10px; }
+            .stat-card { padding: 12px 8px; }
+            .stat-card .value { font-size: 20px; }
+            .stat-card .label { font-size: 11px; }
+            table { min-width: 500px; font-size: 12px; }
+            th, td { padding: 8px 5px; }
+            .btn { padding: 8px 14px; font-size: 12px; }
+            .tabs { gap: 5px; }
+            .tab { padding: 10px 12px; font-size: 12px; }
+        }
     </style>
 </head>
 <body>

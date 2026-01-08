@@ -1,5 +1,16 @@
 {% extends "admin_base.html" %}
 {% block title %}السلات النشطة - لوحة التحكم{% endblock %}
+{% block extra_css %}
+<style>
+    @media (max-width: 480px) {
+        .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .stat-card { padding: 10px 5px; }
+        .stat-card .value { font-size: 16px; }
+        th:nth-child(3), td:nth-child(3),
+        th:nth-child(4), td:nth-child(4) { display: none; }
+    }
+</style>
+{% endblock %}
 {% block content %}
 <div class="top-bar">
     <h1> السلات النشطة</h1>
