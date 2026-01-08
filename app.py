@@ -81,6 +81,12 @@ from routes.profile import profile_bp
 # استيراد معالجات البوت
 from telegram import bot_handlers
 
+# استيراد security middleware
+from security_middleware import (
+    get_csrf_token, inject_security_context,
+    detect_new_login, refresh_session
+)
+
 # استيراد Firestore للعمليات المتقدمة
 try:
     from firebase_admin import firestore
@@ -129,6 +135,12 @@ def inject_header_settings():
         return {'header_settings': settings}
     except Exception:
         return {'header_settings': {'enabled': False, 'text': '', 'link_url': ''}}
+
+
+@app.context_processor
+def inject_csrf():
+    """حقن CSRF token لجميع القوالب"""
+    return inject_security_context()
 
 # --- Security Headers ---
 @app.after_request

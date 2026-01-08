@@ -2,9 +2,17 @@
 Auth Routes - تسجيل الدخول والتحقق والتسجيل
 """
 from flask import Blueprint, request, jsonify, session, redirect, url_for
-from extensions import db
+from extensions import db, bot
 from utils import regenerate_session, generate_code, validate_phone
 import time
+
+# استيراد نظام كشف الدخول الجديد
+try:
+    from security_middleware import detect_new_login
+    NEW_LOGIN_DETECTION = True
+except ImportError:
+    NEW_LOGIN_DETECTION = False
+    detect_new_login = lambda *args, **kwargs: {'is_new': False}
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -46,6 +54,15 @@ def login():
         session['user_name'] = user_data.get('username', f'مستخدم {user_id}')
         session['profile_photo'] = user_data.get('profile_photo', '')
         regenerate_session()
+        
+        # كشف تسجيل الدخول من جهاز جديد
+        if NEW_LOGIN_DETECTION:
+            try:
+                login_info = detect_new_login(db, user_id, bot)
+                if login_info.get('is_new'):
+                    session['new_device_login'] = True
+            except Exception as e:
+                pass  # لا نوقف تسجيل الدخول إذا فشل الكشف
         
         return jsonify({'success': True, 'message': 'تم تسجيل الدخول بنجاح'})
     
