@@ -617,7 +617,7 @@ def send_phone_code():
 <code>{code}</code>
 
 📞 الرقم: {phone}
-⏰ صالح لمدة 10 دقائق
+⏰ صالح لمدة 2 دقائق
 
 ⚠️ لا تشارك هذا الكود مع أحد!
 """
@@ -653,8 +653,8 @@ def verify_phone_code():
         
         stored = phone_verification_codes[user_id]
         
-        # التحقق من انتهاء الصلاحية (10 دقائق)
-        if time.time() - stored['created_at'] > 600:
+        # التحقق من انتهاء الصلاحية (2 دقائق)
+        if time.time() - stored['created_at'] > 120:
             del phone_verification_codes[user_id]
             return jsonify({'success': False, 'message': 'انتهت صلاحية الكود'}), 400
         

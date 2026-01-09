@@ -270,6 +270,28 @@ def handle_create_invoice_button(call):
     try:
         user_id = str(call.from_user.id)
         
+        # التحقق من توثيق رقم الجوال
+        if db:
+            user_doc = db.collection('users').document(user_id).get()
+            if user_doc.exists:
+                user_data = user_doc.to_dict()
+                if not user_data.get('phone_verified', False):
+                    # الرقم غير موثق
+                    bot.answer_callback_query(call.id)
+                    bot.send_message(
+                        call.message.chat.id,
+                        "❌ *يجب توثيق رقم جوالك أولاً!*\n\n"
+                        "لإنشاء فاتورة، يرجى توثيق رقمك من خلال:\n\n"
+                        "1️⃣ ادخل الموقع\n"
+                        "2️⃣ اذهب لصفحة \"حسابي\"\n"
+                        "3️⃣ اذهب إلى \"الإعدادات\"\n"
+                        "4️⃣ اضغط على \"توثيق رقم الجوال\"\n"
+                        "5️⃣ أدخل رقمك واستلم الكود هنا\n\n"
+                        "ثم حاول مرة أخرى 🔄",
+                        parse_mode="Markdown"
+                    )
+                    return
+        
         # تعيين حالة انتظار إدخال مبلغ الفاتورة
         user_states[user_id] = {
             'state': 'waiting_invoice_amount',
@@ -1271,6 +1293,27 @@ def create_invoice_command(message):
     """أمر إنشاء فاتورة للعميل"""
     user_id = str(message.from_user.id)
     user_name = message.from_user.first_name
+    
+    # التحقق من توثيق رقم الجوال
+    if db:
+        user_doc = db.collection('users').document(user_id).get()
+        if user_doc.exists:
+            user_data = user_doc.to_dict()
+            if not user_data.get('phone_verified', False):
+                # الرقم غير موثق
+                bot.reply_to(
+                    message,
+                    "❌ *يجب توثيق رقم جوالك أولاً!*\n\n"
+                    "لإنشاء فاتورة، يرجى توثيق رقمك من خلال:\n\n"
+                    "1️⃣ ادخل الموقع\n"
+                    "2️⃣ اذهب لصفحة \"حسابي\"\n"
+                    "3️⃣ اذهب إلى \"الإعدادات\"\n"
+                    "4️⃣ اضغط على \"توثيق رقم الجوال\"\n"
+                    "5️⃣ أدخل رقمك واستلم الكود هنا\n\n"
+                    "ثم حاول مرة أخرى 🔄",
+                    parse_mode="Markdown"
+                )
+                return
     
     # تعيين حالة انتظار إدخال مبلغ الفاتورة
     user_states[user_id] = {
