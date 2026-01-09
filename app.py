@@ -607,35 +607,44 @@ def api_send_code():
         print(f"❌ خطأ: {e}")
         return jsonify({'success': False, 'message': 'حدث خطأ في السيرفر'}), 500
 
-# 📧 تسجيل الدخول بالبريد الإلكتروني
-@app.route('/api/send_code_by_email', methods=['POST'])
+# � تسجيل الدخول برقم الجوال
+@app.route('/api/send_code_by_phone', methods=['POST'])
 @limiter.limit("5 per minute")  # 🔒 Rate Limiting
-def send_code_by_email():
-    """البحث عن الحساب بالإيميل وإرسال كود التحقق لـ Telegram"""
+def send_code_by_phone():
+    """البحث عن الحساب برقم الجوال وإرسال كود التحقق لـ Telegram"""
     try:
         data = request.get_json()
-        email = data.get('email', '').strip().lower()
+        phone = data.get('phone', '').strip()
         
-        if not email:
-            return jsonify({'success': False, 'message': 'الرجاء إدخال البريد الإلكتروني'}), 400
+        if not phone:
+            return jsonify({'success': False, 'message': 'الرجاء إدخال رقم الجوال'}), 400
         
-        # التحقق من صيغة البريد
+        # تنظيف رقم الجوال
         import re
-        if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
-            return jsonify({'success': False, 'message': 'صيغة البريد غير صحيحة'}), 400
+        phone = phone.replace(' ', '').replace('-', '').replace('+', '')
         
-        # البحث عن الحساب المرتبط بهذا البريد
+        # تحويل الصيغ المختلفة إلى 05xxxxxxxx
+        if phone.startswith('966'):
+            phone = '0' + phone[3:]
+        elif phone.startswith('5') and len(phone) == 9:
+            phone = '0' + phone
+        
+        # التحقق من صيغة الرقم السعودي
+        if not re.match(r'^05\d{8}$', phone):
+            return jsonify({'success': False, 'message': 'رقم جوال غير صحيح. يجب أن يبدأ بـ 05 ويتكون من 10 أرقام'}), 400
+        
+        # البحث عن الحساب المرتبط بهذا الرقم
         users_ref = db.collection('users')
         if USE_FIELD_FILTER:
-            query = users_ref.where(filter=FieldFilter('email', '==', email)).where(filter=FieldFilter('email_verified', '==', True)).limit(1)
+            query = users_ref.where(filter=FieldFilter('phone', '==', phone)).where(filter=FieldFilter('phone_verified', '==', True)).limit(1)
         else:
-            query = users_ref.where('email', '==', email).where('email_verified', '==', True).limit(1)
+            query = users_ref.where('phone', '==', phone).where('phone_verified', '==', True).limit(1)
         results = list(query.stream())
         
         if not results:
             return jsonify({
                 'success': False, 
-                'message': 'لا يوجد حساب مرتبط بهذا البريد أو البريد غير موثق'
+                'message': 'لا يوجد حساب مرتبط بهذا الرقم أو الرقم غير موثق'
             }), 404
         
         user_doc = results[0]
@@ -660,10 +669,10 @@ def send_code_by_email():
         # إرسال الكود للمستخدم عبر Telegram
         try:
             message_text = f"""
-🔐 كود التحقق للدخول عبر البريد الإلكتروني:
+🔐 كود التحقق للدخول برقم الجوال:
 <code>{code}</code>
 
-📧 تم طلب الدخول باستخدام: {email}
+📱 تم طلب الدخول باستخدام: {phone}
 
 ⏰ صالح لمدة 2 دقيقة فقط
 3️⃣ محاولات خاطئة = الكود ينتهي

@@ -465,7 +465,7 @@
                         </div>
                     </div>
                     <div class="switch-method">
-                        <a onclick="switchToEmail()">📧 التسجيل بالبريد الإلكتروني</a>
+                        <a onclick="switchToPhone()">📱 التسجيل برقم الجوال</a>
                     </div>
                     <button type="submit" id="sendCodeBtn">إرسال كود التحقق</button>
                 </form>
@@ -474,22 +474,22 @@
                 </div>
             </div>
             
-            <!-- قسم البريد -->
-            <div id="emailSection" class="login-input-section">
-                <form id="emailForm">
+            <!-- قسم رقم الجوال -->
+            <div id="phoneSection" class="login-input-section">
+                <form id="phoneForm">
                     <div class="form-group">
-                        <label>📧 البريد الإلكتروني</label>
+                        <label>📱 رقم الجوال</label>
                         <div class="input-wrapper">
-                            <input type="email" id="loginEmail" placeholder="example@email.com" dir="ltr" autocomplete="off">
+                            <input type="tel" id="loginPhone" placeholder="05xxxxxxxx" dir="ltr" maxlength="10" autocomplete="off">
                         </div>
                     </div>
                     <div class="switch-method">
-                        <a onclick="switchToTelegram()">📱 التسجيل بـ Telegram ID</a>
+                        <a onclick="switchToTelegram()">🆔 التسجيل بـ Telegram ID</a>
                     </div>
-                    <button type="submit" id="sendCodeEmailBtn">إرسال كود التحقق</button>
+                    <button type="submit" id="sendCodePhoneBtn">إرسال كود التحقق</button>
                 </form>
                 <div class="help-text">
-                    ⚠️ يجب أن يكون البريد موثق في حسابك مسبقاً
+                    ⚠️ يجب أن يكون الرقم موثق في حسابك مسبقاً
                 </div>
             </div>
             
@@ -563,18 +563,18 @@
         let currentUserId = '';
         let loginMethod = 'telegram';
         
-        function switchToEmail() {
-            loginMethod = 'email';
+        function switchToPhone() {
+            loginMethod = 'phone';
             document.getElementById('telegramSection').classList.remove('active');
-            document.getElementById('emailSection').classList.add('active');
-            document.getElementById('loginSubtitle').textContent = 'أدخل البريد الإلكتروني الموثق';
+            document.getElementById('phoneSection').classList.add('active');
+            document.getElementById('loginSubtitle').textContent = 'أدخل رقم الجوال الموثق';
             document.getElementById('error1').style.display = 'none';
-            document.getElementById('loginEmail').focus();
+            document.getElementById('loginPhone').focus();
         }
         
         function switchToTelegram() {
             loginMethod = 'telegram';
-            document.getElementById('emailSection').classList.remove('active');
+            document.getElementById('phoneSection').classList.remove('active');
             document.getElementById('telegramSection').classList.add('active');
             document.getElementById('loginSubtitle').textContent = 'أدخل رقم Telegram ID الخاص بك';
             document.getElementById('error1').style.display = 'none';
@@ -627,15 +627,16 @@
             }
         });
         
-        // تسجيل الدخول بالبريد
-        document.getElementById('emailForm').addEventListener('submit', async function(e) {
+        // تسجيل الدخول برقم الجوال
+        document.getElementById('phoneForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const email = document.getElementById('loginEmail').value.trim();
-            const btn = document.getElementById('sendCodeEmailBtn');
+            const phone = document.getElementById('loginPhone').value.trim();
+            const btn = document.getElementById('sendCodePhoneBtn');
             const errorDiv = document.getElementById('error1');
             
-            if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-                errorDiv.textContent = '❌ الرجاء إدخال بريد إلكتروني صحيح';
+            const cleanPhone = phone.replace(/[\s\-\+]/g, '');
+            if (!cleanPhone.match(/^(05\d{8}|5\d{8}|9665\d{8})$/)) {
+                errorDiv.textContent = '❌ الرجاء إدخال رقم جوال صحيح (يبدأ بـ 05)';
                 errorDiv.style.display = 'block';
                 return;
             }
@@ -645,10 +646,10 @@
             errorDiv.style.display = 'none';
             
             try {
-                const response = await fetch('/api/send_code_by_email', {
+                const response = await fetch('/api/send_code_by_phone', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email })
+                    body: JSON.stringify({ phone: phone })
                 });
                 
                 const data = await response.json();
@@ -810,15 +811,15 @@
             document.getElementById('step2').classList.remove('active');
             document.getElementById('step1').classList.add('active');
             document.getElementById('userId').value = '';
-            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPhone').value = '';
             document.getElementById('verifyCode').value = '';
             document.getElementById('error1').style.display = 'none';
             document.getElementById('error2').style.display = 'none';
             document.getElementById('success2').style.display = 'none';
             document.getElementById('sendCodeBtn').disabled = false;
             document.getElementById('sendCodeBtn').innerHTML = 'إرسال كود التحقق';
-            document.getElementById('sendCodeEmailBtn').disabled = false;
-            document.getElementById('sendCodeEmailBtn').innerHTML = 'إرسال كود التحقق';
+            document.getElementById('sendCodePhoneBtn').disabled = false;
+            document.getElementById('sendCodePhoneBtn').innerHTML = 'إرسال كود التحقق';
             document.getElementById('verifyBtn').disabled = false;
             document.getElementById('verifyBtn').innerHTML = 'تأكيد الدخول';
         }
@@ -827,7 +828,7 @@
             document.getElementById('step3').classList.remove('active');
             document.getElementById('step1').classList.add('active');
             document.getElementById('userId').value = '';
-            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPhone').value = '';
             document.getElementById('verifyCode').value = '';
             document.getElementById('twoFACode').value = '';
             document.getElementById('error1').style.display = 'none';
