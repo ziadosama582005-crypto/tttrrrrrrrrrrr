@@ -182,6 +182,9 @@ def send_welcome(message):
         # جلب صورة البروفايل من تيليجرام
         profile_photo = get_user_profile_photo(user_id)
         
+        # جلب رصيد المستخدم
+        balance = 0.0
+        
         # حفظ معلومات المستخدم في Firebase
         if db:
             try:
@@ -203,6 +206,8 @@ def send_welcome(message):
                     user_ref.set(user_data)
                     print(f"✅ مستخدم جديد تم إنشاؤه")
                 else:
+                    # جلب الرصيد الحالي
+                    balance = user_doc.to_dict().get('balance', 0.0)
                     update_data = {
                         'name': user_name,
                         'username': username,
@@ -218,19 +223,22 @@ def send_welcome(message):
         
         # إنشاء أزرار Inline داخل الرسالة
         markup = types.InlineKeyboardMarkup(row_width=2)
-        btn_shop = types.InlineKeyboardButton("🏪 افتح السوق", callback_data="open_shop")
-        btn_myid = types.InlineKeyboardButton("🆔 معرفي", callback_data="my_id")
-        btn_acc = types.InlineKeyboardButton("📒 المحاسبة", callback_data="acc_main")
-        markup.add(btn_shop, btn_myid)
+        btn_site = types.InlineKeyboardButton("رابط الموقع", url=SITE_URL)
+        btn_myid = types.InlineKeyboardButton("آيدي", callback_data="my_id")
+        btn_acc = types.InlineKeyboardButton("المحاسبة", callback_data="acc_main")
+        btn_code = types.InlineKeyboardButton("شحن كود", callback_data="recharge_code")
+        btn_invoice = types.InlineKeyboardButton("إنشاء فاتورة", callback_data="create_invoice")
+        markup.add(btn_site, btn_myid)
         markup.add(btn_acc)
+        markup.add(btn_code, btn_invoice)
         
         # إرسال الرسالة
         print(f"📤 إرسال رسالة الترحيب...")
         result = bot.send_message(
             message.chat.id,
-            "🌟 *أهلاً بك في السوق الآمن!* 🛡️\n\n"
-            "منصة آمنة للبيع والشراء مع نظام حماية الأموال ❄️\n\n"
-            "📌 *اختر من الأزرار أدناه:*",
+            f"أهلاً يا {user_name}! 👋\n\n"
+            f"💰 رصيدك: {balance:.2f} ريال\n\n"
+            f"اختر من الأزرار بالأسفل 👇",
             reply_markup=markup,
             parse_mode="Markdown"
         )
@@ -242,38 +250,55 @@ def send_welcome(message):
         traceback.print_exc()
 
 # معالج أزرار Inline
-@bot.callback_query_handler(func=lambda call: call.data in ["open_shop", "my_id"])
-def handle_inline_buttons(call):
+@bot.callback_query_handler(func=lambda call: call.data == "my_id")
+def handle_myid_button(call):
     try:
-        if call.data == "open_shop":
-            # إرسال زر برابط الموقع
-            markup = types.InlineKeyboardMarkup()
-            btn = types.InlineKeyboardButton("🛒 الدخول للسوق", url=SITE_URL)
-            markup.add(btn)
-            bot.send_message(
-                call.message.chat.id,
-                f"🏪 *اضغط الزر أدناه لفتح السوق:*\n\n"
-                f"🔗 الرابط: {SITE_URL}",
-                reply_markup=markup,
-                parse_mode="Markdown"
-            )
-        elif call.data == "my_id":
-            bot.send_message(
-                call.message.chat.id,
-                f"🆔 *الآيدي الخاص بك:*\n\n`{call.from_user.id}`\n\nأرسل هذا الرقم للمالك ليضيفك كمشرف!",
-                parse_mode="Markdown"
-            )
-        # إزالة علامة التحميل من الزر
+        bot.send_message(
+            call.message.chat.id,
+            f"🆔 *الآيدي الخاص بك:*\n\n`{call.from_user.id}`",
+            parse_mode="Markdown"
+        )
         bot.answer_callback_query(call.id)
     except Exception as e:
-        print(f"❌ خطأ في inline button: {e}")
+        print(f"❌ خطأ في my_id button: {e}")
+        bot.answer_callback_query(call.id, "حدث خطأ!")
+
+# معالج زر إنشاء فاتورة
+@bot.callback_query_handler(func=lambda call: call.data == "create_invoice")
+def handle_create_invoice_button(call):
+    """معالج زر إنشاء فاتورة من الصفحة الرئيسية"""
+    try:
+        user_id = str(call.from_user.id)
+        
+        # تعيين حالة انتظار إدخال مبلغ الفاتورة
+        user_states[user_id] = {
+            'state': 'waiting_invoice_amount',
+            'created_at': time.time()
+        }
+        
+        # إنشاء زر إلغاء
+        markup = types.InlineKeyboardMarkup()
+        btn_cancel = types.InlineKeyboardButton("إلغاء", callback_data="cancel_invoice")
+        markup.add(btn_cancel)
+        
+        bot.answer_callback_query(call.id)
+        bot.send_message(
+            call.message.chat.id,
+            "🧾 *إنشاء فاتورة جديدة*\n\n"
+            "💰 أدخل مبلغ الفاتورة بالريال:\n\n"
+            "📌 *مثال:* `100`",
+            reply_markup=markup,
+            parse_mode="Markdown"
+        )
+    except Exception as e:
+        print(f"❌ خطأ في create_invoice button: {e}")
         bot.answer_callback_query(call.id, "حدث خطأ!")
 
 @bot.message_handler(commands=['my_id'])
 def my_id(message):
     log_message(message, "معالج /my_id")
     try:
-        bot.reply_to(message, f"🆔 الآيدي الخاص بك: `{message.from_user.id}`\n\nأرسل هذا الرقم للمالك ليضيفك كمشرف!", parse_mode="Markdown")
+        bot.reply_to(message, f"🆔 الآيدي الخاص بك: `{message.from_user.id}`", parse_mode="Markdown")
         print(f"✅ تم إرسال الآيدي")
     except Exception as e:
         print(f"❌ خطأ: {e}")
@@ -740,23 +765,27 @@ def generate_keys(message):
 # أمر شحن الرصيد (يفتح خيارات الشحن)
 @bot.message_handler(commands=['شحن'])
 def recharge_balance(message):
-    """أمر شحن الرصيد - يعرض خيارات الشحن"""
+    """أمر شحن الرصيد - يطلب كود الشحن مباشرة"""
     try:
         user_id = str(message.from_user.id)
         
-        # إنشاء أزرار خيارات الشحن
-        markup = types.InlineKeyboardMarkup(row_width=2)
-        btn_payment = types.InlineKeyboardButton("💳 شحن إلكتروني", callback_data="recharge_payment")
-        btn_code = types.InlineKeyboardButton("🔑 شحن بكود", callback_data="recharge_code")
-        markup.add(btn_payment)
-        markup.add(btn_code)
+        # تعيين حالة المستخدم لانتظار الكود مباشرة
+        user_states[user_id] = {
+            'state': 'waiting_recharge_code',
+            'created_at': time.time()
+        }
+        
+        # إنشاء زر إلغاء
+        markup = types.InlineKeyboardMarkup()
+        btn_cancel = types.InlineKeyboardButton("❌ إلغاء", callback_data="cancel_recharge")
+        markup.add(btn_cancel)
         
         bot.send_message(
             message.chat.id,
-            "💰 *شحن الرصيد*\n\n"
-            "اختر طريقة الشحن:\n\n"
-            "💳 *شحن إلكتروني* - الدفع عبر بوابة الدفع\n"
-            "🔑 *شحن بكود* - إذا لديك كود شحن",
+            "🔑 *شحن الرصيد بكود*\n\n"
+            "📝 أرسل كود الشحن الخاص بك:\n\n"
+            "📌 *مثال:* `KEY-XXXXX-XXXXX`\n\n"
+            "💡 للشحن الإلكتروني، استخدم الموقع",
             reply_markup=markup,
             parse_mode="Markdown"
         )
