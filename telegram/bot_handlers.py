@@ -2057,22 +2057,22 @@ def accounting_main_menu(call):
         
         stats = get_user_ledger_stats(call.from_user.id)
         
-        msg = f"""
-📒 **نظام المحاسبة الشخصي**
-ـــــــــــــــــــــــــــــــــــــ
-💰 **مبالغ بانتظار التحويل:** `{stats['total_debt']:.2f}` ر.س
-👥 **عدد الشركاء/التجار:** {stats['partners_count']}
-📊 **إجمالي العمليات:** {len(stats['transactions'])}
-ـــــــــــــــــــــــــــــــــــــ
-اختر ما تريد:
-        """
+        msg = f"""المحاسبة الخاصة
+
+💰 المبلغ بانتظار التحويل: {stats['total_debt']:.2f} ر.س
+👥 التجار: {stats['partners_count']}
+📊 العمليات: {len(stats['transactions'])}"""
         
-        markup = types.InlineKeyboardMarkup(row_width=1)
+        markup = types.InlineKeyboardMarkup(row_width=2)
         markup.add(
-            types.InlineKeyboardButton("➕ عملية جديدة", callback_data="acc_new_step1"),
-            types.InlineKeyboardButton("📂 السجل / المستخدمون", callback_data="acc_registry"),
-            types.InlineKeyboardButton("📊 ملخص سريع", callback_data="acc_summary"),
-            types.InlineKeyboardButton("🔙 رجوع", callback_data="back_to_start")
+            types.InlineKeyboardButton("عملية جديدة", callback_data="acc_new_step1"),
+            types.InlineKeyboardButton("ملخص سريع", callback_data="acc_summary")
+        )
+        markup.add(
+            types.InlineKeyboardButton("السجل / المستخدمين", callback_data="acc_registry")
+        )
+        markup.add(
+            types.InlineKeyboardButton("رجوع", callback_data="back_to_start")
         )
         
         bot.edit_message_text(
@@ -2403,17 +2403,23 @@ def finish_ledger_transaction(user_id, message_obj, reminder):
 def acc_registry_view(call):
     """قائمة خيارات السجل"""
     try:
-        markup = types.InlineKeyboardMarkup(row_width=1)
+        markup = types.InlineKeyboardMarkup(row_width=2)
         markup.add(
-            types.InlineKeyboardButton("⏳ المستحقات (غير مسددة)", callback_data="acc_show_pending"),
-            types.InlineKeyboardButton("📜 السجل كامل", callback_data="acc_show_all"),
-            types.InlineKeyboardButton("✅ المسددة", callback_data="acc_show_paid"),
-            types.InlineKeyboardButton("�️ حذف شريك/تاجر", callback_data="acc_delete_partner_list"),
-            types.InlineKeyboardButton("�🔙 رجوع", callback_data="acc_main")
+            types.InlineKeyboardButton("المستحقات", callback_data="acc_show_pending"),
+            types.InlineKeyboardButton("المسددة", callback_data="acc_show_paid")
+        )
+        markup.add(
+            types.InlineKeyboardButton("السجل كامل", callback_data="acc_show_all")
+        )
+        markup.add(
+            types.InlineKeyboardButton("حذف شريك/تاجر", callback_data="acc_delete_partner_list")
+        )
+        markup.add(
+            types.InlineKeyboardButton("رجوع", callback_data="acc_main")
         )
         
         bot.edit_message_text(
-            "📂 **سجل العمليات**\n\nاختر طريقة العرض:",
+            "السجل / المستخدمين\n\nاختر طريقة العرض:",
             call.message.chat.id, call.message.message_id,
             reply_markup=markup, parse_mode="Markdown"
         )
@@ -2845,20 +2851,19 @@ def accounting_command(message):
     try:
         stats = get_user_ledger_stats(message.from_user.id)
         
-        msg = f"""
-📒 **نظام المحاسبة الشخصي**
-ـــــــــــــــــــــــــــــــــــــ
-💰 **مبالغ بانتظار التحويل:** `{stats['total_debt']:.2f}` ر.س
-👥 **عدد الشركاء/التجار:** {stats['partners_count']}
-ـــــــــــــــــــــــــــــــــــــ
-اختر ما تريد:
-        """
+        msg = f"""المحاسبة الخاصة
+
+💰 المبلغ بانتظار التحويل: {stats['total_debt']:.2f} ر.س
+👥 التجار: {stats['partners_count']}
+📊 العمليات: {len(stats['transactions'])}"""
         
-        markup = types.InlineKeyboardMarkup(row_width=1)
+        markup = types.InlineKeyboardMarkup(row_width=2)
         markup.add(
-            types.InlineKeyboardButton("➕ عملية جديدة", callback_data="acc_new_step1"),
-            types.InlineKeyboardButton("📂 السجل / المستخدمون", callback_data="acc_registry"),
-            types.InlineKeyboardButton("📊 ملخص سريع", callback_data="acc_summary")
+            types.InlineKeyboardButton("عملية جديدة", callback_data="acc_new_step1"),
+            types.InlineKeyboardButton("ملخص سريع", callback_data="acc_summary")
+        )
+        markup.add(
+            types.InlineKeyboardButton("السجل / المستخدمين", callback_data="acc_registry")
         )
         
         bot.send_message(message.chat.id, msg, reply_markup=markup, parse_mode="Markdown")
