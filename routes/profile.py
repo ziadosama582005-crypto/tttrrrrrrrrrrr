@@ -42,8 +42,8 @@ except ImportError:
 
 profile_bp = Blueprint('profile', __name__)
 
-# تخزين مؤقت لأكواد التحقق من الإيميل
-email_verification_codes = {}  # {user_id: {'code': '123456', 'email': 'x@y.com', 'created_at': timestamp}}
+# تخزين مؤقت لأكواد التحقق من رقم الجوال
+phone_verification_codes = {}  # {user_id: {'code': '123456', 'phone': '05xxxxxxxx', 'created_at': timestamp}}
 
 # تخزين مؤقت لإعداد 2FA
 pending_2fa_setup = {}  # {user_id: {'secret': 'XXXX', 'created_at': timestamp}}
@@ -290,8 +290,8 @@ def profile():
             balance=user_data.get('balance', 0),
             orders=orders,
             # بيانات الأمان
-            email=user_data.get('email', ''),
-            email_verified=user_data.get('email_verified', False),
+            phone=user_data.get('phone', ''),
+            phone_verified=user_data.get('phone_verified', False),
             totp_enabled=user_data.get('totp_enabled', False),
             # بيانات السحب
             can_withdraw_normal=can_withdraw_normal,
@@ -572,42 +572,51 @@ def api_profile():
         return jsonify({'error': str(e)}), 500
 
 
-# ==================== توثيق الإيميل ====================
+# ==================== توثيق رقم الجوال ====================
 
-@profile_bp.route('/api/send_email_code', methods=['POST'])
-def send_email_code():
-    """إرسال كود التحقق للبريد الإلكتروني"""
+@profile_bp.route('/api/send_phone_code', methods=['POST'])
+def send_phone_code():
+    """إرسال كود التحقق لرقم الجوال عبر Telegram"""
     try:
         if 'user_id' not in session:
             return jsonify({'success': False, 'message': 'يجب تسجيل الدخول أولاً'}), 401
         
         user_id = session['user_id']
         data = request.get_json()
-        email = data.get('email', '').strip().lower()
+        phone = data.get('phone', '').strip()
         
-        # التحقق من صحة الإيميل
+        # إزالة المسافات والرموز
+        phone = phone.replace(' ', '').replace('-', '').replace('+', '')
+        
+        # التحقق من صحة رقم الجوال السعودي
         import re
-        if not email or not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
-            return jsonify({'success': False, 'message': 'بريد إلكتروني غير صحيح'}), 400
+        # يقبل: 05xxxxxxxx أو 5xxxxxxxx أو 9665xxxxxxxx
+        if phone.startswith('966'):
+            phone = '0' + phone[3:]  # تحويل 9665xxx إلى 05xxx
+        elif phone.startswith('5') and len(phone) == 9:
+            phone = '0' + phone  # تحويل 5xxx إلى 05xxx
+        
+        if not re.match(r'^05\d{8}$', phone):
+            return jsonify({'success': False, 'message': 'رقم جوال غير صحيح. يجب أن يبدأ بـ 05 ويتكون من 10 أرقام'}), 400
         
         # توليد كود عشوائي
         code = str(random.randint(100000, 999999))
         
         # حفظ الكود مؤقتاً
-        email_verification_codes[user_id] = {
+        phone_verification_codes[user_id] = {
             'code': code,
-            'email': email,
+            'phone': phone,
             'created_at': time.time()
         }
         
         # إرسال الكود عبر Telegram Bot
         try:
             message = f"""
-📧 كود توثيق البريد الإلكتروني:
+📱 كود توثيق رقم الجوال:
 
 <code>{code}</code>
 
-📩 البريد: {email}
+📞 الرقم: {phone}
 ⏰ صالح لمدة 10 دقائق
 
 ⚠️ لا تشارك هذا الكود مع أحد!
@@ -619,17 +628,17 @@ def send_email_code():
                 'message': 'تم إرسال كود التحقق عبر Telegram'
             })
         except Exception as e:
-            logger.error(f"خطأ في إرسال كود الإيميل: {e}")
-            return jsonify({'success': False, 'message': 'فشل إرسال الكود'}), 500
+            logger.error(f"خطأ في إرسال كود الجوال: {e}")
+            return jsonify({'success': False, 'message': 'فشل إرسال الكود. تأكد من بدء محادثة مع البوت أولاً'}), 500
     
     except Exception as e:
-        logger.error(f"خطأ في send_email_code: {e}")
+        logger.error(f"خطأ في send_phone_code: {e}")
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
 
 
-@profile_bp.route('/api/verify_email_code', methods=['POST'])
-def verify_email_code():
-    """التحقق من كود الإيميل"""
+@profile_bp.route('/api/verify_phone_code', methods=['POST'])
+def verify_phone_code():
+    """التحقق من كود رقم الجوال"""
     try:
         if 'user_id' not in session:
             return jsonify({'success': False, 'message': 'يجب تسجيل الدخول أولاً'}), 401
@@ -639,39 +648,39 @@ def verify_email_code():
         code = data.get('code', '').strip()
         
         # التحقق من وجود كود معلق
-        if user_id not in email_verification_codes:
+        if user_id not in phone_verification_codes:
             return jsonify({'success': False, 'message': 'لم يتم طلب كود التحقق'}), 400
         
-        stored = email_verification_codes[user_id]
+        stored = phone_verification_codes[user_id]
         
         # التحقق من انتهاء الصلاحية (10 دقائق)
         if time.time() - stored['created_at'] > 600:
-            del email_verification_codes[user_id]
+            del phone_verification_codes[user_id]
             return jsonify({'success': False, 'message': 'انتهت صلاحية الكود'}), 400
         
         # التحقق من صحة الكود
         if code != stored['code']:
             return jsonify({'success': False, 'message': 'الكود غير صحيح'}), 400
         
-        # حفظ الإيميل في قاعدة البيانات
-        email = stored['email']
+        # حفظ رقم الجوال في قاعدة البيانات
+        phone = stored['phone']
         user_ref = db.collection('users').document(user_id)
         user_ref.update({
-            'email': email,
-            'email_verified': True,
-            'email_verified_at': time.time()
+            'phone': phone,
+            'phone_verified': True,
+            'phone_verified_at': time.time()
         })
         
         # حذف الكود المؤقت
-        del email_verification_codes[user_id]
+        del phone_verification_codes[user_id]
         
         return jsonify({
             'success': True,
-            'message': 'تم توثيق البريد الإلكتروني بنجاح'
+            'message': 'تم توثيق رقم الجوال بنجاح ✅'
         })
     
     except Exception as e:
-        logger.error(f"خطأ في verify_email_code: {e}")
+        logger.error(f"خطأ في verify_phone_code: {e}")
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
 
 

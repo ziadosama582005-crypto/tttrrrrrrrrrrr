@@ -18,20 +18,20 @@
             <!-- توثيق البريد الإلكتروني -->
             <div class="setting-item">
                 <div class="setting-info">
-                    <div class="setting-icon email">
-                        <i class="fas fa-envelope"></i>
+                    <div class="setting-icon phone">
+                        <i class="fas fa-phone"></i>
                     </div>
                     <div class="setting-text">
-                        <h3>توثيق البريد الإلكتروني</h3>
-                        <p>{% if email %}{{ email }}{% else %}لم يتم إضافة بريد إلكتروني{% endif %}</p>
+                        <h3>توثيق رقم الجوال</h3>
+                        <p>{% if phone %}{{ phone }}{% else %}لم يتم إضافة رقم جوال{% endif %}</p>
                     </div>
                 </div>
                 <div class="setting-action">
-                    {% if email_verified %}
+                    {% if phone_verified %}
                         <span class="status-badge verified"><i class="fas fa-check-circle"></i> موثق</span>
                     {% else %}
-                        <button class="action-btn" onclick="openEmailModal()">
-                            {% if email %}توثيق{% else %}إضافة{% endif %}
+                        <button class="action-btn" onclick="openPhoneModal()">
+                            {% if phone %}توثيق{% else %}إضافة{% endif %}
                         </button>
                     {% endif %}
                 </div>
@@ -104,37 +104,39 @@
     </div>
 </div>
 
-<!-- مودال توثيق البريد -->
-<div class="modal-overlay" id="emailModal">
+<!-- مودال توثيق رقم الجوال -->
+<div class="modal-overlay" id="phoneModal">
     <div class="modal-content">
-        <button class="modal-close" onclick="closeEmailModal()"><i class="fas fa-times"></i></button>
+        <button class="modal-close" onclick="closePhoneModal()"><i class="fas fa-times"></i></button>
         <div class="modal-header">
-            <div class="modal-icon"><i class="fas fa-envelope"></i></div>
-            <h2>توثيق البريد الإلكتروني</h2>
-            <p>أضف بريدك الإلكتروني لتأمين حسابك</p>
+            <div class="modal-icon"><i class="fas fa-phone"></i></div>
+            <h2>توثيق رقم الجوال</h2>
+            <p>أضف رقم جوالك لتأمين حسابك</p>
         </div>
-        <div id="emailError" class="alert error"></div>
-        <div id="emailSuccess" class="alert success"></div>
+        <div id="phoneError" class="alert error"></div>
+        <div id="phoneSuccess" class="alert success"></div>
         <div class="modal-body">
-            <div id="emailStep1">
+            <div id="phoneStep1">
                 <div class="form-group">
-                    <label><i class="fas fa-at"></i> البريد الإلكتروني</label>
-                    <input type="email" id="emailInput" placeholder="example@email.com" dir="ltr">
+                    <label><i class="fas fa-phone"></i> رقم الجوال</label>
+                    <input type="tel" id="phoneInput" placeholder="05xxxxxxxx" dir="ltr" maxlength="10">
+                    <small style="color: #888; font-size: 12px;">يجب أن يبدأ بـ 05 ويتكون من 10 أرقام</small>
                 </div>
             </div>
-            <div id="emailStep2" style="display: none;">
+            <div id="phoneStep2" style="display: none;">
                 <div class="form-group">
                     <label><i class="fas fa-key"></i> كود التحقق (6 أرقام)</label>
-                    <input type="text" id="emailCodeInput" class="code-input" placeholder="000000" maxlength="6">
+                    <input type="text" id="phoneCodeInput" class="code-input" placeholder="000000" maxlength="6">
+                    <small style="color: #888; font-size: 12px;">تم إرسال الكود عبر Telegram</small>
                 </div>
             </div>
         </div>
         <div class="modal-actions">
-            <button class="btn-secondary" onclick="closeEmailModal()">إلغاء</button>
-            <button class="btn-primary" id="emailStep1Btn" onclick="sendEmailCode()">
+            <button class="btn-secondary" onclick="closePhoneModal()">إلغاء</button>
+            <button class="btn-primary" id="phoneStep1Btn" onclick="sendPhoneCode()">
                 <i class="fas fa-paper-plane"></i> إرسال كود التحقق
             </button>
-            <button class="btn-primary" id="emailStep2Btn" onclick="verifyEmailCode()" style="display: none;">
+            <button class="btn-primary" id="phoneStep2Btn" onclick="verifyPhoneCode()" style="display: none;">
                 <i class="fas fa-check"></i> تأكيد
             </button>
         </div>
@@ -772,30 +774,32 @@
         });
     }
     
-    function openEmailModal() {
-        document.getElementById('emailModal').classList.add('show');
+    function openPhoneModal() {
+        document.getElementById('phoneModal').classList.add('show');
     }
     
-    function closeEmailModal() {
-        document.getElementById('emailModal').classList.remove('show');
-        document.getElementById('emailError').style.display = 'none';
-        document.getElementById('emailSuccess').style.display = 'none';
-        document.getElementById('emailStep1').style.display = 'block';
-        document.getElementById('emailStep2').style.display = 'none';
-        document.getElementById('emailStep1Btn').style.display = 'block';
-        document.getElementById('emailStep2Btn').style.display = 'none';
-        document.getElementById('emailInput').value = '';
-        document.getElementById('emailCodeInput').value = '';
+    function closePhoneModal() {
+        document.getElementById('phoneModal').classList.remove('show');
+        document.getElementById('phoneError').style.display = 'none';
+        document.getElementById('phoneSuccess').style.display = 'none';
+        document.getElementById('phoneStep1').style.display = 'block';
+        document.getElementById('phoneStep2').style.display = 'none';
+        document.getElementById('phoneStep1Btn').style.display = 'block';
+        document.getElementById('phoneStep2Btn').style.display = 'none';
+        document.getElementById('phoneInput').value = '';
+        document.getElementById('phoneCodeInput').value = '';
     }
     
-    async function sendEmailCode() {
-        const email = document.getElementById('emailInput').value.trim();
-        const btn = document.getElementById('emailStep1Btn');
-        const errorDiv = document.getElementById('emailError');
-        const successDiv = document.getElementById('emailSuccess');
+    async function sendPhoneCode() {
+        const phone = document.getElementById('phoneInput').value.trim();
+        const btn = document.getElementById('phoneStep1Btn');
+        const errorDiv = document.getElementById('phoneError');
+        const successDiv = document.getElementById('phoneSuccess');
         
-        if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-            errorDiv.textContent = 'الرجاء إدخال بريد إلكتروني صحيح';
+        // التحقق من صيغة الرقم السعودي
+        const cleanPhone = phone.replace(/[\s\-\+]/g, '');
+        if (!cleanPhone.match(/^(05\d{8}|5\d{8}|9665\d{8})$/)) {
+            errorDiv.textContent = 'الرجاء إدخال رقم جوال صحيح (يبدأ بـ 05)';
             errorDiv.style.display = 'block';
             return;
         }
@@ -805,20 +809,20 @@
         errorDiv.style.display = 'none';
         
         try {
-            const response = await fetch('/api/send_email_code', {
+            const response = await fetch('/api/send_phone_code', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email })
+                body: JSON.stringify({ phone: phone })
             });
             const data = await response.json();
             
             if (data.success) {
-                successDiv.textContent = 'تم إرسال كود التحقق للبريد';
+                successDiv.textContent = 'تم إرسال كود التحقق عبر Telegram ✅';
                 successDiv.style.display = 'block';
-                document.getElementById('emailStep1').style.display = 'none';
-                document.getElementById('emailStep2').style.display = 'block';
-                document.getElementById('emailStep1Btn').style.display = 'none';
-                document.getElementById('emailStep2Btn').style.display = 'block';
+                document.getElementById('phoneStep1').style.display = 'none';
+                document.getElementById('phoneStep2').style.display = 'block';
+                document.getElementById('phoneStep1Btn').style.display = 'none';
+                document.getElementById('phoneStep2Btn').style.display = 'block';
             } else {
                 errorDiv.textContent = data.message;
                 errorDiv.style.display = 'block';
@@ -832,11 +836,11 @@
         btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال كود التحقق';
     }
     
-    async function verifyEmailCode() {
-        const code = document.getElementById('emailCodeInput').value.trim();
-        const btn = document.getElementById('emailStep2Btn');
-        const errorDiv = document.getElementById('emailError');
-        const successDiv = document.getElementById('emailSuccess');
+    async function verifyPhoneCode() {
+        const code = document.getElementById('phoneCodeInput').value.trim();
+        const btn = document.getElementById('phoneStep2Btn');
+        const errorDiv = document.getElementById('phoneError');
+        const successDiv = document.getElementById('phoneSuccess');
         
         if (!code || code.length !== 6) {
             errorDiv.textContent = 'الرجاء إدخال كود مكون من 6 أرقام';
@@ -850,7 +854,7 @@
         errorDiv.style.display = 'none';
         
         try {
-            const response = await fetch('/api/verify_email_code', {
+            const response = await fetch('/api/verify_phone_code', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ code: code })
@@ -858,7 +862,7 @@
             const data = await response.json();
             
             if (data.success) {
-                successDiv.textContent = 'تم توثيق البريد الإلكتروني بنجاح!';
+                successDiv.textContent = 'تم توثيق رقم الجوال بنجاح! ✅';
                 successDiv.style.display = 'block';
                 setTimeout(() => location.reload(), 1500);
             } else {
