@@ -2088,17 +2088,35 @@ def accounting_main_menu(call):
 def back_to_start_menu(call):
     """العودة للقائمة الرئيسية"""
     try:
+        user_id = str(call.from_user.id)
+        user_name = call.from_user.first_name
+        if call.from_user.last_name:
+            user_name += ' ' + call.from_user.last_name
+        
+        # جلب الرصيد
+        balance = 0.0
+        if db:
+            try:
+                user_doc = db.collection('users').document(user_id).get()
+                if user_doc.exists:
+                    balance = user_doc.to_dict().get('balance', 0.0)
+            except:
+                pass
+        
         markup = types.InlineKeyboardMarkup(row_width=2)
-        btn_shop = types.InlineKeyboardButton("🏪 افتح السوق", callback_data="open_shop")
-        btn_myid = types.InlineKeyboardButton("🆔 معرفي", callback_data="my_id")
-        btn_acc = types.InlineKeyboardButton("📒 المحاسبة", callback_data="acc_main")
-        markup.add(btn_shop, btn_myid)
+        btn_site = types.InlineKeyboardButton("رابط الموقع", url=SITE_URL)
+        btn_myid = types.InlineKeyboardButton("آيدي", callback_data="my_id")
+        btn_acc = types.InlineKeyboardButton("المحاسبة", callback_data="acc_main")
+        btn_code = types.InlineKeyboardButton("شحن كود", callback_data="recharge_code")
+        btn_invoice = types.InlineKeyboardButton("إنشاء فاتورة", callback_data="create_invoice")
+        markup.add(btn_site, btn_myid)
         markup.add(btn_acc)
+        markup.add(btn_code, btn_invoice)
         
         bot.edit_message_text(
-            "🌟 *أهلاً بك في السوق الآمن!* 🛡️\n\n"
-            "منصة آمنة للبيع والشراء مع نظام حماية الأموال ❄️\n\n"
-            "📌 *اختر من الأزرار أدناه:*",
+            f"أهلاً يا {user_name}! 👋\n\n"
+            f"💰 رصيدك: {balance:.2f} ريال\n\n"
+            f"اختر من الأزرار بالأسفل 👇",
             call.message.chat.id, call.message.message_id,
             reply_markup=markup, parse_mode="Markdown"
         )
