@@ -2029,7 +2029,7 @@ from firebase_utils import (
     add_ledger_transaction, get_user_ledger_stats,
     get_partner_transactions, settle_partner_debt,
     settle_single_transaction, delete_ledger_transaction,
-    get_ledger_transaction_by_id
+    get_ledger_transaction_by_id, delete_partner_all_transactions
 )
 from utils import get_next_weekday, get_weekday_name_arabic, format_date_arabic, get_weekday_after_weeks
 
@@ -2390,7 +2390,8 @@ def acc_registry_view(call):
             types.InlineKeyboardButton("⏳ المستحقات (غير مسددة)", callback_data="acc_show_pending"),
             types.InlineKeyboardButton("📜 السجل كامل", callback_data="acc_show_all"),
             types.InlineKeyboardButton("✅ المسددة", callback_data="acc_show_paid"),
-            types.InlineKeyboardButton("🔙 رجوع", callback_data="acc_main")
+            types.InlineKeyboardButton("�️ حذف شريك/تاجر", callback_data="acc_delete_partner_list"),
+            types.InlineKeyboardButton("�🔙 رجوع", callback_data="acc_main")
         )
         
         bot.edit_message_text(
@@ -2684,6 +2685,138 @@ def acc_quick_summary(call):
         )
     except Exception as e:
         print(f"❌ خطأ في acc_summary: {e}")
+
+
+# ==================== حذف شريك/تاجر ====================
+
+@bot.callback_query_handler(func=lambda call: call.data == "acc_delete_partner_list")
+def acc_delete_partner_list(call):
+    """عرض قائمة الشركاء للحذف"""
+    try:
+        user_id = call.from_user.id
+        stats = get_user_ledger_stats(user_id)
+        partners = stats['partners_summary']
+        
+        if not partners:
+            bot.answer_callback_query(call.id, "📭 لا يوجد شركاء/تجار لحذفهم")
+            return
+        
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        
+        for partner_name, data in partners.items():
+            # عرض اسم الشريك وعدد عملياته
+            btn_text = f"🗑️ {partner_name} ({data['count']} عملية)"
+            # ترميز الاسم للـ callback
+            safe_name = partner_name.replace(" ", "_")[:30]
+            markup.add(types.InlineKeyboardButton(btn_text, callback_data=f"acc_del_confirm_{safe_name}"))
+        
+        markup.add(types.InlineKeyboardButton("🔙 رجوع", callback_data="acc_registry"))
+        
+        bot.edit_message_text(
+            "🗑️ **حذف شريك/تاجر**\n\n"
+            "⚠️ سيتم حذف جميع العمليات المسجلة للشريك المختار!\n\n"
+            "اختر الشريك الذي تريد حذفه:",
+            call.message.chat.id, call.message.message_id,
+            reply_markup=markup, parse_mode="Markdown"
+        )
+    except Exception as e:
+        print(f"❌ خطأ في acc_delete_partner_list: {e}")
+        bot.answer_callback_query(call.id, "حدث خطأ!")
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("acc_del_confirm_"))
+def acc_delete_confirm(call):
+    """تأكيد حذف الشريك"""
+    try:
+        # استخراج اسم الشريك
+        safe_name = call.data.replace("acc_del_confirm_", "")
+        partner_name = safe_name.replace("_", " ")
+        
+        # جلب بيانات الشريك
+        user_id = call.from_user.id
+        stats = get_user_ledger_stats(user_id)
+        
+        # البحث عن الاسم الصحيح
+        actual_name = None
+        partner_data = None
+        for name, data in stats['partners_summary'].items():
+            if name.replace(" ", "_")[:30] == safe_name:
+                actual_name = name
+                partner_data = data
+                break
+        
+        if not actual_name:
+            bot.answer_callback_query(call.id, "❌ الشريك غير موجود")
+            return
+        
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        markup.add(
+            types.InlineKeyboardButton("✅ نعم، احذف", callback_data=f"acc_del_do_{safe_name}"),
+            types.InlineKeyboardButton("❌ إلغاء", callback_data="acc_delete_partner_list")
+        )
+        
+        bot.edit_message_text(
+            f"⚠️ **تأكيد الحذف**\n\n"
+            f"هل أنت متأكد من حذف الشريك:\n\n"
+            f"👤 **{actual_name}**\n"
+            f"📊 عدد العمليات: {partner_data['count']}\n"
+            f"💰 المستحق: {partner_data['pending']:.2f} ر.س\n"
+            f"✅ المسدد: {partner_data['paid']:.2f} ر.س\n\n"
+            f"⛔ **هذا الإجراء لا يمكن التراجع عنه!**",
+            call.message.chat.id, call.message.message_id,
+            reply_markup=markup, parse_mode="Markdown"
+        )
+    except Exception as e:
+        print(f"❌ خطأ في acc_delete_confirm: {e}")
+        bot.answer_callback_query(call.id, "حدث خطأ!")
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith("acc_del_do_"))
+def acc_delete_do(call):
+    """تنفيذ حذف الشريك"""
+    try:
+        # استخراج اسم الشريك
+        safe_name = call.data.replace("acc_del_do_", "")
+        
+        # جلب بيانات الشريك
+        user_id = call.from_user.id
+        stats = get_user_ledger_stats(user_id)
+        
+        # البحث عن الاسم الصحيح
+        actual_name = None
+        for name in stats['partners_summary'].keys():
+            if name.replace(" ", "_")[:30] == safe_name:
+                actual_name = name
+                break
+        
+        if not actual_name:
+            bot.answer_callback_query(call.id, "❌ الشريك غير موجود")
+            return
+        
+        # تنفيذ الحذف
+        deleted_count = delete_partner_all_transactions(user_id, actual_name)
+        
+        if deleted_count > 0:
+            bot.answer_callback_query(call.id, f"✅ تم حذف {deleted_count} عملية!")
+            
+            markup = types.InlineKeyboardMarkup(row_width=1)
+            markup.add(
+                types.InlineKeyboardButton("🗑️ حذف شريك آخر", callback_data="acc_delete_partner_list"),
+                types.InlineKeyboardButton("🏠 القائمة الرئيسية", callback_data="acc_main")
+            )
+            
+            bot.edit_message_text(
+                f"✅ **تم الحذف بنجاح!**\n\n"
+                f"👤 الشريك: {actual_name}\n"
+                f"🗑️ عدد العمليات المحذوفة: {deleted_count}",
+                call.message.chat.id, call.message.message_id,
+                reply_markup=markup, parse_mode="Markdown"
+            )
+        else:
+            bot.answer_callback_query(call.id, "❌ فشل الحذف!")
+    except Exception as e:
+        print(f"❌ خطأ في acc_delete_do: {e}")
+        bot.answer_callback_query(call.id, "حدث خطأ!")
 
 
 # ==================== أمر المحاسبة المباشر ====================

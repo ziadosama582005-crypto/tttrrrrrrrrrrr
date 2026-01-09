@@ -1045,6 +1045,37 @@ def delete_ledger_transaction(owner_id, transaction_id):
         return False
 
 
+def delete_partner_all_transactions(owner_id, partner_name):
+    """
+    حذف جميع عمليات شريك/تاجر معين
+    
+    Args:
+        owner_id: معرف المالك
+        partner_name: اسم الشريك/التاجر
+    
+    Returns:
+        int: عدد العمليات المحذوفة
+    """
+    try:
+        if not db:
+            return 0
+        
+        docs = query_where(db.collection('ledger'), 'owner_id', '==', str(owner_id)).stream()
+        
+        deleted_count = 0
+        for doc in docs:
+            data = doc.to_dict()
+            if data.get('partner_name') == partner_name:
+                doc.reference.delete()
+                deleted_count += 1
+        
+        print(f"✅ تم حذف {deleted_count} عملية للشريك {partner_name}")
+        return deleted_count
+    except Exception as e:
+        print(f"❌ خطأ في حذف عمليات الشريك: {e}")
+        return 0
+
+
 def get_pending_reminders():
     """
     جلب التذكيرات المستحقة (للـ scheduler)
