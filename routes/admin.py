@@ -1825,6 +1825,8 @@ def api_get_customer_details():
             'orders_count': len(orders),
             'total_spent': total_spent,
             'has_2fa': user_data.get('has_2fa', False),
+            'phone_verified': user_data.get('phone_verified', False),
+            'verified_phone': user_data.get('verified_phone', ''),
             'orders': orders,
             'balance_logs': balance_logs
         }
