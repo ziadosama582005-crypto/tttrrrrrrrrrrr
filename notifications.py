@@ -125,8 +125,8 @@ def notify_new_charge(user_id, amount, method='edfapay', username=None):
 def notify_withdrawal_request(user_id, amount, withdrawal_type, fee, net_amount, username=None):
     """إشعار بطلب سحب جديد"""
     type_names = {
-        'normal': '⏳ سحب عادي (6%)',
-        'instant': '⚡ سحب فوري (8.5%)'
+        'normal': '⏳ سحب عادي (5.5%)',
+        'instant': '⚡ سحب فوري (8%)'
     }
     
     message = (

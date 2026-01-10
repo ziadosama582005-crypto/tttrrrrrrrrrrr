@@ -908,14 +908,14 @@
                 <button class="withdraw-btn normal" onclick="openWithdrawModal('normal')" {% if available_for_normal <= 0 %}disabled{% endif %}>
                     <i class="fas fa-clock"></i>
                     <span>سحب عادي</span>
-                    <span class="fee">رسوم 6%</span>
+                    <span class="fee">رسوم 5.5%</span>
                     <span class="btn-hint">بعد 72 ساعة</span>
                 </button>
                 <button class="withdraw-btn instant" onclick="openWithdrawModal('instant')" {% if balance <= 0 %}disabled{% endif %}>
                     <span class="fast-badge">⚡ سريع</span>
                     <i class="fas fa-bolt"></i>
                     <span>سحب فوري</span>
-                    <span class="fee">رسوم 8.5%</span>
+                    <span class="fee">رسوم 8%</span>
                     <span class="btn-hint">متاح الآن</span>
                 </button>
             </div>
@@ -1112,11 +1112,11 @@
             
             if (type === 'normal') {
                 document.getElementById('modalTitle').innerHTML = '<i class="fas fa-clock"></i><span>سحب عادي</span>';
-                currentFeePercent = 6;
+                currentFeePercent = 5.5;
                 document.getElementById('availableText').innerHTML = 'المتاح: <span style="color: #00ff88;">' + availableForNormal.toFixed(2) + '</span> ر.س';
             } else {
                 document.getElementById('modalTitle').innerHTML = '<i class="fas fa-bolt"></i><span>سحب فوري</span>';
-                currentFeePercent = 8.5;
+                currentFeePercent = 8;
                 document.getElementById('availableText').innerHTML = 'المتاح: <span style="color: #00ff88;">' + balance.toFixed(2) + '</span> ر.س';
             }
             

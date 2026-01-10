@@ -1117,7 +1117,7 @@ def submit_withdraw():
         
         # إرسال إشعار للمستخدم
         try:
-            type_text = "عادي (6%)" if withdraw_type == 'normal' else "فوري (8.5%)"
+            type_text = "عادي (5.5%)" if withdraw_type == 'normal' else "فوري (8%)"
             user_message = f"""
 💸 تم استلام طلب السحب!
 
