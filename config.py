@@ -51,7 +51,7 @@ RATE_LIMIT_DEFAULT = ["200 per day", "50 per hour"]
 RATE_LIMIT_STORAGE = "memory://"
 
 # === إعدادات السلة ===
-CART_EXPIRY_HOURS = 3  # ساعات انتهاء السلة
+CART_EXPIRY_HOURS = 1  # ساعات انتهاء السلة
 
 # === الأقسام الافتراضية ===
 DEFAULT_CATEGORIES = [

@@ -139,7 +139,7 @@ def profile():
             
             # ===== المعادلة الذهبية: المتاح = الرصيد الحالي - المجمد =====
             # فترة التجميد (10 دقائق للاختبار، 72*60 للإنتاج)
-            FREEZE_MINUTES = 10  # غيّرها إلى 72*60 للإنتاج
+            FREEZE_MINUTES = 5000  # غيّرها إلى 72*60 للإنتاج
             
             total_frozen_balance = 0.0
             min_minutes_left = 0
@@ -931,7 +931,7 @@ def submit_withdraw():
         
         # حساب الرسوم
         if withdraw_type == 'normal':
-            fee_percent = 6.0
+            fee_percent = 5.5
             
             # ===== المعادلة الذهبية: المتاح = الرصيد الحالي - المجمد =====
             import datetime
@@ -1000,7 +1000,7 @@ def submit_withdraw():
                     'available_for_normal': current_available_balance
                 }), 400
         else:
-            fee_percent = 8.5
+            fee_percent = 8
         
         fee_amount = amount * (fee_percent / 100)
         net_amount = amount - fee_amount
