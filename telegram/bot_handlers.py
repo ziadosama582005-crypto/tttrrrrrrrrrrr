@@ -16,6 +16,12 @@ from extensions import (
 )
 from config import CONTACT_WHATSAPP
 
+# استيراد دالة إشعار التفاعلات
+try:
+    from notifications import send_activity_notification
+except ImportError:
+    send_activity_notification = lambda *args, **kwargs: None
+
 # استيراد firestore للـ SERVER_TIMESTAMP
 try:
     from firebase_admin import firestore
@@ -206,6 +212,9 @@ def send_welcome(message):
                         user_data['profile_photo'] = profile_photo
                     user_ref.set(user_data)
                     print(f"✅ مستخدم جديد تم إنشاؤه")
+                    
+                    # إرسال إشعار لقناة التفاعلات
+                    send_activity_notification('register', user_id, username, {})
                 else:
                     # جلب الرصيد الحالي
                     balance = user_doc.to_dict().get('balance', 0.0)
@@ -1240,6 +1249,9 @@ def handle_user_state_message(message):
                 f"🎉 استمتع بالتسوق!",
                 parse_mode="Markdown"
             )
+            
+            # إرسال إشعار لقناة التفاعلات
+            send_activity_notification('charge', user_id, user_name, {'amount': amount})
             
             # إشعار المالك
             try:

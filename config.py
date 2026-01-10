@@ -18,6 +18,9 @@ SITE_URL = os.environ.get("SITE_URL", "http://localhost:5000")
 # === قناة الموثقين ===
 VERIFIED_CHANNEL_ID = os.environ.get("VERIFIED_CHANNEL_ID", "")  # معرف قناة الموثقين
 
+# === قناة التفاعلات ===
+ACTIVITY_CHANNEL_ID = os.environ.get("ACTIVITY_CHANNEL_ID", "")  # معرف قناة التفاعلات المهمة
+
 # === إعدادات التواصل ===
 CONTACT_BOT_URL = os.environ.get("CONTACT_BOT_URL", "https://t.me/GamersTR_bot")
 CONTACT_WHATSAPP = os.environ.get("CONTACT_WHATSAPP", "https://wa.me/966504104956")

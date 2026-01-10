@@ -7,6 +7,12 @@
 import logging
 from extensions import bot, BOT_ACTIVE, ADMIN_ID, db
 
+# استيراد معرف قناة التفاعلات
+try:
+    from config import ACTIVITY_CHANNEL_ID
+except ImportError:
+    ACTIVITY_CHANNEL_ID = ""
+
 try:
     from google.cloud.firestore_v1.base_query import FieldFilter
     USE_FIELD_FILTER = True
@@ -316,3 +322,83 @@ def notify_recharge_request(user_id, amount, order_id, username=None):
         f"⏳ في انتظار الدفع..."
     )
     return notify_owner(message)
+
+
+# ==================== قناة التفاعلات ====================
+
+def send_activity_notification(activity_type, user_id, username=None, details=None):
+    """
+    إرسال إشعار للقناة عند حدوث تفاعل مهم
+    
+    Args:
+        activity_type: نوع التفاعل (charge, withdraw, purchase, register)
+        user_id: معرف المستخدم
+        username: اسم المستخدم (اختياري)
+        details: تفاصيل إضافية (dict)
+    """
+    try:
+        if not ACTIVITY_CHANNEL_ID:
+            return False
+        
+        channel_id = f"-100{ACTIVITY_CHANNEL_ID}" if not str(ACTIVITY_CHANNEL_ID).startswith('-') else ACTIVITY_CHANNEL_ID
+        
+        from datetime import datetime
+        now = datetime.now().strftime('%Y/%m/%d - %H:%M:%S')
+        
+        # تحديد نوع النشاط والرسالة
+        activity_icons = {
+            'charge': '💰',
+            'withdraw': '💸',
+            'purchase': '🛒',
+            'register': '👤',
+            'login': '🔑'
+        }
+        
+        activity_titles = {
+            'charge': 'شحن رصيد',
+            'withdraw': 'طلب سحب',
+            'purchase': 'عملية شراء',
+            'register': 'تسجيل جديد',
+            'login': 'تسجيل دخول'
+        }
+        
+        icon = activity_icons.get(activity_type, '📌')
+        title = activity_titles.get(activity_type, 'تفاعل')
+        
+        # تنسيق اليوزرنيم
+        username_display = f"@{username}" if username else "غير محدد"
+        
+        # بناء الرسالة
+        message = f"{icon} <b>{title}</b>\n"
+        message += f"━━━━━━━━━━━━━━━\n"
+        message += f"👤 <b>المستخدم:</b> {username_display}\n"
+        message += f"🆔 <b>ID:</b> <code>{user_id}</code>\n"
+        
+        # إضافة التفاصيل حسب النوع
+        if details:
+            if activity_type == 'charge' and 'amount' in details:
+                message += f"💵 <b>المبلغ:</b> {details['amount']} ريال\n"
+            elif activity_type == 'withdraw':
+                if 'amount' in details:
+                    message += f"💵 <b>المبلغ:</b> {details['amount']} ريال\n"
+                if 'type' in details:
+                    message += f"📋 <b>النوع:</b> {details['type']}\n"
+            elif activity_type == 'purchase':
+                if 'product' in details:
+                    message += f"📦 <b>المنتج:</b> {details['product']}\n"
+                if 'price' in details:
+                    message += f"💵 <b>السعر:</b> {details['price']} ريال\n"
+        
+        message += f"━━━━━━━━━━━━━━━\n"
+        message += f"🕐 <b>الوقت:</b> {now}"
+        
+        bot.send_message(
+            chat_id=channel_id,
+            text=message,
+            parse_mode='HTML'
+        )
+        logger.info(f"تم إرسال إشعار نشاط للقناة: {activity_type} - {user_id}")
+        return True
+    except Exception as e:
+        logger.error(f"خطأ في إرسال إشعار النشاط: {e}")
+        return False

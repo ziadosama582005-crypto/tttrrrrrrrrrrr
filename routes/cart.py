@@ -15,6 +15,12 @@ from security_utils import (
 )
 from encryption_utils import decrypt_data
 
+# استيراد دالة إشعار التفاعلات
+try:
+    from notifications import send_activity_notification
+except ImportError:
+    send_activity_notification = lambda *args, **kwargs: None
+
 # إنشاء Blueprint
 cart_bp = Blueprint('cart', __name__)
 
@@ -544,6 +550,14 @@ def api_cart_checkout():
         
         # تسجيل الحدث الأمني
         log_security_event('CHECKOUT_SUCCESS', user_id, f'الإجمالي: {total}, المنتجات: {len(purchased_items)}')
+        
+        # إرسال إشعار لقناة التفاعلات
+        telegram_username = session.get('telegram_username', '')
+        product_names = ', '.join([item.get('name', 'منتج')[:20] for item in purchased_items[:3]])
+        send_activity_notification('purchase', user_id, telegram_username, {
+            'product': product_names,
+            'price': total
+        })
         
         return jsonify({
             'status': 'success',

@@ -35,10 +35,11 @@ except ImportError:
 
 # استيراد نظام الإشعارات
 try:
-    from notifications import notify_withdrawal_request, notify_owner
+    from notifications import notify_withdrawal_request, notify_owner, send_activity_notification
 except ImportError:
     notify_withdrawal_request = lambda *args, **kwargs: None
     notify_owner = lambda *args, **kwargs: None
+    send_activity_notification = lambda *args, **kwargs: None
 
 # استيراد معرف قناة الموثقين
 try:
@@ -1118,6 +1119,14 @@ def submit_withdraw():
         # إرسال إشعار للمستخدم
         try:
             type_text = "عادي (5.5%)" if withdraw_type == 'normal' else "فوري (8%)"
+            
+            # إرسال إشعار لقناة التفاعلات
+            telegram_username = session.get('telegram_username', '')
+            send_activity_notification('withdraw', user_id, telegram_username, {
+                'amount': amount,
+                'type': type_text
+            })
+            
             user_message = f"""
 💸 تم استلام طلب السحب!
 
