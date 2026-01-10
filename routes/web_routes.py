@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, session
 from firebase_utils import (
     get_balance, get_user_cart, get_categories, 
     get_products_by_category, get_product_by_id,
-    get_all_categories_sales
+    get_all_categories_sales, get_user_data
 )
 from extensions import BOT_USERNAME
 from config import CONTACT_BOT_URL, CONTACT_WHATSAPP
@@ -21,11 +21,16 @@ def index():
     profile_photo = session.get('profile_photo', '')
     is_logged_in = bool(user_id)
     
-    # 1. جلب الرصيد
+    # 1. جلب الرصيد وبيانات المستخدم
     balance = 0.0
+    phone_verified = False
+    totp_enabled = False
     if user_id:
         try:
             balance = get_balance(user_id)
+            user_data = get_user_data(user_id)
+            phone_verified = user_data.get('phone_verified', False)
+            totp_enabled = user_data.get('totp_enabled', False)
         except:
             balance = 0.0
     
@@ -46,7 +51,7 @@ def index():
         cart = get_user_cart(str(user_id)) or {}
         cart_count = len(cart.get('items', []))
     
-    # 4. تحضير JSON للفئات
+    # 5. تحضير JSON للفئات
     categories_json = json.dumps([{'id': cat.get('id', ''), 'name': cat.get('name', '')} for cat in categories])
     
     return render_template('categories.html',
@@ -58,6 +63,8 @@ def index():
                          user_name=user_name,
                          profile_photo=profile_photo,
                          is_logged_in=is_logged_in,
+                         phone_verified=phone_verified,
+                         totp_enabled=totp_enabled,
                          cart_count=cart_count,
                          bot_username=BOT_USERNAME,
                          contact_bot_url=CONTACT_BOT_URL,

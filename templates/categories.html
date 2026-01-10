@@ -205,6 +205,49 @@
         }
         .dropdown-balance-card .lbl { font-size: 12px; opacity: 0.9; }
         .dropdown-balance-card .val { font-size: 20px; font-weight: 800; }
+        /* شريط حالة التوثيق */
+        .security-status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 8px 12px;
+            margin-top: 10px;
+            gap: 0;
+        }
+        .security-status-bar .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #6b7280;
+            font-size: 12px;
+            text-decoration: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+        .security-status-bar .status-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .security-status-bar .status-item.active {
+            color: #22c55e;
+        }
+        .security-status-bar .status-item.active i {
+            color: #22c55e;
+        }
+        .security-status-bar .status-item.active-gold {
+            color: #f59e0b;
+        }
+        .security-status-bar .status-item.active-gold i {
+            color: #f59e0b;
+        }
+        .security-status-bar .status-divider {
+            width: 1px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 0 5px;
+        }
         .dropdown-quick-actions {
             display: flex;
             padding: 15px;
@@ -607,6 +650,18 @@
             <div class="dropdown-balance-card">
                 <span class="lbl">الرصيد الحالي</span>
                 <span class="val">{{ "%.2f"|format(balance|float) }} <small>ر.س</small></span>
+            </div>
+            <!-- شريط حالة التوثيق -->
+            <div class="security-status-bar">
+                <a href="/profile" class="status-item {% if phone_verified %}active{% endif %}">
+                    <i class="fas fa-check-circle"></i>
+                    <span>{% if phone_verified %}رقم موثق{% else %}وثّق رقمك{% endif %}</span>
+                </a>
+                <div class="status-divider"></div>
+                <a href="/profile" class="status-item {% if totp_enabled %}active-gold{% endif %}">
+                    <i class="fas fa-lock"></i>
+                    <span>{% if totp_enabled %}محمي{% else %}فعّل الحماية{% endif %}</span>
+                </a>
             </div>
         </div>
         <div class="dropdown-quick-actions">

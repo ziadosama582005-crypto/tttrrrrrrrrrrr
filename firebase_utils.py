@@ -36,6 +36,22 @@ def query_where(collection_ref, field, op, value):
     else:
         return collection_ref.where(field, op, value)
 
+# === دوال المستخدم ===
+
+def get_user_data(user_id):
+    """جلب بيانات المستخدم من Firebase"""
+    try:
+        if not db:
+            return {}
+        uid = str(user_id)
+        doc = db.collection('users').document(uid).get()
+        if doc.exists:
+            return doc.to_dict()
+        return {}
+    except Exception as e:
+        print(f"خطأ في جلب بيانات المستخدم: {e}")
+        return {}
+
 # === دوال الرصيد ===
 def get_balance(user_id):
     """جلب رصيد المستخدم من Firebase"""
