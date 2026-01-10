@@ -17,7 +17,7 @@ SITE_URL = os.environ.get("SITE_URL", "http://localhost:5000")
 
 # === إعدادات التواصل ===
 CONTACT_BOT_URL = os.environ.get("CONTACT_BOT_URL", "https://t.me/awedjabot")
-CONTACT_WHATSAPP = os.environ.get("CONTACT_WHATSAPP", "")
+CONTACT_WHATSAPP = os.environ.get("CONTACT_WHATSAPP", "https://wa.me/966504104956")
 
 # === إعدادات بوابة الدفع EdfaPay ===
 EDFAPAY_MERCHANT_ID = os.environ.get("EDFAPAY_MERCHANT_ID", "")
