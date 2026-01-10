@@ -369,6 +369,8 @@
         }
         .side-menu-content {
             padding: 15px;
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
         }
         .menu-item {
             display: flex;
@@ -383,6 +385,15 @@
         }
         .menu-item:hover {
             background: rgba(108, 92, 231, 0.2);
+        }
+        .category-menu-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+        }
+        .category-menu-item:hover {
+            background: rgba(108, 92, 231, 0.3);
+            border-color: rgba(108, 92, 231, 0.5);
+            transform: translateX(-5px);
         }
         .menu-item i {
             font-size: 20px;
@@ -706,38 +717,37 @@
     <div class="side-menu-overlay" id="sideMenuOverlay" onclick="closeSideMenu()"></div>
     <div class="side-menu" id="sideMenu">
         <div class="side-menu-header">
-            <h3>القائمة</h3>
+            <h3>📂 التصنيفات</h3>
             <button class="close-menu-btn" onclick="closeSideMenu()">×</button>
         </div>
         <div class="side-menu-content">
-            <a href="/" class="menu-item">
-                <span>الرئيسية</span>
+            {% if categories %}
+            {% for category in categories %}
+            <a href="/t/{{ category.id }}" class="menu-item category-menu-item" onclick="closeSideMenu();">
+                {% if category.image_url %}
+                <img src="{{ category.image_url }}" alt="{{ category.name }}" style="width: 32px; height: 32px; border-radius: 8px; object-fit: cover;">
+                {% else %}
+                <span style="font-size: 24px;">🎮</span>
+                {% endif %}
+                <div style="flex: 1;">
+                    <span style="display: block;">{{ category.name }}</span>
+                    <span style="font-size: 11px; color: #888;">{{ category.products_count }} منتج</span>
+                </div>
             </a>
-            <div class="menu-item" id="accountMenuItem" onclick="handleAccountClick();" style="cursor: pointer;">
-                <span id="accountIcon"></span>
-                <span id="accountText">حسابي</span>
-            </div>
-            <div class="menu-item" onclick="goToPageOrLogin('/cart', 'السلة');" style="cursor: pointer;">
-                <span>السلة</span>
-            </div>
-            <div class="menu-item" onclick="goToPageOrLogin('/wallet', 'المحفظة');" style="cursor: pointer;">
-                <span>المحفظة</span>
-            </div>
-            <div class="menu-divider"></div>
-            <div class="menu-item" onclick="goToPageOrLogin('/my_purchases', 'مشترياتي');" style="cursor: pointer;">
-                <span>مشترياتي</span>
-            </div>
-            <div class="menu-item" onclick="window.location.href='/contact-us'; closeSideMenu();" style="cursor: pointer;">
-                <span>الدعم الفني</span>
-            </div>
-            <div class="menu-divider"></div>
-            {% if contact_whatsapp %}
-            <div class="menu-item" onclick="window.open('{{ contact_whatsapp }}', '_blank'); closeSideMenu();" style="cursor: pointer;">
-                <span>واتساب</span>
+            {% endfor %}
+            {% else %}
+            <div class="menu-item" style="color: #888; justify-content: center;">
+                <span>لا توجد تصنيفات</span>
             </div>
             {% endif %}
-            <div class="menu-item" onclick="openTelegramBot(); closeSideMenu();" style="cursor: pointer;">
-                <span>تيليجرام</span>
+            <div class="menu-divider"></div>
+            <a href="/" class="menu-item" onclick="closeSideMenu();">
+                <span>🏠</span>
+                <span>الرئيسية</span>
+            </a>
+            <div class="menu-item" onclick="window.location.href='/contact-us'; closeSideMenu();" style="cursor: pointer;">
+                <span>📞</span>
+                <span>الدعم الفني</span>
             </div>
         </div>
     </div>
