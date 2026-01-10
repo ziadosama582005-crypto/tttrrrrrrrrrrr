@@ -228,9 +228,11 @@ def send_welcome(message):
         btn_acc = types.InlineKeyboardButton("المحاسبة", callback_data="acc_main")
         btn_code = types.InlineKeyboardButton("شحن كود", callback_data="recharge_code")
         btn_invoice = types.InlineKeyboardButton("إنشاء فاتورة", callback_data="create_invoice")
+        btn_support = types.InlineKeyboardButton("📞 الدعم الفني", callback_data="support_contact")
         markup.add(btn_site, btn_myid)
         markup.add(btn_acc)
         markup.add(btn_code, btn_invoice)
+        markup.add(btn_support)
         
         # إرسال الرسالة
         print(f"📤 إرسال رسالة الترحيب...")
@@ -261,6 +263,81 @@ def handle_myid_button(call):
         bot.answer_callback_query(call.id)
     except Exception as e:
         print(f"❌ خطأ في my_id button: {e}")
+        bot.answer_callback_query(call.id, "حدث خطأ!")
+
+# معالج زر الدعم الفني
+@bot.callback_query_handler(func=lambda call: call.data == "support_contact")
+def handle_support_button(call):
+    """معالج زر الدعم الفني"""
+    try:
+        support_msg = (
+            "📞 *الدعم الفني*\n\n"
+            "إذا واجهتك أي مشكلة أو لديك استفسار،\n"
+            "تواصل معنا عبر الواتساب:\n\n"
+            "👇 اضغط على الرابط أدناه 👇"
+        )
+        
+        markup = types.InlineKeyboardMarkup()
+        btn_whatsapp = types.InlineKeyboardButton("💬 واتساب الدعم", url="https://wa.me/966504104956")
+        btn_back = types.InlineKeyboardButton("🔙 رجوع", callback_data="back_to_main")
+        markup.add(btn_whatsapp)
+        markup.add(btn_back)
+        
+        bot.edit_message_text(
+            support_msg,
+            call.message.chat.id,
+            call.message.message_id,
+            parse_mode="Markdown",
+            reply_markup=markup
+        )
+        bot.answer_callback_query(call.id)
+    except Exception as e:
+        print(f"❌ خطأ في support button: {e}")
+        bot.answer_callback_query(call.id, "حدث خطأ!")
+
+# معالج زر الرجوع للقائمة الرئيسية
+@bot.callback_query_handler(func=lambda call: call.data == "back_to_main")
+def handle_back_to_main(call):
+    """الرجوع للقائمة الرئيسية"""
+    try:
+        user_id = call.from_user.id
+        user_name = call.from_user.first_name or "صديقي"
+        
+        # جلب الرصيد
+        balance = 0.0
+        if db:
+            try:
+                user_doc = db.collection('users').document(str(user_id)).get()
+                if user_doc.exists:
+                    balance = user_doc.to_dict().get('balance', 0.0)
+            except:
+                pass
+        
+        # إنشاء الأزرار
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        btn_site = types.InlineKeyboardButton("رابط الموقع", url=SITE_URL)
+        btn_myid = types.InlineKeyboardButton("آيدي", callback_data="my_id")
+        btn_acc = types.InlineKeyboardButton("المحاسبة", callback_data="acc_main")
+        btn_code = types.InlineKeyboardButton("شحن كود", callback_data="recharge_code")
+        btn_invoice = types.InlineKeyboardButton("إنشاء فاتورة", callback_data="create_invoice")
+        btn_support = types.InlineKeyboardButton("📞 الدعم الفني", callback_data="support_contact")
+        markup.add(btn_site, btn_myid)
+        markup.add(btn_acc)
+        markup.add(btn_code, btn_invoice)
+        markup.add(btn_support)
+        
+        bot.edit_message_text(
+            f"أهلاً يا {user_name}! 👋\n\n"
+            f"💰 رصيدك: {balance:.2f} ريال\n\n"
+            f"اختر من الأزرار بالأسفل 👇",
+            call.message.chat.id,
+            call.message.message_id,
+            parse_mode="Markdown",
+            reply_markup=markup
+        )
+        bot.answer_callback_query(call.id)
+    except Exception as e:
+        print(f"❌ خطأ في back_to_main: {e}")
         bot.answer_callback_query(call.id, "حدث خطأ!")
 
 # معالج زر إنشاء فاتورة
