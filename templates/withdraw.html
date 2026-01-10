@@ -920,12 +920,22 @@
                 </button>
             </div>
             
-            {% if frozen_amount > 0 %}
+            {% if frozen_charges and frozen_charges|length > 0 %}
             <div class="withdraw-info-box frozen">
                 <i class="fas fa-snowflake"></i>
-                <div>
-                    <strong>رصيد مجمد:</strong> {{ "%.2f"|format(frozen_amount|float) }} ر.س<br>
-                    <span style="font-size: 12px;">سيكون متاحاً للسحب العادي بعد {{ freeze_time_left }}</span>
+                <div style="width: 100%;">
+                    <strong>الشحنات المجمدة:</strong>
+                    <div style="margin-top: 8px;">
+                        {% for charge in frozen_charges %}
+                        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 13px;">
+                            <span style="color: #00ff88;">{{ "%.2f"|format(charge.amount|float) }} ر.س</span>
+                            <span style="color: #888;">⏰ متبقي {{ charge.time_left }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 12px; color: #aaa;">
+                        💡 كل شحنة لها عداد منفصل (72 ساعة من وقت الشحن)
+                    </div>
                 </div>
             </div>
             {% endif %}

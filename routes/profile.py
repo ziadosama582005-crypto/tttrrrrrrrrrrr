@@ -387,6 +387,7 @@ def withdraw_page():
         
         total_frozen = 0.0
         min_minutes_left = 0
+        frozen_charges_list = []  # قائمة الشحنات المجمدة مع أوقاتها
         
         try:
             user_charges = db.collection('charge_history').where(filter=FieldFilter('user_id', '==', user_id)).get()
@@ -412,10 +413,28 @@ def withdraw_page():
                             remaining = FREEZE_MINUTES - minutes_passed
                             if remaining > min_minutes_left:
                                 min_minutes_left = int(remaining)
+                            
+                            # إضافة للقائمة مع الوقت المتبقي
+                            remaining_int = int(remaining)
+                            if remaining_int > 60:
+                                hours = remaining_int // 60
+                                mins = remaining_int % 60
+                                time_str = f"{hours} ساعة و {mins} دقيقة"
+                            else:
+                                time_str = f"{remaining_int} دقيقة"
+                            
+                            frozen_charges_list.append({
+                                'amount': charge_amount,
+                                'time_left': time_str,
+                                'minutes_left': remaining_int
+                            })
                     except:
                         pass
         except Exception as e:
             logger.error(f"خطأ في حساب الرصيد المجمد: {e}")
+        
+        # ترتيب الشحنات من الأقل وقتاً للأكثر (الأقرب للإتاحة أولاً)
+        frozen_charges_list.sort(key=lambda x: x['minutes_left'])
         
         available_for_normal = max(0, balance - total_frozen)
         
@@ -583,6 +602,7 @@ def withdraw_page():
             available_for_normal=round(available_for_normal, 2),
             frozen_amount=round(total_frozen, 2),
             freeze_time_left=freeze_time_left,
+            frozen_charges=frozen_charges_list,
             total_charges=round(total_charges, 2),
             purchases_count=purchases_count,
             withdrawals_count=withdrawals_count,
