@@ -14,6 +14,7 @@ from extensions import (
     ADMIN_ID, logger, BOT_ACTIVE, SITE_URL,
     EDFAPAY_MERCHANT_ID, EDFAPAY_PASSWORD
 )
+from config import CONTACT_WHATSAPP
 
 # استيراد firestore للـ SERVER_TIMESTAMP
 try:
@@ -278,7 +279,7 @@ def handle_support_button(call):
         )
         
         markup = types.InlineKeyboardMarkup()
-        btn_whatsapp = types.InlineKeyboardButton("💬 واتساب الدعم", url="https://wa.me/966504104956")
+        btn_whatsapp = types.InlineKeyboardButton("💬 واتساب الدعم", url=CONTACT_WHATSAPP)
         btn_back = types.InlineKeyboardButton("🔙 رجوع", callback_data="back_to_main")
         markup.add(btn_whatsapp)
         markup.add(btn_back)
