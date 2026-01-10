@@ -857,6 +857,54 @@ def get_all_categories_sales():
 
 # ===================== نظام المحاسبة الشخصية (دفتر الديون) =====================
 
+def cleanup_old_ledger_transactions(owner_id, days=60):
+    """
+    حذف الفواتير القديمة (أكثر من 60 يوم)
+    
+    Args:
+        owner_id: معرف المستخدم
+        days: عدد الأيام (افتراضي 60)
+    
+    Returns:
+        int: عدد الفواتير المحذوفة
+    """
+    try:
+        if not db:
+            return 0
+        
+        import datetime
+        cutoff_date = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=days)
+        
+        deleted_count = 0
+        docs = query_where(db.collection('ledger'), 'owner_id', '==', str(owner_id)).stream()
+        
+        for doc in docs:
+            data = doc.to_dict()
+            created_at = data.get('created_at')
+            
+            if created_at:
+                # تحويل التاريخ
+                if hasattr(created_at, 'timestamp'):
+                    doc_date = datetime.datetime.fromtimestamp(created_at.timestamp(), datetime.timezone.utc)
+                elif isinstance(created_at, (int, float)):
+                    doc_date = datetime.datetime.fromtimestamp(created_at, datetime.timezone.utc)
+                else:
+                    continue
+                
+                # حذف إذا قديمة
+                if doc_date < cutoff_date:
+                    db.collection('ledger').document(doc.id).delete()
+                    deleted_count += 1
+        
+        if deleted_count > 0:
+            print(f"🗑️ تم حذف {deleted_count} فاتورة قديمة (أكثر من {days} يوم) للمستخدم {owner_id}")
+        
+        return deleted_count
+    except Exception as e:
+        print(f"❌ خطأ في حذف الفواتير القديمة: {e}")
+        return 0
+
+
 def add_ledger_transaction(owner_id, data):
     """
     إضافة عملية جديدة في دفتر الحسابات

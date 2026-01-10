@@ -2162,7 +2162,8 @@ from firebase_utils import (
     add_ledger_transaction, get_user_ledger_stats,
     get_partner_transactions, settle_partner_debt,
     settle_single_transaction, delete_ledger_transaction,
-    get_ledger_transaction_by_id, delete_partner_all_transactions
+    get_ledger_transaction_by_id, delete_partner_all_transactions,
+    cleanup_old_ledger_transactions
 )
 from utils import get_next_weekday, get_weekday_name_arabic, format_date_arabic, get_weekday_after_weeks
 
@@ -2536,6 +2537,9 @@ def finish_ledger_transaction(user_id, message_obj, reminder):
 def acc_registry_view(call):
     """قائمة خيارات السجل"""
     try:
+        # حذف الفواتير القديمة تلقائياً
+        deleted = cleanup_old_ledger_transactions(call.from_user.id, days=60)
+        
         markup = types.InlineKeyboardMarkup(row_width=2)
         markup.add(
             types.InlineKeyboardButton("المستحقات", callback_data="acc_show_pending"),
@@ -2551,8 +2555,15 @@ def acc_registry_view(call):
             types.InlineKeyboardButton("رجوع", callback_data="acc_main")
         )
         
+        msg = "📂 *السجل / المستخدمين*\n\n"
+        msg += "اختر طريقة العرض:\n\n"
+        msg += "⚠️ _الفواتير تُحذف تلقائياً بعد 60 يوم_"
+        
+        if deleted > 0:
+            msg += f"\n\n🗑️ تم حذف {deleted} فاتورة قديمة"
+        
         bot.edit_message_text(
-            "السجل / المستخدمين\n\nاختر طريقة العرض:",
+            msg,
             call.message.chat.id, call.message.message_id,
             reply_markup=markup, parse_mode="Markdown"
         )
