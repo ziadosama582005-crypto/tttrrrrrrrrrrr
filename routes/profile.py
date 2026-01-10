@@ -187,8 +187,8 @@ def profile():
             now = datetime.datetime.now(datetime.timezone.utc)
             
             # ===== المعادلة الذهبية: المتاح = الرصيد الحالي - المجمد =====
-            # فترة التجميد (10 دقائق للاختبار، 72*60 للإنتاج)
-            FREEZE_MINUTES = 5000  # غيّرها إلى 72*60 للإنتاج
+            # فترة التجميد: 72 ساعة (3 أيام)
+            FREEZE_MINUTES = 72 * 60  # 4320 دقيقة = 72 ساعة
             
             total_frozen_balance = 0.0
             min_minutes_left = 0
@@ -382,7 +382,7 @@ def withdraw_page():
         # === حساب الرصيد المتاح للسحب العادي ===
         import datetime as dt
         now = dt.datetime.now(dt.timezone.utc)
-        FREEZE_MINUTES = 10  # غيّرها إلى 72*60 للإنتاج
+        FREEZE_MINUTES = 72 * 60  # 4320 دقيقة = 72 ساعة
         
         total_frozen = 0.0
         min_minutes_left = 0
@@ -996,8 +996,8 @@ def submit_withdraw():
             import datetime
             now = datetime.datetime.now(datetime.timezone.utc)
             
-            # فترة التجميد (10 دقائق للاختبار، 72*60 للإنتاج)
-            FREEZE_MINUTES = 10
+            # فترة التجميد: 72 ساعة (3 أيام)
+            FREEZE_MINUTES = 72 * 60  # 4320 دقيقة = 72 ساعة
             
             total_frozen_balance = 0.0
             min_minutes_left = 0
