@@ -2385,6 +2385,107 @@ IBAN: {iban}"""
         return jsonify({'status': 'error', 'message': 'حدث خطأ'})
 
 
+# ===================== إدارة أرقام الجوال =====================
+
+@admin_bp.route('/api/admin/reset_phone', methods=['POST'])
+def reset_customer_phone():
+    """حذف أو تغيير رقم الجوال الموثق - للمالك فقط"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    
+    # التحقق أن المستخدم هو المالك
+    current_admin_id = session.get('admin_id')
+    if str(current_admin_id) != str(ADMIN_ID):
+        return jsonify({'status': 'error', 'message': 'هذا الإجراء متاح للمالك فقط'}), 403
+    
+    try:
+        data = request.json or {}
+        user_id = data.get('user_id')
+        action = data.get('action', 'delete')  # delete أو change
+        new_phone = data.get('new_phone', '')
+        
+        if not user_id:
+            return jsonify({'status': 'error', 'message': 'معرف المستخدم مطلوب'})
+        
+        if not db:
+            return jsonify({'status': 'error', 'message': 'قاعدة البيانات غير متاحة'})
+        
+        # البحث عن المستخدم
+        user_ref = db.collection('users').document(str(user_id))
+        user_doc = user_ref.get()
+        
+        if not user_doc.exists:
+            return jsonify({'status': 'error', 'message': 'المستخدم غير موجود'})
+        
+        user_data = user_doc.to_dict()
+        old_phone = user_data.get('verified_phone', '')
+        
+        if action == 'delete':
+            # حذف رقم الجوال
+            user_ref.update({
+                'verified_phone': firestore.DELETE_FIELD,
+                'phone_verified': False,
+                'phone_reset_at': time.time(),
+                'phone_reset_by': str(ADMIN_ID)
+            })
+            
+            # إشعار المستخدم
+            if bot:
+                try:
+                    bot.send_message(
+                        int(user_id),
+                        "⚠️ *تم إلغاء توثيق رقم جوالك*\n\n"
+                        "تم حذف رقم الجوال الموثق من حسابك بواسطة الإدارة.\n"
+                        "يمكنك إضافة رقم جديد من صفحة الإعدادات.",
+                        parse_mode='Markdown'
+                    )
+                except:
+                    pass
+            
+            return jsonify({
+                'status': 'success',
+                'message': f'تم حذف رقم الجوال {old_phone} بنجاح'
+            })
+        
+        elif action == 'change':
+            # تغيير رقم الجوال
+            if not new_phone or len(new_phone) != 10 or not new_phone.startswith('05'):
+                return jsonify({'status': 'error', 'message': 'رقم الجوال غير صالح (يجب أن يبدأ بـ 05 ويتكون من 10 أرقام)'})
+            
+            user_ref.update({
+                'verified_phone': new_phone,
+                'phone_verified': True,
+                'phone_changed_at': time.time(),
+                'phone_changed_by': str(ADMIN_ID)
+            })
+            
+            # إشعار المستخدم
+            if bot:
+                try:
+                    bot.send_message(
+                        int(user_id),
+                        f"📱 *تم تغيير رقم جوالك*\n\n"
+                        f"الرقم القديم: `{old_phone}`\n"
+                        f"الرقم الجديد: `{new_phone}`\n\n"
+                        f"تم التغيير بواسطة الإدارة.",
+                        parse_mode='Markdown'
+                    )
+                except:
+                    pass
+            
+            return jsonify({
+                'status': 'success',
+                'message': f'تم تغيير الرقم من {old_phone} إلى {new_phone}'
+            })
+        
+        else:
+            return jsonify({'status': 'error', 'message': 'إجراء غير معروف'})
+    
+    except Exception as e:
+        logger.error(f"Error resetting phone: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+
+
 # ===================== دالة التهيئة =====================
 
 def init_admin(app_db, app_bot, admin_id, app_limiter=None, bot_active=False):

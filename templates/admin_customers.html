@@ -268,9 +268,33 @@
                         </div>
                     `;
                 }
+                const verifiedPhone = c.verified_phone || '';
+                const phoneSection = verifiedPhone ? `
+                    <div style="background: rgba(0,184,148,0.1); border: 1px solid rgba(0,184,148,0.3); border-radius: 10px; padding: 15px; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <span style="color: var(--success);">📱 رقم الجوال الموثق:</span>
+                                <span style="font-weight: 600; margin-right: 10px; direction: ltr;">${verifiedPhone}</span>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-warning btn-sm" onclick="changePhone('${userId}', '${verifiedPhone}')">
+                                    ✏️ تغيير
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="deletePhone('${userId}', '${verifiedPhone}')">
+                                    🗑️ حذف
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                ` : `
+                    <div style="background: rgba(108,117,125,0.1); border: 1px solid rgba(108,117,125,0.3); border-radius: 10px; padding: 15px; margin-bottom: 20px;">
+                        <span style="color: var(--muted);">📱 لا يوجد رقم جوال موثق</span>
+                    </div>
+                `;
                 details.innerHTML = `
                     <h2 style="margin-bottom: 20px;"> ${name}</h2>
                     <p style="color: var(--muted); margin-bottom: 20px;">ID: ${userId}</p>
+                    ${phoneSection}
                     <div class="stats-grid" style="margin-bottom: 20px;">
                         <div class="stat-card">
                             <div class="icon"></div>
@@ -369,6 +393,56 @@
             showToast('خطأ في الاتصال', 'error');
         }
     }
+    async function deletePhone(userId, phone) {
+        if (!confirm(`هل أنت متأكد من حذف رقم الجوال ${phone}؟\n\nسيتم إلغاء توثيق الجوال للعميل.`)) return;
+        
+        try {
+            const res = await fetch('/api/admin/reset_phone', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, action: 'delete' })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                showToast('✅ ' + data.message);
+                closeModal();
+                loadCustomers();
+            } else {
+                showToast(data.message || 'حدث خطأ', 'error');
+            }
+        } catch (e) {
+            showToast('خطأ في الاتصال', 'error');
+        }
+    }
+    
+    async function changePhone(userId, oldPhone) {
+        const newPhone = prompt(`أدخل الرقم الجديد (يبدأ بـ 05):`, oldPhone);
+        if (!newPhone) return;
+        
+        if (!newPhone.startsWith('05') || newPhone.length !== 10) {
+            showToast('رقم غير صالح! يجب أن يبدأ بـ 05 ويتكون من 10 أرقام', 'error');
+            return;
+        }
+        
+        try {
+            const res = await fetch('/api/admin/reset_phone', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, action: 'change', new_phone: newPhone })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                showToast('✅ ' + data.message);
+                closeModal();
+                loadCustomers();
+            } else {
+                showToast(data.message || 'حدث خطأ', 'error');
+            }
+        } catch (e) {
+            showToast('خطأ في الاتصال', 'error');
+        }
+    }
+    
     document.getElementById('searchInput').addEventListener('input', renderCustomers);
     document.getElementById('sortBy').addEventListener('change', renderCustomers);
     loadCustomers();
