@@ -40,6 +40,12 @@ except ImportError:
     notify_withdrawal_request = lambda *args, **kwargs: None
     notify_owner = lambda *args, **kwargs: None
 
+# استيراد معرف قناة الموثقين
+try:
+    from config import VERIFIED_CHANNEL_ID
+except ImportError:
+    VERIFIED_CHANNEL_ID = ""
+
 profile_bp = Blueprint('profile', __name__)
 
 # تخزين مؤقت لأكواد التحقق من رقم الجوال
@@ -47,6 +53,49 @@ phone_verification_codes = {}  # {user_id: {'code': '123456', 'phone': '05xxxxxx
 
 # تخزين مؤقت لإعداد 2FA
 pending_2fa_setup = {}  # {user_id: {'secret': 'XXXX', 'created_at': timestamp}}
+
+
+def send_verification_notification(user_id, user_name, telegram_username, verification_type):
+    """إرسال إشعار توثيق للقناة"""
+    try:
+        if not VERIFIED_CHANNEL_ID:
+            return
+        
+        channel_id = f"-100{VERIFIED_CHANNEL_ID}" if not str(VERIFIED_CHANNEL_ID).startswith('-') else VERIFIED_CHANNEL_ID
+        
+        # تحديد نوع التوثيق
+        if verification_type == 'phone':
+            verify_text = "📱 رقم الهاتف"
+            emoji = "📱"
+        elif verification_type == '2fa':
+            verify_text = "🔐 المصادقة الثنائية (2FA)"
+            emoji = "🔐"
+        else:
+            verify_text = verification_type
+            emoji = "✅"
+        
+        # تنسيق اليوزرنيم
+        username_display = f"@{telegram_username}" if telegram_username else "غير محدد"
+        
+        # رسالة الإشعار
+        message = f"""✅ <b>توثيق جديد!</b>
+━━━━━━━━━━━━━━━
+👤 <b>الاسم:</b> {user_name}
+🆔 <b>المعرف:</b> {username_display}
+🔢 <b>ID:</b> <code>{user_id}</code>
+━━━━━━━━━━━━━━━
+{emoji} <b>تم توثيق:</b> {verify_text}
+━━━━━━━━━━━━━━━
+📅 <b>التاريخ:</b> {datetime.now().strftime('%Y/%m/%d - %H:%M')}"""
+        
+        bot.send_message(
+            chat_id=channel_id,
+            text=message,
+            parse_mode='HTML'
+        )
+        logger.info(f"تم إرسال إشعار توثيق للقناة: {user_id}")
+    except Exception as e:
+        logger.error(f"خطأ في إرسال إشعار التوثيق: {e}")
 
 @profile_bp.route('/profile')
 def profile():
@@ -674,6 +723,11 @@ def verify_phone_code():
         # حذف الكود المؤقت
         del phone_verification_codes[user_id]
         
+        # إرسال إشعار للقناة
+        user_name = session.get('user_name', 'مستخدم')
+        telegram_username = session.get('telegram_username', '')
+        send_verification_notification(user_id, user_name, telegram_username, 'phone')
+        
         return jsonify({
             'success': True,
             'message': 'تم توثيق رقم الجوال بنجاح ✅'
@@ -801,6 +855,11 @@ def verify_2fa_setup():
 """)
         except:
             pass
+        
+        # إرسال إشعار للقناة
+        user_name = session.get('user_name', 'مستخدم')
+        telegram_username = session.get('telegram_username', '')
+        send_verification_notification(user_id, user_name, telegram_username, '2fa')
         
         return jsonify({
             'success': True,
