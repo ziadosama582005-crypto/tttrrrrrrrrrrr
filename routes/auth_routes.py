@@ -5,6 +5,9 @@ from flask import Blueprint, request, jsonify, session, redirect, url_for
 from extensions import db, bot
 from utils import regenerate_session, generate_code, validate_phone
 import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 # استيراد نظام كشف الدخول الجديد
 try:
@@ -16,10 +19,75 @@ except ImportError:
 
 auth_bp = Blueprint('auth', __name__)
 
+# ==================== حماية من محاولات تسجيل الدخول ====================
+# تخزين مؤقت لمحاولات الدخول الفاشلة
+login_failed_attempts = {}  # {ip: {'count': 0, 'blocked_until': 0, 'last_attempt': 0}}
+
+def check_login_rate_limit():
+    """التحقق من rate limit لتسجيل الدخول"""
+    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    if client_ip:
+        client_ip = client_ip.split(',')[0].strip()
+    
+    current_time = time.time()
+    
+    if client_ip in login_failed_attempts:
+        attempt_data = login_failed_attempts[client_ip]
+        
+        # التحقق من الحظر
+        if attempt_data.get('blocked_until', 0) > current_time:
+            remaining = int(attempt_data['blocked_until'] - current_time)
+            return False, f'⛔ تم حظرك مؤقتاً. حاول بعد {remaining} ثانية'
+        
+        # إعادة تعيين العداد بعد 15 دقيقة من آخر محاولة
+        if current_time - attempt_data.get('last_attempt', 0) > 900:
+            login_failed_attempts[client_ip] = {'count': 0, 'blocked_until': 0, 'last_attempt': current_time}
+    
+    return True, None
+
+def record_failed_login():
+    """تسجيل محاولة دخول فاشلة"""
+    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    if client_ip:
+        client_ip = client_ip.split(',')[0].strip()
+    
+    current_time = time.time()
+    
+    if client_ip not in login_failed_attempts:
+        login_failed_attempts[client_ip] = {'count': 0, 'blocked_until': 0, 'last_attempt': current_time}
+    
+    login_failed_attempts[client_ip]['count'] += 1
+    login_failed_attempts[client_ip]['last_attempt'] = current_time
+    
+    attempts = login_failed_attempts[client_ip]['count']
+    
+    # حظر بعد 5 محاولات فاشلة لمدة 15 دقيقة
+    if attempts >= 5:
+        login_failed_attempts[client_ip]['blocked_until'] = current_time + 900  # 15 دقيقة
+        logger.warning(f"⚠️ حظر IP {client_ip} بسبب محاولات دخول فاشلة متكررة")
+        return 0
+    
+    return 5 - attempts
+
+def reset_login_attempts():
+    """إعادة تعيين عداد المحاولات بعد دخول ناجح"""
+    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+    if client_ip:
+        client_ip = client_ip.split(',')[0].strip()
+    
+    if client_ip in login_failed_attempts:
+        del login_failed_attempts[client_ip]
+
+
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     """صفحة تسجيل الدخول"""
     if request.method == 'POST':
+        # 🔒 التحقق من Rate Limit
+        allowed, error_msg = check_login_rate_limit()
+        if not allowed:
+            return jsonify({'success': False, 'message': error_msg})
+        
         data = request.json
         user_id = data.get('user_id', '').strip()
         code = data.get('code', '').strip()
@@ -30,11 +98,13 @@ def login():
         try:
             user_id = int(user_id)
         except:
+            record_failed_login()
             return jsonify({'success': False, 'message': 'معرف غير صحيح'})
         
         # التحقق من الكود
         user_doc = db.collection('users').document(str(user_id)).get()
         if not user_doc.exists:
+            record_failed_login()
             return jsonify({'success': False, 'message': 'المستخدم غير موجود'})
         
         user_data = user_doc.to_dict()
@@ -43,16 +113,24 @@ def login():
         
         # التحقق من صلاحية الكود (ساعة واحدة)
         if time.time() - code_time > 3600:
+            record_failed_login()
             return jsonify({'success': False, 'message': 'انتهت صلاحية الكود'})
         
         if stored_code != code:
-            return jsonify({'success': False, 'message': 'الكود غير صحيح'})
+            remaining = record_failed_login()
+            if remaining == 0:
+                return jsonify({'success': False, 'message': '⛔ تم حظرك لمدة 15 دقيقة بسبب محاولات فاشلة متكررة'})
+            return jsonify({'success': False, 'message': f'الكود غير صحيح. المحاولات المتبقية: {remaining}'})
+        
+        # ✅ دخول ناجح - إعادة تعيين عداد المحاولات
+        reset_login_attempts()
         
         # تسجيل الدخول
         session.clear()
         session['user_id'] = user_id
         session['user_name'] = user_data.get('username', f'مستخدم {user_id}')
         session['profile_photo'] = user_data.get('profile_photo', '')
+        session['login_time'] = time.time()
         regenerate_session()
         
         # كشف تسجيل الدخول من جهاز جديد
@@ -71,6 +149,11 @@ def login():
 @auth_bp.route('/verify-code', methods=['POST'])
 def verify_code_api():
     """التحقق من الكود"""
+    # 🔒 التحقق من Rate Limit
+    allowed, error_msg = check_login_rate_limit()
+    if not allowed:
+        return jsonify({'success': False, 'message': error_msg})
+    
     data = request.json
     user_id = data.get('user_id', '').strip()
     code = data.get('code', '').strip()
@@ -81,10 +164,12 @@ def verify_code_api():
     try:
         user_id = int(user_id)
     except:
+        record_failed_login()
         return jsonify({'success': False, 'message': 'معرف غير صحيح'})
     
     user_doc = db.collection('users').document(str(user_id)).get()
     if not user_doc.exists:
+        record_failed_login()
         return jsonify({'success': False, 'message': 'المستخدم غير موجود'})
     
     user_data = user_doc.to_dict()
@@ -93,11 +178,17 @@ def verify_code_api():
     
     # التحقق من الصلاحية
     if time.time() - code_time > 3600:
+        record_failed_login()
         return jsonify({'success': False, 'message': 'انتهت صلاحية الكود'})
     
     if stored_code != code:
-        return jsonify({'success': False, 'message': 'الكود غير صحيح'})
+        remaining = record_failed_login()
+        if remaining == 0:
+            return jsonify({'success': False, 'message': '⛔ تم حظرك لمدة 15 دقيقة بسبب محاولات فاشلة متكررة'})
+        return jsonify({'success': False, 'message': f'الكود غير صحيح. المحاولات المتبقية: {remaining}'})
     
+    # ✅ نجاح
+    reset_login_attempts()
     return jsonify({'success': True, 'message': 'تم التحقق'})
 
 @auth_bp.route('/logout', methods=['POST'])
