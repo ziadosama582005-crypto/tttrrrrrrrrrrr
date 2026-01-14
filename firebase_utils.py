@@ -10,6 +10,9 @@ import os
 import json
 import time
 import uuid
+import logging
+
+logger = logging.getLogger(__name__)
 
 # استيراد firestore للـ SERVER_TIMESTAMP
 try:
@@ -27,6 +30,64 @@ try:
     USE_FIELD_FILTER = True
 except ImportError:
     USE_FIELD_FILTER = False
+
+# ==================== نظام الكاش ====================
+# كاش للبيانات التي لا تتغير كثيراً (الفئات، المنتجات، الإعدادات)
+
+_cache = {
+    'categories': {'data': None, 'expires': 0},
+    'products': {'data': None, 'expires': 0},
+    'header_settings': {'data': None, 'expires': 0},
+}
+
+# مدة صلاحية الكاش (بالثواني)
+CACHE_DURATION = {
+    'categories': 300,      # 5 دقائق
+    'products': 60,         # دقيقة واحدة
+    'header_settings': 300  # 5 دقائق
+}
+
+def get_cached(key):
+    """جلب بيانات من الكاش إذا كانت صالحة"""
+    if key in _cache:
+        cache_entry = _cache[key]
+        if cache_entry['data'] is not None and time.time() < cache_entry['expires']:
+            return cache_entry['data']
+    return None
+
+def set_cached(key, data):
+    """حفظ بيانات في الكاش"""
+    if key in _cache:
+        duration = CACHE_DURATION.get(key, 60)
+        _cache[key] = {
+            'data': data,
+            'expires': time.time() + duration
+        }
+
+def clear_cache(key=None):
+    """مسح الكاش - كله أو مفتاح محدد"""
+    global _cache
+    if key:
+        if key in _cache:
+            _cache[key] = {'data': None, 'expires': 0}
+            logger.info(f"🗑️ تم مسح كاش: {key}")
+    else:
+        for k in _cache:
+            _cache[k] = {'data': None, 'expires': 0}
+        logger.info("🗑️ تم مسح جميع الكاش")
+
+def get_cache_status():
+    """الحصول على حالة الكاش (للتشخيص)"""
+    status = {}
+    now = time.time()
+    for key, entry in _cache.items():
+        if entry['data'] is not None and entry['expires'] > now:
+            remaining = int(entry['expires'] - now)
+            status[key] = f"صالح ({remaining} ثانية)"
+        else:
+            status[key] = "فارغ"
+    return status
+
 
 # === دالة Query متوافقة ===
 def query_where(collection_ref, field, op, value):
@@ -150,9 +211,15 @@ def deduct_balance(user_id, amount, users_wallets=None, description='خصم رص
     return new_balance
 
 # === دوال المنتجات ===
-def get_products(sold=False):
-    """جلب المنتجات من Firebase"""
+def get_products(sold=False, use_cache=True):
+    """جلب المنتجات من Firebase (مع كاش)"""
     try:
+        # استخدام الكاش للمنتجات المتاحة فقط
+        if use_cache and not sold:
+            cached = get_cached('products')
+            if cached is not None:
+                return cached
+        
         if not db:
             return []
         products_ref = query_where(db.collection('products'), 'sold', '==', sold)
@@ -161,6 +228,11 @@ def get_products(sold=False):
             data = doc.to_dict()
             data['id'] = doc.id
             products.append(data)
+        
+        # حفظ في الكاش
+        if not sold:
+            set_cached('products', products)
+        
         return products
     except Exception as e:
         print(f"⚠️ خطأ في جلب المنتجات: {e}")
@@ -190,6 +262,8 @@ def add_product(product_data):
         product_data['created_at'] = firestore.SERVER_TIMESTAMP
         product_data['sold'] = False
         db.collection('products').document(product_id).set(product_data)
+        # مسح كاش المنتجات بعد الإضافة
+        clear_cache('products')
         return product_id
     except Exception as e:
         print(f"❌ خطأ في إضافة المنتج: {e}")
@@ -201,6 +275,8 @@ def update_product(product_id, data):
         if not db:
             return False
         db.collection('products').document(product_id).update(data)
+        # مسح كاش المنتجات بعد التحديث
+        clear_cache('products')
         return True
     except Exception as e:
         print(f"❌ خطأ في تحديث المنتج: {e}")
@@ -217,15 +293,23 @@ def mark_product_sold(product_id, buyer_id, buyer_name):
             'buyer_name': buyer_name,
             'sold_at': firestore.SERVER_TIMESTAMP
         })
+        # مسح كاش المنتجات بعد البيع
+        clear_cache('products')
         return True
     except Exception as e:
         print(f"❌ خطأ في تعليم المنتج كمباع: {e}")
         return False
 
 # === دوال الأقسام ===
-def get_categories():
-    """جلب الأقسام من Firebase"""
+def get_categories(use_cache=True):
+    """جلب الأقسام من Firebase (مع كاش)"""
     try:
+        # استخدام الكاش
+        if use_cache:
+            cached = get_cached('categories')
+            if cached is not None:
+                return cached
+        
         if not db:
             return []
         categories = []
@@ -233,6 +317,10 @@ def get_categories():
             data = doc.to_dict()
             data['id'] = doc.id
             categories.append(data)
+        
+        # حفظ في الكاش
+        set_cached('categories', categories)
+        
         return categories
     except Exception as e:
         print(f"⚠️ خطأ في جلب الأقسام: {e}")
@@ -293,6 +381,8 @@ def add_category(name, image_url='', delivery_type='instant', order=999):
             'order': order,
             'created_at': firestore.SERVER_TIMESTAMP
         })
+        # مسح كاش الفئات بعد الإضافة
+        clear_cache('categories')
         return cat_id
     except Exception as e:
         print(f"❌ خطأ في إضافة القسم: {e}")
@@ -714,6 +804,8 @@ def delete_product(product_id):
         if not db:
             return False
         db.collection('products').document(product_id).delete()
+        # مسح كاش المنتجات بعد الحذف
+        clear_cache('products')
         print(f"✅ تم حذف المنتج {product_id} من Firebase")
         return True
     except Exception as e:
@@ -726,6 +818,8 @@ def update_category(cat_id, data):
         if not db:
             return False
         db.collection('categories').document(cat_id).update(data)
+        # مسح كاش الفئات بعد التحديث
+        clear_cache('categories')
         return True
     except Exception as e:
         print(f"❌ خطأ في تحديث القسم: {e}")
@@ -737,6 +831,8 @@ def delete_category(cat_id):
         if not db:
             return False
         db.collection('categories').document(cat_id).delete()
+        # مسح كاش الفئات بعد الحذف
+        clear_cache('categories')
         print(f"✅ تم حذف القسم {cat_id} من Firebase")
         return True
     except Exception as e:

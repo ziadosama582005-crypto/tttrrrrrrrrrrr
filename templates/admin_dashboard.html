@@ -31,6 +31,7 @@
     <h1> نظرة عامة</h1>
     <div class="top-bar-actions">
         <button class="btn btn-secondary btn-sm" onclick="loadAllStats()"> تحديث</button>
+        <button class="btn btn-warning btn-sm" onclick="clearCache()" title="مسح الكاش لتحديث البيانات فوراً">🗑️ مسح الكاش</button>
     </div>
 </div>
 <div class="stats-grid">
@@ -320,6 +321,27 @@
         navigator.clipboard.writeText(key);
         showToast('تم النسخ!', 'success');
     }
+    
+    async function clearCache() {
+        if (!confirm('هل تريد مسح الكاش؟\n\nهذا سيجعل البيانات تُجلب من Firebase مباشرة في الطلب التالي.')) return;
+        
+        try {
+            const res = await fetch('/api/admin/clear_cache', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                showToast(data.message, 'success');
+                loadAllStats(); // تحديث البيانات
+            } else {
+                showToast(data.message || 'حدث خطأ', 'error');
+            }
+        } catch (e) {
+            showToast('خطأ في الاتصال', 'error');
+        }
+    }
+    
     document.addEventListener('DOMContentLoaded', loadAllStats);
 </script>
 {% endblock %}

@@ -5,6 +5,7 @@
 """
 
 import logging
+import threading
 from extensions import bot, BOT_ACTIVE, ADMIN_ID, db
 
 # استيراد معرف قناة التفاعلات
@@ -20,6 +21,48 @@ except ImportError:
     USE_FIELD_FILTER = False
 
 logger = logging.getLogger(__name__)
+
+
+# ==================== إرسال الإشعارات بالتوازي ====================
+
+def send_message_async(chat_id, message, parse_mode='HTML'):
+    """إرسال رسالة في thread منفصل (لا ينتظر)"""
+    def send():
+        try:
+            if BOT_ACTIVE and bot:
+                bot.send_message(chat_id, message, parse_mode=parse_mode)
+        except Exception as e:
+            logger.error(f"خطأ في إرسال رسالة لـ {chat_id}: {e}")
+    
+    threading.Thread(target=send, daemon=True).start()
+
+
+def notify_owner_async(message, parse_mode='HTML'):
+    """إرسال إشعار للمالك بدون انتظار (أسرع)"""
+    if BOT_ACTIVE and bot and ADMIN_ID:
+        send_message_async(ADMIN_ID, message, parse_mode)
+        return True
+    return False
+
+
+def notify_multiple_async(recipients, message, parse_mode='HTML'):
+    """
+    إرسال رسالة لعدة مستلمين بالتوازي
+    
+    Args:
+        recipients: قائمة من chat_ids
+        message: نص الرسالة
+        parse_mode: تنسيق الرسالة
+    """
+    def send_all():
+        for chat_id in recipients:
+            try:
+                if BOT_ACTIVE and bot:
+                    bot.send_message(chat_id, message, parse_mode=parse_mode)
+            except Exception as e:
+                logger.error(f"خطأ في إرسال رسالة لـ {chat_id}: {e}")
+    
+    threading.Thread(target=send_all, daemon=True).start()
 
 
 def notify_owner(message, parse_mode='HTML'):
@@ -109,7 +152,7 @@ def is_admin_or_owner(telegram_id):
 
 # ===================== إشعارات محددة =====================
 
-def notify_new_charge(user_id, amount, method='edfapay', username=None):
+def notify_new_charge(user_id, amount, method='edfapay', username=None, async_mode=True):
     """إشعار بشحن رصيد جديد"""
     method_names = {
         'edfapay': '💳 EdfaPay',
@@ -125,10 +168,14 @@ def notify_new_charge(user_id, amount, method='edfapay', username=None):
         f"💵 <b>المبلغ:</b> {amount} ر.س\n"
         f"📍 <b>الطريقة:</b> {method_names.get(method, method)}"
     )
+    
+    # استخدام الوضع المتوازي للسرعة
+    if async_mode:
+        return notify_owner_async(message)
     return notify_owner(message)
 
 
-def notify_withdrawal_request(user_id, amount, withdrawal_type, fee, net_amount, username=None):
+def notify_withdrawal_request(user_id, amount, withdrawal_type, fee, net_amount, username=None, async_mode=True):
     """إشعار بطلب سحب جديد"""
     type_names = {
         'normal': '⏳ سحب عادي (5.5%)',
@@ -144,10 +191,13 @@ def notify_withdrawal_request(user_id, amount, withdrawal_type, fee, net_amount,
         f"💸 <b>الرسوم:</b> {fee:.2f} ر.س\n"
         f"✅ <b>صافي المبلغ:</b> {net_amount:.2f} ر.س"
     )
+    
+    if async_mode:
+        return notify_owner_async(message)
     return notify_owner(message)
 
 
-def notify_new_purchase(user_id, product_name, price, username=None):
+def notify_new_purchase(user_id, product_name, price, username=None, async_mode=True):
     """إشعار بعملية شراء جديدة"""
     message = (
         f"🛒 <b>عملية شراء جديدة!</b>\n\n"
@@ -156,10 +206,13 @@ def notify_new_purchase(user_id, product_name, price, username=None):
         f"📦 <b>المنتج:</b> {product_name}\n"
         f"💰 <b>السعر:</b> {price} ر.س"
     )
+    
+    if async_mode:
+        return notify_owner_async(message)
     return notify_owner(message)
 
 
-def notify_new_order(order_id, user_id, product_name, price, username=None):
+def notify_new_order(order_id, user_id, product_name, price, username=None, async_mode=True):
     """إشعار بطلب جديد (سلة)"""
     message = (
         f"📋 <b>طلب جديد!</b>\n\n"
@@ -169,10 +222,13 @@ def notify_new_order(order_id, user_id, product_name, price, username=None):
         f"📦 <b>المنتج:</b> {product_name}\n"
         f"💰 <b>المبلغ:</b> {price} ر.س"
     )
+    
+    if async_mode:
+        return notify_owner_async(message)
     return notify_owner(message)
 
 
-def notify_new_user(user_id, username=None, first_name=None):
+def notify_new_user(user_id, username=None, first_name=None, async_mode=True):
     """إشعار بتسجيل مستخدم جديد"""
     message = (
         f"👋 <b>مستخدم جديد!</b>\n\n"
@@ -180,6 +236,9 @@ def notify_new_user(user_id, username=None, first_name=None):
         f"📱 <b>Username:</b> @{username or 'غير محدد'}\n"
         f"🆔 <b>ID:</b> <code>{user_id}</code>"
     )
+    
+    if async_mode:
+        return notify_owner_async(message)
     return notify_owner(message)
 
 

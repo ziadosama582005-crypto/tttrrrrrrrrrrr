@@ -2488,6 +2488,49 @@ def reset_customer_phone():
         return jsonify({'status': 'error', 'message': 'حدث خطأ'})
 
 
+# ===================== إدارة الكاش =====================
+
+@admin_bp.route('/api/admin/clear_cache', methods=['POST'])
+def api_clear_cache():
+    """مسح الكاش لتحديث البيانات فوراً"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    
+    try:
+        from firebase_utils import clear_cache, get_cache_status
+        
+        # مسح كل الكاش
+        clear_cache()
+        
+        return jsonify({
+            'status': 'success',
+            'message': '✅ تم مسح الكاش بنجاح! البيانات ستُجلب من Firebase مباشرة.'
+        })
+    
+    except Exception as e:
+        logger.error(f"Error clearing cache: {e}")
+        return jsonify({'status': 'error', 'message': 'حدث خطأ'})
+
+
+@admin_bp.route('/api/admin/cache_status')
+def api_cache_status():
+    """عرض حالة الكاش"""
+    if not session.get('is_admin'):
+        return jsonify({'status': 'error', 'message': 'غير مصرح'}), 403
+    
+    try:
+        from firebase_utils import get_cache_status
+        status = get_cache_status()
+        
+        return jsonify({
+            'status': 'success',
+            'cache': status
+        })
+    
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+
+
 # ===================== دالة التهيئة =====================
 
 def init_admin(app_db, app_bot, admin_id, app_limiter=None, bot_active=False):
