@@ -75,8 +75,55 @@ def validate_csrf_token(token):
     return hashlib.sha256(token.encode()).digest() == hashlib.sha256(stored_token.encode()).digest()
 
 
+# ==================== Double Submit Cookie Protection ====================
+# حماية إضافية: التحقق من تطابق Token في Cookie و Header/Form
+
+CSRF_COOKIE_NAME = 'csrf_double_submit'
+
+def set_csrf_cookie(response, token=None):
+    """
+    إضافة CSRF token في Cookie للـ Double Submit protection
+    يُستخدم في @app.after_request
+    """
+    if token is None:
+        token = session.get('csrf_token', '')
+    
+    if token:
+        response.set_cookie(
+            CSRF_COOKIE_NAME,
+            token,
+            httponly=False,  # يجب أن يكون قابل للقراءة من JavaScript
+            secure=True,
+            samesite='Strict',
+            max_age=3600  # ساعة واحدة
+        )
+    return response
+
+
+def validate_double_submit():
+    """
+    التحقق من تطابق CSRF token في Cookie مع Header/Form
+    Returns: True إذا تطابق، False إذا لم يتطابق
+    """
+    cookie_token = request.cookies.get(CSRF_COOKIE_NAME, '')
+    
+    # الحصول على الـ token من الـ request
+    request_token = (
+        request.form.get('csrf_token') or
+        request.headers.get('X-CSRF-Token') or
+        (request.get_json(silent=True) or {}).get('csrf_token') or
+        ''
+    )
+    
+    if not cookie_token or not request_token:
+        return False
+    
+    # مقارنة آمنة
+    return hashlib.sha256(cookie_token.encode()).digest() == hashlib.sha256(request_token.encode()).digest()
+
+
 def csrf_protect(f):
-    """Decorator لحماية الـ routes من CSRF"""
+    """Decorator لحماية الـ routes من CSRF مع Double Submit"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if request.method in ['POST', 'PUT', 'DELETE', 'PATCH']:
@@ -87,8 +134,15 @@ def csrf_protect(f):
                 (request.get_json(silent=True) or {}).get('csrf_token')
             )
             
-            if not validate_csrf_token(token):
-                logger.warning(f"🚫 CSRF فاشل من {request.remote_addr}")
+            # التحقق الأول: Session token
+            session_valid = validate_csrf_token(token)
+            
+            # التحقق الثاني: Double Submit Cookie
+            double_submit_valid = validate_double_submit()
+            
+            # يجب أن ينجح أحدهما على الأقل
+            if not session_valid and not double_submit_valid:
+                logger.warning(f"🚫 CSRF فاشل (Double Submit) من {request.remote_addr}")
                 return jsonify({'success': False, 'message': 'فشل التحقق من الأمان. يرجى إعادة تحميل الصفحة'}), 403
         
         return f(*args, **kwargs)

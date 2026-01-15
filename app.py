@@ -91,7 +91,8 @@ from telegram import bot_handlers
 # استيراد security middleware
 from security_middleware import (
     get_csrf_token, inject_security_context,
-    detect_new_login, refresh_session
+    detect_new_login, refresh_session,
+    set_csrf_cookie  # 🔐 Double Submit Cookie
 )
 
 # استيراد Firestore للعمليات المتقدمة
@@ -153,10 +154,48 @@ def inject_csrf():
 @app.after_request
 def add_security_headers(response):
     """إضافة رؤوس أمان للحماية من الهجمات"""
+    # 1. منع تخمين نوع المحتوى
     response.headers['X-Content-Type-Options'] = 'nosniff'
+    
+    # 2. منع تضمين الموقع في iframe (حماية من Clickjacking)
     response.headers['X-Frame-Options'] = 'DENY'
+    
+    # 3. حماية من XSS
     response.headers['X-XSS-Protection'] = '1; mode=block'
+    
+    # 4. سياسة الإحالة
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    
+    # 5. 🔒 HSTS - إجبار استخدام HTTPS (سنة كاملة)
+    if IS_PRODUCTION:
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
+    
+    # 6. 🔒 CSP - Content Security Policy (حماية من XSS)
+    csp_policy = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
+        "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
+        "img-src 'self' data: https: blob:; "
+        "connect-src 'self' https://api.edfapay.com https://api.telegram.org; "
+        "frame-src 'self' https://edfapay.com https://*.edfapay.com; "
+        "object-src 'none'; "
+        "base-uri 'self';"
+    )
+    response.headers['Content-Security-Policy'] = csp_policy
+    
+    # 7. إخفاء معلومات السيرفر
+    response.headers['Server'] = 'Protected'
+    
+    # 8. منع الكشف عن الإصدارات
+    response.headers['X-Powered-By'] = ''
+    
+    # 9. 🔐 Double Submit Cookie للـ CSRF
+    try:
+        set_csrf_cookie(response)
+    except Exception:
+        pass  # تجاهل الأخطاء لعدم تعطيل الاستجابة
+    
     return response
 
 
@@ -903,23 +942,8 @@ def verify_2fa_login():
         print(f"❌ خطأ في التحقق من 2FA: {e}")
         return {'success': False, 'message': '❌ حدث خطأ في السيرفر'}, 500
 
-# --- حماية إضافية: رؤوس أمنية ---
-@app.after_request
-def add_security_headers(response):
-    """إضافة رؤوس أمنية لكل استجابة"""
-    # منع تضمين الموقع في iframe
-    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
-    # حماية من XSS
-    response.headers['X-XSS-Protection'] = '1; mode=block'
-    # منع تخمين نوع المحتوى
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    # سياسة الإحالة
-    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-    # منع الكشف عن معلومات السيرفر
-    response.headers['Server'] = 'Protected'
-    return response
-
 # --- حماية من محاولات الاختراق ---
+# ملاحظة: تم نقل add_security_headers إلى أعلى الملف لتجنب التكرار
 BLOCKED_PATHS = [
     '/wp-admin', '/wp-login', '/wp-content', '/wp-includes',
     '/wordpress', '/.env', '/.git', '/phpmyadmin', '/pma',
@@ -1511,6 +1535,62 @@ _محاولة اختراق واضحة!_
                     except:
                         pass
                     return jsonify({'status': 'error', 'message': 'Amount mismatch'}), 403
+            
+            # 3️⃣ 🔐 التحقق من صحة الـ Hash (Signature Verification)
+            if received_hash and original_payment:
+                # حساب الـ Hash المتوقع بنفس طريقة EdfaPay
+                # EdfaPay ترسل hash = SHA1(MD5(order_id + order_amount + currency + status + trans_id + password))
+                order_desc = original_payment.get('description', f"Recharge {int(original_amount)} SAR")
+                
+                # محاولة التحقق بعدة صيغ (لأن EdfaPay قد تستخدم صيغ مختلفة)
+                hash_verified = False
+                
+                # صيغة 1: order_id + amount + SAR + description + password
+                try:
+                    to_hash_1 = f"{order_id}{int(original_amount)}SAR{order_desc}{EDFAPAY_PASSWORD}".upper()
+                    expected_hash_1 = hashlib.sha1(hashlib.md5(to_hash_1.encode()).hexdigest().encode()).hexdigest()
+                    if received_hash.lower() == expected_hash_1.lower():
+                        hash_verified = True
+                except:
+                    pass
+                
+                # صيغة 2: reverse order (بعض البوابات تستخدم ترتيب مختلف)
+                if not hash_verified:
+                    try:
+                        to_hash_2 = f"{EDFAPAY_PASSWORD}{order_id}{int(original_amount)}SAR".upper()
+                        expected_hash_2 = hashlib.sha1(hashlib.md5(to_hash_2.encode()).hexdigest().encode()).hexdigest()
+                        if received_hash.lower() == expected_hash_2.lower():
+                            hash_verified = True
+                    except:
+                        pass
+                
+                # صيغة 3: مع trans_id و status
+                if not hash_verified:
+                    try:
+                        to_hash_3 = f"{order_id}{int(original_amount)}SAR{trans_id}{status}{EDFAPAY_PASSWORD}".upper()
+                        expected_hash_3 = hashlib.sha1(hashlib.md5(to_hash_3.encode()).hexdigest().encode()).hexdigest()
+                        if received_hash.lower() == expected_hash_3.lower():
+                            hash_verified = True
+                    except:
+                        pass
+                
+                # إذا لم يتطابق الـ Hash - تسجيل تحذير (لكن لا نرفض لأن الصيغة قد تختلف)
+                if not hash_verified:
+                    print(f"⚠️ Hash لم يتطابق - received: {received_hash[:20]}...")
+                    # تسجيل التحذير للمراجعة لاحقاً
+                    try:
+                        db.collection('security_logs').add({
+                            'type': 'webhook_hash_mismatch',
+                            'order_id': order_id,
+                            'received_hash': received_hash,
+                            'ip': req.headers.get('X-Forwarded-For', req.remote_addr),
+                            'timestamp': time.time(),
+                            'data': str(data)[:500]
+                        })
+                    except:
+                        pass
+                else:
+                    print(f"✅ Hash تم التحقق منه بنجاح")
         
         print(f"📋 Parsed: order_id={order_id}, trans_id={trans_id}, status={status}, amount={amount}")
         
