@@ -16,6 +16,14 @@ from security_utils import (
     log_security_event, sanitize_error_message
 )
 
+# استيراد دوال التشفير
+try:
+    from encryption_utils import decrypt_data
+    ENCRYPTION_AVAILABLE = True
+except:
+    decrypt_data = lambda x: x
+    ENCRYPTION_AVAILABLE = False
+
 # إنشاء Blueprint
 wallet_bp = Blueprint('wallet', __name__)
 
@@ -274,6 +282,15 @@ def my_purchases_page():
         for doc in orders_ref.stream():
             data = doc.to_dict()
             data['id'] = doc.id
+            
+            # فك تشفير البيانات السرية
+            if data.get('hidden_data'):
+                try:
+                    data['hidden_data'] = decrypt_data(data['hidden_data'])
+                except Exception as e:
+                    print(f"⚠️ خطأ في فك تشفير hidden_data: {e}")
+                    # إذا فشل فك التشفير، ربما البيانات غير مشفرة أصلاً
+                    pass
             
             if data.get('created_at'):
                 try:
