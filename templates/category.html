@@ -80,6 +80,15 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+    .product-image-link, .product-name-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+    .product-image-link:hover + .product-content .product-name,
+    .product-name-link:hover .product-name {
+        color: var(--primary);
+    }
     .product-price {
         font-size: 16px;
         color: var(--primary);
@@ -268,15 +277,19 @@
         <div class="products-grid">
             {% for item in items %}
             <div class="product-card">
-                <div class="product-image">
-                    {% if item.image_url %}
-                    <img src="{{ item.image_url }}" alt="{{ item.item_name }}">
-                    {% else %}
-                    {% endif %}
-                </div>
+                <a href="/product/{{ item.id }}" class="product-image-link">
+                    <div class="product-image">
+                        {% if item.image_url %}
+                        <img src="{{ item.image_url }}" alt="{{ item.item_name }}">
+                        {% else %}
+                        {% endif %}
+                    </div>
+                </a>
                 <div class="product-content">
                     <div>
-                        <div class="product-name">{{ item.item_name }}</div>
+                        <a href="/product/{{ item.id }}" class="product-name-link">
+                            <div class="product-name">{{ item.item_name }}</div>
+                        </a>
                         {% if item.delivery_type == 'manual' %}
                         <span class="product-badge manual">👨‍💼 تسليم يدوي</span>
                         {% else %}
@@ -316,7 +329,7 @@
         <h3 class="section-title" style="color: #888;"> المنتجات المباعة ({{ sold_items|length }})</h3>
         <div class="products-grid">
             {% for item in sold_items %}
-            <div class="product-card" style="opacity: 0.6;">
+            <a href="/product/{{ item.id }}" class="product-card" style="opacity: 0.6; text-decoration: none; color: inherit;">
                 <div class="product-image" style="background: #555;">
                     {% if item.image_url %}
                     <img src="{{ item.image_url }}" alt="{{ item.item_name }}" style="opacity: 0.5;">
@@ -332,7 +345,7 @@
                          مباع
                     </button>
                 </div>
-            </div>
+            </a>
             {% endfor %}
         </div>
         {% endif %}

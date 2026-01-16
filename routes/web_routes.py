@@ -13,6 +13,82 @@ import json
 
 web_bp = Blueprint('web', __name__)
 
+
+# ===================== صفحة تفاصيل المنتج =====================
+@web_bp.route('/product/<product_id>')
+def product_detail(product_id):
+    """صفحة تفاصيل المنتج"""
+    user_id = session.get('user_id')
+    user_name = session.get('user_name', 'ضيف')
+    profile_photo = session.get('profile_photo', '')
+    is_logged_in = bool(user_id)
+    
+    # جلب الرصيد
+    balance = 0.0
+    if user_id:
+        try:
+            balance = get_balance(user_id)
+        except:
+            balance = 0.0
+    
+    # جلب عدد السلة
+    cart_count = 0
+    if user_id:
+        cart = get_user_cart(str(user_id)) or {}
+        cart_count = len(cart.get('items', []))
+    
+    # جلب المنتج
+    product = get_product_by_id(product_id)
+    
+    if not product:
+        return render_template('product.html',
+                             product=None,
+                             category=None,
+                             related_products=[],
+                             balance=balance,
+                             current_user_id=user_id or 0,
+                             current_user=user_id,
+                             user_name=user_name,
+                             profile_photo=profile_photo,
+                             is_logged_in=is_logged_in,
+                             cart_count=cart_count)
+    
+    # جلب بيانات الفئة
+    category = None
+    categories = get_categories()
+    product_category_name = product.get('category', '')
+    
+    for cat in categories:
+        if cat.get('name') == product_category_name:
+            category = cat
+            break
+    
+    if not category:
+        category = {'id': '', 'name': product_category_name or 'غير محدد'}
+    
+    # جلب منتجات مشابهة (من نفس الفئة)
+    related_products = []
+    if product_category_name:
+        all_category_products = get_products_by_category(product_category_name)
+        # استبعاد المنتج الحالي والمنتجات المباعة
+        related_products = [
+            p for p in all_category_products 
+            if p.get('id') != product_id and not p.get('sold')
+        ][:4]  # أول 4 منتجات فقط
+    
+    return render_template('product.html',
+                         product=product,
+                         category=category,
+                         related_products=related_products,
+                         balance=balance,
+                         current_user_id=user_id or 0,
+                         current_user=user_id,
+                         user_name=user_name,
+                         profile_photo=profile_photo,
+                         is_logged_in=is_logged_in,
+                         cart_count=cart_count)
+
+
 @web_bp.route('/')
 def index():
     """الصفحة الرئيسية - عرض الفئات الافتراضية 3×3"""
