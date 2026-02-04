@@ -92,7 +92,11 @@ from telegram import bot_handlers
 from security_middleware import (
     get_csrf_token, inject_security_context,
     detect_new_login, refresh_session,
-    set_csrf_cookie  # 🔐 Double Submit Cookie
+    set_csrf_cookie,  # 🔐 Double Submit Cookie
+    # 🔒 Security Logging
+    set_security_db, log_security_event, SecurityEvent,
+    log_login_success, log_login_failed, log_admin_login,
+    log_suspicious_activity, log_purchase, log_withdrawal
 )
 
 # استيراد Firestore للعمليات المتقدمة
@@ -322,6 +326,11 @@ DEFAULT_CATEGORIES_FALLBACK = [
     {'id': '5', 'name': 'فديو بريميم', 'image_url': 'https://i.imgur.com/vedio.png', 'order': 5, 'delivery_type': 'instant'},
     {'id': '6', 'name': 'اشتراكات أخرى', 'image_url': 'https://i.imgur.com/other.png', 'order': 6, 'delivery_type': 'manual'}
 ]
+
+# 🔒 تهيئة نظام Security Logging
+if db:
+    set_security_db(db)
+    logger.info("✅ تم ربط Security Logging بقاعدة البيانات")
 
 # ====== تسجيل Blueprints ======
 # تهيئة وتسجيل نظام السلة
@@ -1394,13 +1403,15 @@ def buy_item():
 
 
         # إرجاع البيانات للموقع
+        # ⚠️ إصلاح أمني: لا نرسل hidden_data في الـ response
+        # البيانات تُرسل فقط عبر Telegram للأمان
         return {
             'status': 'success',
-            'hidden_data': hidden_info if delivery_type == 'instant' else None,
             'order_id': order_id,
             'message_sent': message_sent,
             'new_balance': new_balance,
-            'delivery_type': delivery_type
+            'delivery_type': delivery_type,
+            'message': 'تم الشراء بنجاح! تم إرسال البيانات لك عبر Telegram' if delivery_type == 'instant' else 'تم استلام طلبك وسيتم تنفيذه قريباً'
         }
 
     except Exception as e:

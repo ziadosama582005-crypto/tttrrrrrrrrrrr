@@ -41,6 +41,14 @@ except ImportError:
     notify_owner = lambda *args, **kwargs: None
     send_activity_notification = lambda *args, **kwargs: None
 
+# 🔒 استيراد نظام Security Logging
+try:
+    from security_middleware import log_security_event, SecurityEvent, log_withdrawal
+    SECURITY_LOGGING = True
+except ImportError:
+    SECURITY_LOGGING = False
+    log_withdrawal = lambda *args, **kwargs: None
+
 # استيراد معرف قناة الموثقين
 try:
     from config import VERIFIED_CHANNEL_ID
@@ -1130,6 +1138,10 @@ def submit_withdraw():
         
         # حفظ طلب السحب
         withdraw_ref = db.collection('withdrawal_requests').add(withdraw_data)
+        
+        # 🔒 تسجيل طلب السحب في سجل الأمان
+        if SECURITY_LOGGING:
+            log_withdrawal(user_id, amount, method_display)
         
         # خصم المبلغ من الرصيد
         user_ref.update({

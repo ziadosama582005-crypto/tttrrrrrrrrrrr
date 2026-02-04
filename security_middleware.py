@@ -342,4 +342,258 @@ def inject_security_context():
     }
 
 
+# ==================== 5. CSP Headers - Content Security Policy ====================
 
+def add_security_headers(response):
+    """
+    إضافة Security Headers لحماية الموقع
+    
+    الاستخدام:
+    @app.after_request
+    def after_request(response):
+        return add_security_headers(response)
+    """
+    # Content Security Policy
+    csp_policy = "; ".join([
+        "default-src 'self'",
+        # السماح بـ Scripts من المصادر الموثوقة
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://code.jquery.com",
+        # السماح بـ Styles
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://unpkg.com",
+        # الخطوط
+        "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com data:",
+        # الصور
+        "img-src 'self' data: https: blob:",
+        # الاتصالات (API)
+        "connect-src 'self' https://api.telegram.org",
+        # منع التضمين في iframe (حماية Clickjacking)
+        "frame-ancestors 'none'",
+        # قاعدة URL
+        "base-uri 'self'",
+        # النماذج
+        "form-action 'self'"
+    ])
+    
+    response.headers['Content-Security-Policy'] = csp_policy
+    
+    # X-Content-Type-Options - منع تخمين نوع المحتوى
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    
+    # X-Frame-Options - حماية من Clickjacking
+    response.headers['X-Frame-Options'] = 'DENY'
+    
+    # X-XSS-Protection - حماية إضافية من XSS (للمتصفحات القديمة)
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    
+    # Referrer-Policy - التحكم في معلومات الـ Referrer
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    
+    # Permissions-Policy - تعطيل APIs غير مستخدمة
+    response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+    
+    # HSTS - فرض HTTPS (في الإنتاج)
+    if os.environ.get('RENDER') or os.environ.get('PRODUCTION'):
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    
+    return response
+
+
+# ==================== 6. Security Logging - تسجيل الأحداث الأمنية ====================
+
+import json
+from datetime import datetime
+
+# Logger خاص بالأمان
+security_logger = logging.getLogger('security')
+security_logger.setLevel(logging.INFO)
+
+# إنشاء handler للملف إذا لم يكن موجوداً
+if not security_logger.handlers:
+    try:
+        # محاولة الكتابة في ملف
+        file_handler = logging.FileHandler('security.log', encoding='utf-8')
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s | %(levelname)s | %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        ))
+        security_logger.addHandler(file_handler)
+    except Exception:
+        # في حالة عدم إمكانية الكتابة، استخدم stdout
+        pass
+
+# أنواع الأحداث الأمنية
+class SecurityEvent:
+    LOGIN_SUCCESS = 'LOGIN_SUCCESS'
+    LOGIN_FAILED = 'LOGIN_FAILED'
+    LOGIN_NEW_DEVICE = 'LOGIN_NEW_DEVICE'
+    LOGOUT = 'LOGOUT'
+    PASSWORD_CHANGE = 'PASSWORD_CHANGE'
+    WALLET_CHANGE = 'WALLET_CHANGE'
+    PURCHASE = 'PURCHASE'
+    WITHDRAWAL_REQUEST = 'WITHDRAWAL_REQUEST'
+    WITHDRAWAL_APPROVED = 'WITHDRAWAL_APPROVED'
+    WITHDRAWAL_REJECTED = 'WITHDRAWAL_REJECTED'
+    ADMIN_LOGIN = 'ADMIN_LOGIN'
+    ADMIN_LOGIN_FAILED = 'ADMIN_LOGIN_FAILED'
+    ADMIN_ACTION = 'ADMIN_ACTION'
+    SUSPICIOUS_ACTIVITY = 'SUSPICIOUS_ACTIVITY'
+    RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED'
+    CSRF_FAILED = 'CSRF_FAILED'
+    IDOR_ATTEMPT = 'IDOR_ATTEMPT'
+    TWO_FA_ENABLED = 'TWO_FA_ENABLED'
+    TWO_FA_DISABLED = 'TWO_FA_DISABLED'
+
+
+# تخزين مؤقت للأحداث (للحفظ في Firestore لاحقاً)
+_security_events_buffer = []
+_db_reference = None
+
+def set_security_db(db):
+    """تعيين مرجع قاعدة البيانات للتسجيل"""
+    global _db_reference
+    _db_reference = db
+
+
+def log_security_event(event_type, user_id=None, ip=None, details=None, severity='INFO'):
+    """
+    تسجيل حدث أمني
+    
+    Args:
+        event_type: نوع الحدث من SecurityEvent
+        user_id: معرف المستخدم (اختياري)
+        ip: عنوان IP (اختياري - يُستنتج تلقائياً)
+        details: تفاصيل إضافية (dict أو string)
+        severity: مستوى الخطورة (INFO, WARNING, CRITICAL)
+    """
+    try:
+        # الحصول على IP إذا لم يُمرر
+        if ip is None:
+            try:
+                ip = get_real_ip()
+            except:
+                ip = 'unknown'
+        
+        # إنشاء سجل الحدث
+        event_record = {
+            'event_type': event_type,
+            'user_id': str(user_id) if user_id else None,
+            'ip': ip,
+            'details': details if isinstance(details, str) else json.dumps(details, ensure_ascii=False) if details else None,
+            'severity': severity,
+            'timestamp': datetime.now().isoformat(),
+            'user_agent': request.headers.get('User-Agent', '')[:200] if request else None
+        }
+        
+        # تسجيل في الـ logger
+        log_message = f"EVENT: {event_type} | USER: {user_id} | IP: {ip} | SEVERITY: {severity}"
+        if details:
+            log_message += f" | DETAILS: {event_record['details']}"
+        
+        if severity == 'CRITICAL':
+            security_logger.critical(log_message)
+        elif severity == 'WARNING':
+            security_logger.warning(log_message)
+        else:
+            security_logger.info(log_message)
+        
+        # محاولة الحفظ في Firestore
+        if _db_reference:
+            try:
+                _db_reference.collection('security_logs').add({
+                    **event_record,
+                    'timestamp': datetime.now()  # Firestore timestamp
+                })
+            except Exception as e:
+                logger.error(f"خطأ في حفظ سجل الأمان في Firestore: {e}")
+        
+        # إرسال تنبيه للأحداث الحرجة
+        if severity == 'CRITICAL':
+            _send_critical_alert(event_record)
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"خطأ في تسجيل الحدث الأمني: {e}")
+        return False
+
+
+def _send_critical_alert(event_record):
+    """إرسال تنبيه للأحداث الحرجة (داخلي)"""
+    # يمكن إضافة إرسال تنبيه عبر Telegram هنا
+    pass
+
+
+def get_security_logs(user_id=None, event_type=None, limit=100):
+    """
+    جلب سجلات الأمان
+    
+    Args:
+        user_id: فلتر بالمستخدم (اختياري)
+        event_type: فلتر بنوع الحدث (اختياري)
+        limit: عدد السجلات
+    
+    Returns:
+        list: قائمة السجلات
+    """
+    if not _db_reference:
+        return []
+    
+    try:
+        query = _db_reference.collection('security_logs')
+        
+        if user_id:
+            query = query.where('user_id', '==', str(user_id))
+        
+        if event_type:
+            query = query.where('event_type', '==', event_type)
+        
+        query = query.order_by('timestamp', direction='DESCENDING').limit(limit)
+        
+        logs = []
+        for doc in query.stream():
+            log_data = doc.to_dict()
+            log_data['id'] = doc.id
+            logs.append(log_data)
+        
+        return logs
+        
+    except Exception as e:
+        logger.error(f"خطأ في جلب سجلات الأمان: {e}")
+        return []
+
+
+# دالة مساعدة للتسجيل السريع
+def log_login_success(user_id, ip=None):
+    """تسجيل دخول ناجح"""
+    log_security_event(SecurityEvent.LOGIN_SUCCESS, user_id, ip)
+
+
+def log_login_failed(user_id, ip=None, reason=None):
+    """تسجيل دخول فاشل"""
+    log_security_event(SecurityEvent.LOGIN_FAILED, user_id, ip, {'reason': reason}, 'WARNING')
+
+
+def log_admin_login(admin_id, ip=None):
+    """تسجيل دخول أدمن"""
+    log_security_event(SecurityEvent.ADMIN_LOGIN, admin_id, ip, severity='WARNING')
+
+
+def log_suspicious_activity(user_id=None, ip=None, activity=None):
+    """تسجيل نشاط مشبوه"""
+    log_security_event(SecurityEvent.SUSPICIOUS_ACTIVITY, user_id, ip, {'activity': activity}, 'CRITICAL')
+
+
+def log_purchase(user_id, product_id, amount, ip=None):
+    """تسجيل عملية شراء"""
+    log_security_event(SecurityEvent.PURCHASE, user_id, ip, {
+        'product_id': product_id,
+        'amount': amount
+    })
+
+
+def log_withdrawal(user_id, amount, wallet, ip=None):
+    """تسجيل طلب سحب"""
+    log_security_event(SecurityEvent.WITHDRAWAL_REQUEST, user_id, ip, {
+        'amount': amount,
+        'wallet': wallet[:10] + '...' if wallet else None  # إخفاء جزء من المحفظة
+    }, 'WARNING')

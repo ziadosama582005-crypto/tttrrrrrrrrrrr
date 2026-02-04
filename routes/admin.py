@@ -15,6 +15,14 @@ import logging
 from notifications import notify_owner, notify_all_admins, is_admin_or_owner
 from encryption_utils import encrypt_data, decrypt_data
 
+# 🔒 استيراد نظام Security Logging
+try:
+    from security_middleware import log_admin_login, log_security_event, SecurityEvent
+    SECURITY_LOGGING = True
+except ImportError:
+    SECURITY_LOGGING = False
+    log_admin_login = lambda *args, **kwargs: None
+
 logger = logging.getLogger(__name__)
 
 # إنشاء Blueprint
@@ -241,15 +249,35 @@ def api_set_header_settings():
 
 # ===================== صفحة الدخول والتحقق =====================
 
+# 🔒 متغير لتتبع طلبات إرسال الكود (حماية إضافية)
+code_request_tracker = {}
+
 @admin_bp.route('/api/admin/send_code', methods=['POST'])
 def api_send_admin_code():
     """إرسال كود التحقق للمالك"""
-    global admin_login_codes, failed_login_attempts
+    global admin_login_codes, failed_login_attempts, code_request_tracker
     
     try:
         data = request.json
         password = data.get('password', '')
         client_ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+        
+        # 🔒 حماية إضافية: تحديد عدد طلبات الكود لكل IP (3 طلبات كل 10 دقائق)
+        current_time = time.time()
+        if client_ip in code_request_tracker:
+            tracker = code_request_tracker[client_ip]
+            # تنظيف الطلبات القديمة (أكثر من 10 دقائق)
+            tracker['requests'] = [t for t in tracker['requests'] if current_time - t < 600]
+            
+            if len(tracker['requests']) >= 3:
+                oldest_request = min(tracker['requests'])
+                wait_time = int(600 - (current_time - oldest_request))
+                return jsonify({
+                    'status': 'error',
+                    'message': f'⚠️ تم تجاوز حد طلبات الكود. انتظر {wait_time} ثانية'
+                })
+        else:
+            code_request_tracker[client_ip] = {'requests': []}
         
         # التحقق من الحظر بسبب محاولات فاشلة
         if client_ip in failed_login_attempts:
@@ -304,6 +332,9 @@ def api_send_admin_code():
         
         # كلمة المرور صحيحة - توليد كود عشوائي
         code = str(random.randint(100000, 999999))
+        
+        # 🔒 تسجيل طلب الكود للحماية من الإرسال المتكرر
+        code_request_tracker[client_ip]['requests'].append(current_time)
         
         # حفظ الكود مع وقت الانتهاء (3 دقائق)
         admin_login_codes = {
@@ -392,6 +423,10 @@ def api_verify_admin_code():
         # الكود صحيح - تسجيل الدخول
         admin_login_codes['used'] = True
         session['is_admin'] = True
+        
+        # 🔒 تسجيل دخول الأدمن في سجل الأمان
+        if SECURITY_LOGGING:
+            log_admin_login(ADMIN_ID, client_ip)
         
         # إرسال إشعار بنجاح الدخول
         try:

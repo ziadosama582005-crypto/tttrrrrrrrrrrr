@@ -11,11 +11,15 @@ logger = logging.getLogger(__name__)
 
 # استيراد نظام كشف الدخول الجديد
 try:
-    from security_middleware import detect_new_login
+    from security_middleware import detect_new_login, log_login_success, log_login_failed, SecurityEvent, log_security_event
     NEW_LOGIN_DETECTION = True
+    SECURITY_LOGGING = True
 except ImportError:
     NEW_LOGIN_DETECTION = False
+    SECURITY_LOGGING = False
     detect_new_login = lambda *args, **kwargs: {'is_new': False}
+    log_login_success = lambda *args, **kwargs: None
+    log_login_failed = lambda *args, **kwargs: None
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -114,16 +118,21 @@ def login():
         # التحقق من صلاحية الكود (ساعة واحدة)
         if time.time() - code_time > 3600:
             record_failed_login()
+            log_login_failed(user_id, reason='انتهت صلاحية الكود')
             return jsonify({'success': False, 'message': 'انتهت صلاحية الكود'})
         
         if stored_code != code:
             remaining = record_failed_login()
+            log_login_failed(user_id, reason='كود خاطئ')
             if remaining == 0:
                 return jsonify({'success': False, 'message': '⛔ تم حظرك لمدة 15 دقيقة بسبب محاولات فاشلة متكررة'})
             return jsonify({'success': False, 'message': f'الكود غير صحيح. المحاولات المتبقية: {remaining}'})
         
         # ✅ دخول ناجح - إعادة تعيين عداد المحاولات
         reset_login_attempts()
+        
+        # 🔒 تسجيل الدخول الناجح في سجل الأمان
+        log_login_success(user_id)
         
         # تسجيل الدخول
         session.clear()
@@ -139,6 +148,9 @@ def login():
                 login_info = detect_new_login(db, user_id, bot)
                 if login_info.get('is_new'):
                     session['new_device_login'] = True
+                    # 🔒 تسجيل الدخول من جهاز جديد
+                    if SECURITY_LOGGING:
+                        log_security_event(SecurityEvent.LOGIN_NEW_DEVICE, user_id)
             except Exception as e:
                 pass  # لا نوقف تسجيل الدخول إذا فشل الكشف
         

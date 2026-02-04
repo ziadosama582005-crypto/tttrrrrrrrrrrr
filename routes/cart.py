@@ -231,15 +231,20 @@ def api_cart_get():
 
 
 @cart_bp.route('/api/cart/remove', methods=['POST'])
+@require_session_user()
 def api_cart_remove():
-    """حذف منتج من السلة وإلغاء الحجز"""
+    """حذف منتج من السلة وإلغاء الحجز - محمي من IDOR"""
     try:
         data = request.json
-        user_id = str(data.get('user_id'))
+        # ✅ إصلاح IDOR: نأخذ user_id من الجلسة فقط وليس من الطلب
+        user_id = get_session_user_id()
         product_id = data.get('product_id')
         
-        if not user_id or not product_id:
-            return jsonify({'status': 'error', 'message': 'بيانات ناقصة'})
+        if not user_id:
+            return jsonify({'status': 'error', 'message': 'يجب تسجيل الدخول'}), 401
+        
+        if not product_id:
+            return jsonify({'status': 'error', 'message': 'معرف المنتج مطلوب'})
         
         cart = get_user_cart(user_id) or {}
         if not cart or not cart.get('items'):
