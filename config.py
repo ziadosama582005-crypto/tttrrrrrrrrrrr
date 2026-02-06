@@ -73,3 +73,11 @@ DEFAULT_CATEGORIES = [
 DISPLAY_SETTINGS = {
     'categories_columns': 3
 }
+
+# === إعدادات البريد الإلكتروني (SMTP) ===
+# يمكن تغييرها من Render Environment Variables
+SMTP_SERVER = os.environ.get("SMTP_SERVER", "mail.privateemail.com")  # Namecheap افتراضي
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "465"))  # منفذ SSL
+SMTP_EMAIL = os.environ.get("SMTP_EMAIL", "")  # الإيميل
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")  # كلمة المرور
+SMTP_FROM_NAME = os.environ.get("SMTP_FROM_NAME", "TR Store")  # اسم المرسل
