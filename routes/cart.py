@@ -122,6 +122,11 @@ def api_cart_add():
             # تحديث وقت انتهاء السلة ليكون 5 دقائق من الآن
             cart['expires_at'] = reservation_time.isoformat() + 'Z'
         
+        # حد أقصى لعدد المنتجات في السلة
+        MAX_CART_ITEMS = 10
+        if len(cart.get('items', [])) >= MAX_CART_ITEMS:
+            return jsonify({'status': 'error', 'message': f'❌ الحد الأقصى للسلة {MAX_CART_ITEMS} منتجات'})
+
         # التحقق من عدم وجود المنتج في السلة
         existing_ids = [item['product_id'] for item in cart.get('items', [])]
         if product_id in existing_ids:
