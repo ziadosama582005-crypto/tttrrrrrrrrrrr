@@ -342,7 +342,7 @@ def profile():
             join_date = 'غير محدد'
         
         return render_template('profile_new.html',
-            user_name=user_data.get('name', 'المستخدم'),
+            user_name=user_data.get('username', user_data.get('first_name', user_data.get('name', 'المستخدم'))),
             user_id=user_id,
             profile_photo=profile_photo,
             balance=user_data.get('balance', 0),
@@ -351,6 +351,9 @@ def profile():
             phone=user_data.get('phone', ''),
             phone_verified=user_data.get('phone_verified', False),
             totp_enabled=user_data.get('totp_enabled', False),
+            # بيانات إضافية
+            email=user_data.get('email', ''),
+            registered_via=user_data.get('registered_via', 'telegram'),
             # بيانات السحب
             can_withdraw_normal=can_withdraw_normal,
             normal_withdraw_amount=normal_withdraw_amount,

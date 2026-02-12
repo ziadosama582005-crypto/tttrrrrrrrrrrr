@@ -1,992 +1,1126 @@
 {% extends "base.html" %}
-{% block title %}الإعدادات{% endblock %}
+{% block title %}حسابي{% endblock %}
 
 {% block content %}
-<div class="settings-page">
-    <div class="settings-container">
-        <div class="page-header">
-            <i class="fas fa-cog"></i>
-            <h1>الإعدادات</h1>
-        </div>
-        
-        <p class="intro-text">إدارة حسابك وإعدادات الأمان</p>
+<div class="profile-page">
+    <div class="profile-container">
 
-        <!-- قسم الأمان والتوثيق -->
-        <div class="settings-section">
-            <h2 class="section-title"><i class="fas fa-shield-alt"></i> الأمان والتوثيق</h2>
-            
-            <!-- توثيق البريد الإلكتروني -->
-            <div class="setting-item">
-                <div class="setting-info">
-                    <div class="setting-icon phone">
-                        <i class="fas fa-phone"></i>
+        <!-- ===== بطاقة المستخدم الرئيسية ===== -->
+        <div class="user-hero">
+            <div class="user-avatar">
+                {% if profile_photo %}
+                    <img src="{{ profile_photo }}" alt="صورة">
+                {% else %}
+                    <div class="avatar-placeholder">{{ (user_name or 'م')[0] }}</div>
+                {% endif %}
+            </div>
+            <div class="user-details">
+                <h1 class="user-display-name">{{ user_name or 'مستخدم' }}</h1>
+                <div class="user-meta">
+                    <span class="meta-chip" onclick="copyToClipboard('{{ user_id }}')">
+                        <i class="fas fa-fingerprint"></i> {{ user_id }}
+                        <i class="fas fa-copy copy-icon"></i>
+                    </span>
+                    {% if phone and phone_verified %}
+                        <span class="meta-chip verified-chip">
+                            <i class="fas fa-phone-alt"></i> {{ phone }}
+                            <i class="fas fa-circle-check"></i>
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== بطاقة الرصيد ===== -->
+        <div class="balance-card">
+            <div class="balance-top">
+                <div class="balance-label">
+                    <i class="fas fa-wallet"></i>
+                    <span>رصيدك الحالي</span>
+                </div>
+                <a href="/wallet" class="balance-link">شحن <i class="fas fa-plus-circle"></i></a>
+            </div>
+            <div class="balance-amount">{{ "%.2f"|format(balance|float) }} <small>ر.س</small></div>
+            <div class="balance-footer">
+                {% if frozen_balance > 0 %}
+                    <div class="balance-detail frozen">
+                        <i class="fas fa-snowflake"></i>
+                        <span>مجمّد: {{ "%.2f"|format(frozen_balance|float) }} ر.س</span>
                     </div>
-                    <div class="setting-text">
-                        <h3>توثيق رقم الجوال</h3>
-                        <p>{% if phone %}{{ phone }}{% else %}لم يتم إضافة رقم جوال{% endif %}</p>
+                {% endif %}
+                <div class="balance-detail available">
+                    <i class="fas fa-check-circle"></i>
+                    <span>متاح للسحب: {{ "%.2f"|format(normal_withdraw_amount|float) }} ر.س</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== الإجراءات السريعة ===== -->
+        <div class="actions-grid">
+            <a href="/wallet" class="action-card">
+                <div class="action-icon" style="background: rgba(0,255,136,0.12); color: #00ff88;">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <span>المحفظة</span>
+            </a>
+            <a href="/my_purchases" class="action-card">
+                <div class="action-icon" style="background: rgba(99,102,241,0.12); color: #6366f1;">
+                    <i class="fas fa-bag-shopping"></i>
+                </div>
+                <span>مشترياتي</span>
+            </a>
+            <a href="/withdraw" class="action-card">
+                <div class="action-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                    <i class="fas fa-money-bill-transfer"></i>
+                </div>
+                <span>سحب</span>
+            </a>
+            <a href="/contact-us" class="action-card">
+                <div class="action-icon" style="background: rgba(236,72,153,0.12); color: #ec4899;">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <span>الدعم</span>
+            </a>
+        </div>
+
+        <!-- ===== الأمان والتوثيق ===== -->
+        <div class="section-block">
+            <div class="section-header">
+                <div class="section-title-group">
+                    <i class="fas fa-shield-halved"></i>
+                    <h2>الأمان</h2>
+                </div>
+                <div class="security-score">
+                    {% set score = 0 %}
+                    {% if phone_verified %}{% set score = score + 50 %}{% endif %}
+                    {% if totp_enabled %}{% set score = score + 50 %}{% endif %}
+                    <div class="score-bar">
+                        <div class="score-fill {% if score >= 100 %}full{% elif score >= 50 %}half{% else %}low{% endif %}" style="width: {{ score }}%"></div>
+                    </div>
+                    <span class="score-label">{{ score }}%</span>
+                </div>
+            </div>
+
+            <!-- توثيق الجوال -->
+            <div class="security-item">
+                <div class="security-left">
+                    <div class="sec-icon {% if phone_verified %}done{% endif %}">
+                        <i class="fas fa-mobile-screen-button"></i>
+                    </div>
+                    <div class="sec-text">
+                        <h3>رقم الجوال</h3>
+                        <p>{% if phone_verified %}{{ phone }} — موثّق{% elif phone %}{{ phone }} — بانتظار التوثيق{% else %}لم يُضف بعد{% endif %}</p>
                     </div>
                 </div>
-                <div class="setting-action">
+                <div class="security-right">
                     {% if phone_verified %}
-                        <span class="status-badge verified"><i class="fas fa-check-circle"></i> موثق</span>
+                        <span class="badge-ok"><i class="fas fa-circle-check"></i></span>
                     {% else %}
-                        <button class="action-btn" onclick="openPhoneModal()">
+                        <button class="sec-btn" onclick="openPhoneModal()">
                             {% if phone %}توثيق{% else %}إضافة{% endif %}
                         </button>
                     {% endif %}
                 </div>
             </div>
-            
+
             <!-- المصادقة الثنائية -->
-            <div class="setting-item">
-                <div class="setting-info">
-                    <div class="setting-icon twofa">
+            <div class="security-item">
+                <div class="security-left">
+                    <div class="sec-icon {% if totp_enabled %}done{% endif %}">
                         <i class="fas fa-lock"></i>
                     </div>
-                    <div class="setting-text">
+                    <div class="sec-text">
                         <h3>المصادقة الثنائية (2FA)</h3>
-                        <p>حماية إضافية عبر Google Authenticator</p>
+                        <p>{% if totp_enabled %}مفعّلة — Google Authenticator{% else %}حماية إضافية عبر تطبيق المصادقة{% endif %}</p>
                     </div>
                 </div>
-                <div class="setting-action">
+                <div class="security-right">
                     {% if totp_enabled %}
-                        <span class="status-badge verified"><i class="fas fa-check-circle"></i> مفعّل</span>
-                        <button class="action-btn danger" onclick="openDisable2FAModal()">تعطيل</button>
+                        <span class="badge-ok"><i class="fas fa-circle-check"></i></span>
+                        <button class="sec-btn danger-ghost" onclick="openDisable2FAModal()">تعطيل</button>
                     {% else %}
-                        <button class="action-btn" onclick="openSetup2FAModal()">تفعيل</button>
+                        <button class="sec-btn" onclick="openSetup2FAModal()">تفعيل</button>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- معلومات الحساب -->
-        <div class="settings-section">
-            <h2 class="section-title"><i class="fas fa-user"></i> معلومات الحساب</h2>
-            
-            <div class="account-info-grid">
-                <div class="info-card">
-                    <div class="info-label">اسم المستخدم</div>
-                    <div class="info-value">{{ user_name or 'غير محدد' }}</div>
+        <!-- ===== معلومات الحساب ===== -->
+        <div class="section-block">
+            <div class="section-header">
+                <div class="section-title-group">
+                    <i class="fas fa-circle-info"></i>
+                    <h2>معلومات الحساب</h2>
                 </div>
-                <div class="info-card">
-                    <div class="info-label">رقم المعرف (ID)</div>
-                    <div class="info-value copyable" onclick="copyToClipboard('{{ user_id }}')">
-                        {{ user_id }}
+            </div>
+
+            <div class="info-rows">
+                <div class="info-row">
+                    <span class="info-key"><i class="fas fa-user"></i> الاسم</span>
+                    <span class="info-val">{{ user_name or 'غير محدد' }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-key"><i class="fas fa-fingerprint"></i> المعرف</span>
+                    <span class="info-val copyable-row" onclick="copyToClipboard('{{ user_id }}')">
+                        <code>{{ user_id }}</code>
                         <i class="fas fa-copy"></i>
-                    </div>
+                    </span>
                 </div>
-                <div class="info-card">
-                    <div class="info-label">تاريخ الانضمام</div>
-                    <div class="info-value">{{ join_date or 'غير معروف' }}</div>
+                {% if phone %}
+                <div class="info-row">
+                    <span class="info-key"><i class="fas fa-phone"></i> الجوال</span>
+                    <span class="info-val">{{ phone }}
+                        {% if phone_verified %}<i class="fas fa-circle-check" style="color:#00ff88; font-size:12px; margin-right:4px;"></i>{% endif %}
+                    </span>
+                </div>
+                {% endif %}
+                {% if email %}
+                <div class="info-row">
+                    <span class="info-key"><i class="fas fa-envelope"></i> الإيميل</span>
+                    <span class="info-val">{{ email }}</span>
+                </div>
+                {% endif %}
+                <div class="info-row">
+                    <span class="info-key"><i class="fas fa-calendar-days"></i> الانضمام</span>
+                    <span class="info-val">{{ join_date or 'غير معروف' }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-key"><i class="fas fa-right-to-bracket"></i> طريقة التسجيل</span>
+                    <span class="info-val">
+                        {% if registered_via == 'whatsapp' %}📲 واتساب
+                        {% elif registered_via == 'email' %}📧 إيميل
+                        {% else %}🤖 تلغرام{% endif %}
+                    </span>
                 </div>
             </div>
         </div>
 
-        <!-- روابط سريعة -->
-        <div class="quick-links">
-            <a href="/withdraw" class="quick-link">
-                <i class="fas fa-money-bill-transfer"></i>
-                <span>سحب الرصيد</span>
-            </a>
-            <a href="/my_purchases" class="quick-link">
-                <i class="fas fa-shopping-bag"></i>
-                <span>مشترياتي</span>
-            </a>
-            <a href="/wallet" class="quick-link">
-                <i class="fas fa-wallet"></i>
-                <span>المحفظة</span>
-            </a>
-            <a href="/contact-us" class="quick-link">
-                <i class="fas fa-headset"></i>
-                <span>الدعم</span>
-            </a>
+        <!-- ===== آخر الطلبات ===== -->
+        {% if orders %}
+        <div class="section-block">
+            <div class="section-header">
+                <div class="section-title-group">
+                    <i class="fas fa-clock-rotate-left"></i>
+                    <h2>آخر الطلبات</h2>
+                </div>
+                <a href="/my_purchases" class="see-all">عرض الكل <i class="fas fa-arrow-left"></i></a>
+            </div>
+            <div class="orders-list">
+                {% for order in orders %}
+                <div class="order-row">
+                    <div class="order-info">
+                        <span class="order-product">{{ order.product_name or 'منتج' }}</span>
+                        <span class="order-date">{{ order.date }}</span>
+                    </div>
+                    <span class="order-price">{{ order.total_price }} ر.س</span>
+                </div>
+                {% endfor %}
+            </div>
         </div>
+        {% endif %}
+
+        <!-- ===== تسجيل الخروج ===== -->
+        <button class="logout-btn" onclick="if(confirm('هل تريد تسجيل الخروج؟')) window.location.href='/logout'">
+            <i class="fas fa-right-from-bracket"></i>
+            تسجيل الخروج
+        </button>
+
     </div>
 </div>
 
-<!-- مودال توثيق رقم الجوال -->
+<!-- ===== مودال توثيق رقم الجوال ===== -->
 <div class="modal-overlay" id="phoneModal">
-    <div class="modal-content">
-        <button class="modal-close" onclick="closePhoneModal()"><i class="fas fa-times"></i></button>
-        <div class="modal-header">
-            <div class="modal-icon"><i class="fas fa-phone"></i></div>
+    <div class="modal-box">
+        <button class="modal-x" onclick="closePhoneModal()"><i class="fas fa-xmark"></i></button>
+        <div class="modal-top">
+            <div class="modal-emoji">📱</div>
             <h2>توثيق رقم الجوال</h2>
             <p>أضف رقم جوالك لتأمين حسابك</p>
         </div>
-        <div style="background: rgba(243, 156, 18, 0.15); border: 1px solid rgba(243, 156, 18, 0.3); border-radius: 10px; padding: 12px; margin: 15px 20px; text-align: center;">
-            <i class="fas fa-exclamation-triangle" style="color: #f39c12; margin-left: 8px;"></i>
-            <span style="color: #f39c12; font-size: 13px; font-weight: 500;">تنبيه: لا يمكن تغيير الرقم بعد التوثيق</span>
+        <div class="modal-warn">
+            <i class="fas fa-triangle-exclamation"></i>
+            لا يمكن تغيير الرقم بعد التوثيق
         </div>
-        <div id="phoneError" class="alert error"></div>
-        <div id="phoneSuccess" class="alert success"></div>
-        <div class="modal-body">
-            <div id="phoneStep1">
-                <div class="form-group">
-                    <label><i class="fas fa-phone"></i> رقم الجوال</label>
-                    <input type="tel" id="phoneInput" placeholder="05xxxxxxxx" dir="ltr" maxlength="10">
-                    <small style="color: #888; font-size: 12px;">يجب أن يبدأ بـ 05 ويتكون من 10 أرقام</small>
-                </div>
-            </div>
-            <div id="phoneStep2" style="display: none;">
-                <div class="form-group">
-                    <label><i class="fas fa-key"></i> كود التحقق (6 أرقام)</label>
-                    <input type="text" id="phoneCodeInput" class="code-input" placeholder="000000" maxlength="6">
-                    <small style="color: #888; font-size: 12px;">تم إرسال الكود عبر Telegram</small>
-                </div>
-            </div>
+        <div id="phoneError" class="modal-alert error"></div>
+        <div id="phoneSuccess" class="modal-alert success"></div>
+        <div id="phoneStep1" class="modal-form">
+            <label>رقم الجوال</label>
+            <input type="tel" id="phoneInput" placeholder="05xxxxxxxx" dir="ltr" maxlength="10" inputmode="tel">
+            <small>يجب أن يبدأ بـ 05 ويتكون من 10 أرقام</small>
         </div>
-        <div class="modal-actions">
-            <button class="btn-secondary" onclick="closePhoneModal()">إلغاء</button>
-            <button class="btn-primary" id="phoneStep1Btn" onclick="sendPhoneCode()">
-                <i class="fas fa-paper-plane"></i> إرسال كود التحقق
-            </button>
-            <button class="btn-primary" id="phoneStep2Btn" onclick="verifyPhoneCode()" style="display: none;">
-                <i class="fas fa-check"></i> تأكيد
-            </button>
+        <div id="phoneStep2" class="modal-form" style="display:none;">
+            <label>كود التحقق (6 أرقام)</label>
+            <input type="text" id="phoneCodeInput" class="otp-input" placeholder="------" maxlength="6" inputmode="numeric">
+            <small>تم إرسال الكود عبر Telegram</small>
+        </div>
+        <div class="modal-btns">
+            <button class="m-btn ghost" onclick="closePhoneModal()">إلغاء</button>
+            <button class="m-btn primary" id="phoneStep1Btn" onclick="sendPhoneCode()">إرسال الكود</button>
+            <button class="m-btn primary" id="phoneStep2Btn" onclick="verifyPhoneCode()" style="display:none;">تأكيد</button>
         </div>
     </div>
 </div>
 
-<!-- مودال تفعيل 2FA -->
+<!-- ===== مودال تفعيل 2FA ===== -->
 <div class="modal-overlay" id="setup2FAModal">
-    <div class="modal-content">
-        <button class="modal-close" onclick="closeSetup2FAModal()"><i class="fas fa-times"></i></button>
-        <div class="modal-header">
-            <div class="modal-icon"><i class="fas fa-shield-alt"></i></div>
+    <div class="modal-box">
+        <button class="modal-x" onclick="closeSetup2FAModal()"><i class="fas fa-xmark"></i></button>
+        <div class="modal-top">
+            <div class="modal-emoji">🔐</div>
             <h2>تفعيل المصادقة الثنائية</h2>
-            <p>استخدم Google Authenticator لحماية حسابك</p>
+            <p>استخدم Google Authenticator</p>
         </div>
-        <div id="2faLoading" class="loading-state">
-            <i class="fas fa-spinner fa-spin"></i>
-            <span>جاري التحميل...</span>
+        <div id="2faLoading" class="modal-loading">
+            <i class="fas fa-spinner fa-spin"></i> جاري التحميل...
         </div>
-        <div id="2faContent" style="display: none;">
-            <div class="steps-box">
-                <h4><i class="fas fa-list-ol"></i> خطوات التفعيل:</h4>
-                <ol>
-                    <li>حمّل تطبيق Google Authenticator</li>
-                    <li>امسح رمز QR أدناه أو أدخل المفتاح يدوياً</li>
-                    <li>أدخل الكود المكون من 6 أرقام</li>
-                </ol>
+        <div id="2faContent" style="display:none;">
+            <div class="steps-info">
+                <div class="step-item"><span>1</span> حمّل Google Authenticator</div>
+                <div class="step-item"><span>2</span> امسح رمز QR أو أدخل المفتاح</div>
+                <div class="step-item"><span>3</span> أدخل الكود من التطبيق</div>
             </div>
-            <div class="qr-container">
-                <img id="qrCodeImg" src="" alt="QR Code">
+            <div class="qr-box">
+                <img id="qrCodeImg" src="" alt="QR">
             </div>
-            <div class="secret-key" onclick="copySecret()">
-                <span id="secretKey"></span>
+            <div class="secret-box" onclick="copySecret()">
+                <code id="secretKey"></code>
                 <small><i class="fas fa-copy"></i> انقر للنسخ</small>
             </div>
-            <div id="2faError" class="alert error"></div>
-            <div class="form-group">
-                <label><i class="fas fa-key"></i> كود التحقق من التطبيق</label>
-                <input type="text" id="totpCode" class="code-input" placeholder="000000" maxlength="6">
+            <div id="2faError" class="modal-alert error"></div>
+            <div class="modal-form">
+                <label>كود التحقق من التطبيق</label>
+                <input type="text" id="totpCode" class="otp-input" placeholder="------" maxlength="6" inputmode="numeric">
             </div>
         </div>
-        <div class="modal-actions">
-            <button class="btn-secondary" onclick="closeSetup2FAModal()">إلغاء</button>
-            <button class="btn-primary" onclick="verify2FASetup()">
-                <i class="fas fa-check"></i> تفعيل
-            </button>
+        <div class="modal-btns">
+            <button class="m-btn ghost" onclick="closeSetup2FAModal()">إلغاء</button>
+            <button class="m-btn primary" onclick="verify2FASetup()">تفعيل</button>
         </div>
     </div>
 </div>
 
-<!-- مودال تعطيل 2FA -->
+<!-- ===== مودال تعطيل 2FA ===== -->
 <div class="modal-overlay" id="disable2FAModal">
-    <div class="modal-content">
-        <button class="modal-close" onclick="closeDisable2FAModal()"><i class="fas fa-times"></i></button>
-        <div class="modal-header">
-            <div class="modal-icon danger"><i class="fas fa-exclamation-triangle"></i></div>
+    <div class="modal-box">
+        <button class="modal-x" onclick="closeDisable2FAModal()"><i class="fas fa-xmark"></i></button>
+        <div class="modal-top">
+            <div class="modal-emoji">⚠️</div>
             <h2>تعطيل المصادقة الثنائية</h2>
-            <p>أدخل الكود من تطبيق Authenticator للتأكيد</p>
+            <p>أدخل الكود من التطبيق للتأكيد</p>
         </div>
-        <div id="disable2faError" class="alert error"></div>
-        <div class="modal-body">
-            <div class="form-group">
-                <label><i class="fas fa-key"></i> كود التحقق</label>
-                <input type="text" id="disableCode" class="code-input" placeholder="000000" maxlength="6">
-            </div>
+        <div id="disable2faError" class="modal-alert error"></div>
+        <div class="modal-form">
+            <label>كود التحقق</label>
+            <input type="text" id="disableCode" class="otp-input" placeholder="------" maxlength="6" inputmode="numeric">
         </div>
-        <div class="modal-actions">
-            <button class="btn-secondary" onclick="closeDisable2FAModal()">إلغاء</button>
-            <button class="btn-danger" onclick="disable2FA()">
-                <i class="fas fa-times"></i> تعطيل
-            </button>
+        <div class="modal-btns">
+            <button class="m-btn ghost" onclick="closeDisable2FAModal()">إلغاء</button>
+            <button class="m-btn danger" onclick="disable2FA()">تعطيل</button>
         </div>
     </div>
 </div>
+
+<!-- ===== نافذة النسخ ===== -->
+<div id="copyToast" class="copy-toast">تم النسخ ✅</div>
 
 <style>
-    .settings-page {
-        min-height: 100vh;
-        padding: 20px;
-    }
-    
-    .settings-container {
-        max-width: 700px;
-        margin: 0 auto;
-    }
-    
-    .page-header {
-        text-align: center;
-        margin-bottom: 15px;
-    }
-    
-    .page-header i {
-        font-size: 45px;
-        color: #6c5ce7;
-        margin-bottom: 10px;
-    }
-    
-    .page-header h1 {
-        color: #fff;
-        font-size: 26px;
-        margin: 0;
-    }
-    
-    .intro-text {
-        text-align: center;
-        color: #888;
-        font-size: 14px;
-        margin-bottom: 30px;
-    }
-    
-    /* أقسام الإعدادات */
-    .settings-section {
-        background: linear-gradient(145deg, #1a1a2e, #16213e);
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 20px;
-        border: 1px solid rgba(108, 92, 231, 0.2);
-    }
-    
-    .section-title {
-        color: #fff;
-        font-size: 16px;
-        margin: 0 0 20px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    
-    .section-title i {
-        color: #6c5ce7;
-    }
-    
-    /* عناصر الإعدادات */
-    .setting-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 15px;
-        background: rgba(0,0,0,0.2);
-        border-radius: 12px;
-        margin-bottom: 12px;
-    }
-    
-    .setting-item:last-child {
-        margin-bottom: 0;
-    }
-    
-    .setting-info {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-    
-    .setting-icon {
-        width: 45px;
-        height: 45px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-    }
-    
-    .setting-icon.email {
-        background: rgba(0, 206, 201, 0.15);
-        color: #00cec9;
-    }
-    
-    .setting-icon.twofa {
-        background: rgba(108, 92, 231, 0.15);
-        color: #6c5ce7;
-    }
-    
-    .setting-text h3 {
-        color: #fff;
-        font-size: 15px;
-        margin: 0 0 4px;
-    }
-    
-    .setting-text p {
-        color: #888;
-        font-size: 12px;
-        margin: 0;
-    }
-    
-    .setting-action {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .status-badge {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-    
-    .status-badge.verified {
-        background: rgba(0, 184, 148, 0.15);
-        color: #00b894;
-    }
-    
-    .action-btn {
-        padding: 8px 16px;
-        border-radius: 8px;
-        border: none;
-        font-family: inherit;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        background: #6c5ce7;
-        color: white;
-        transition: all 0.3s;
-    }
-    
-    .action-btn:hover {
-        background: #5b4cdb;
-        transform: translateY(-2px);
-    }
-    
-    .action-btn.danger {
-        background: rgba(231, 76, 60, 0.2);
-        color: #e74c3c;
-    }
-    
-    .action-btn.danger:hover {
-        background: #e74c3c;
-        color: white;
-    }
-    
-    /* معلومات الحساب */
-    .account-info-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-    }
-    
-    .info-card {
-        background: rgba(0,0,0,0.2);
-        padding: 15px;
-        border-radius: 10px;
-        text-align: center;
-    }
-    
-    .info-label {
-        font-size: 11px;
-        color: #888;
-        margin-bottom: 5px;
-    }
-    
-    .info-value {
-        font-size: 14px;
-        color: #fff;
-        font-weight: 600;
-    }
-    
-    .info-value.copyable {
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 5px;
-    }
-    
-    .info-value.copyable:hover {
-        color: #6c5ce7;
-    }
-    
-    .info-value.copyable i {
-        font-size: 11px;
-        opacity: 0.5;
-    }
-    
-    /* روابط سريعة */
-    .quick-links {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
-    }
-    
-    .quick-link {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-        padding: 18px 10px;
-        background: linear-gradient(145deg, #1a1a2e, #16213e);
-        border: 1px solid rgba(108, 92, 231, 0.2);
-        border-radius: 12px;
-        text-decoration: none;
-        color: #b2bec3;
-        transition: all 0.3s;
-    }
-    
-    .quick-link:hover {
-        border-color: #6c5ce7;
-        color: #fff;
-        transform: translateY(-3px);
-    }
-    
-    .quick-link i {
-        font-size: 22px;
-        color: #6c5ce7;
-    }
-    
-    .quick-link span {
-        font-size: 12px;
-    }
-    
-    /* المودال */
-    .modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.85);
-        z-index: 1000;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-    }
-    
-    .modal-overlay.show {
-        display: flex;
-    }
-    
-    .modal-content {
-        background: linear-gradient(145deg, #1a1a2e, #16213e);
-        border-radius: 20px;
-        width: 100%;
-        max-width: 420px;
-        position: relative;
-        border: 1px solid rgba(108, 92, 231, 0.3);
-    }
-    
-    .modal-close {
-        position: absolute;
-        top: 15px;
-        left: 15px;
-        background: rgba(255,255,255,0.1);
-        border: none;
-        color: #888;
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s;
-    }
-    
-    .modal-close:hover {
-        background: rgba(231, 76, 60, 0.2);
-        color: #e74c3c;
-    }
-    
-    .modal-header {
-        text-align: center;
-        padding: 30px 20px 20px;
-    }
-    
-    .modal-icon {
-        width: 60px;
-        height: 60px;
-        margin: 0 auto 15px;
-        background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        color: white;
-    }
-    
-    .modal-icon.danger {
-        background: linear-gradient(135deg, #e74c3c, #c0392b);
-    }
-    
-    .modal-header h2 {
-        color: #fff;
-        font-size: 20px;
-        margin: 0 0 8px;
-    }
-    
-    .modal-header p {
-        color: #888;
-        font-size: 13px;
-        margin: 0;
-    }
-    
-    .modal-body {
-        padding: 0 25px;
-    }
-    
-    .form-group {
-        margin-bottom: 15px;
-    }
-    
-    .form-group label {
-        display: block;
-        color: #b2bec3;
-        font-size: 13px;
-        margin-bottom: 8px;
-    }
-    
-    .form-group label i {
-        margin-left: 5px;
-        color: #6c5ce7;
-    }
-    
-    .form-group input {
-        width: 100%;
-        padding: 14px 16px;
-        background: rgba(0,0,0,0.3);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 10px;
-        color: #fff;
-        font-size: 15px;
-        font-family: inherit;
-        transition: all 0.3s;
-    }
-    
-    .form-group input:focus {
-        outline: none;
-        border-color: #6c5ce7;
-    }
-    
-    .code-input {
-        text-align: center !important;
-        letter-spacing: 8px;
-        font-size: 22px !important;
-        font-weight: 700;
-    }
-    
-    .modal-actions {
-        display: flex;
-        gap: 10px;
-        padding: 20px 25px 25px;
-    }
-    
-    .btn-secondary, .btn-primary, .btn-danger {
-        flex: 1;
-        padding: 14px;
-        border-radius: 10px;
-        border: none;
-        font-family: inherit;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        transition: all 0.3s;
-    }
-    
-    .btn-secondary {
-        background: rgba(255,255,255,0.1);
-        color: #b2bec3;
-    }
-    
-    .btn-secondary:hover {
-        background: rgba(255,255,255,0.15);
-    }
-    
-    .btn-primary {
-        background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-        color: white;
-    }
-    
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 20px rgba(108, 92, 231, 0.3);
-    }
-    
-    .btn-danger {
-        background: linear-gradient(135deg, #e74c3c, #c0392b);
-        color: white;
-    }
-    
-    .btn-danger:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 20px rgba(231, 76, 60, 0.3);
-    }
-    
-    .alert {
-        padding: 12px;
-        border-radius: 8px;
-        margin: 0 25px 15px;
-        font-size: 13px;
-        display: none;
-    }
-    
-    .alert.error {
-        background: rgba(231, 76, 60, 0.1);
-        color: #e74c3c;
-        border: 1px solid rgba(231, 76, 60, 0.3);
-    }
-    
-    .alert.success {
-        background: rgba(0, 184, 148, 0.1);
-        color: #00b894;
-        border: 1px solid rgba(0, 184, 148, 0.3);
-    }
-    
-    .loading-state {
-        text-align: center;
-        padding: 40px;
-        color: #888;
-    }
-    
-    .loading-state i {
-        font-size: 30px;
-        margin-bottom: 10px;
-        color: #6c5ce7;
-    }
-    
-    .steps-box {
-        background: rgba(108, 92, 231, 0.1);
-        border-radius: 12px;
-        padding: 15px 20px;
-        margin: 0 25px 20px;
-    }
-    
-    .steps-box h4 {
-        color: #a29bfe;
-        font-size: 14px;
-        margin: 0 0 10px;
-    }
-    
-    .steps-box ol {
-        margin: 0;
-        padding-right: 20px;
-        color: #b2bec3;
-        font-size: 13px;
-        line-height: 1.8;
-    }
-    
-    .qr-container {
-        text-align: center;
-        margin: 20px 0;
-    }
-    
-    .qr-container img {
-        background: white;
-        padding: 15px;
-        border-radius: 12px;
-        max-width: 180px;
-    }
-    
-    .secret-key {
-        text-align: center;
-        margin: 0 25px 20px;
-        padding: 12px;
-        background: rgba(0,0,0,0.3);
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-    
-    .secret-key:hover {
-        background: rgba(108, 92, 231, 0.2);
-    }
-    
-    .secret-key span {
-        font-family: monospace;
-        font-size: 14px;
-        color: #fff;
-        letter-spacing: 2px;
-    }
-    
-    .secret-key small {
-        display: block;
-        margin-top: 5px;
-        color: #6c5ce7;
-        font-size: 11px;
-    }
-    
-    /* Responsive */
-    @media (max-width: 600px) {
-        .settings-page {
-            padding: 15px;
-        }
-        
-        .page-header i {
-            font-size: 36px;
-        }
-        
-        .page-header h1 {
-            font-size: 22px;
-        }
-        
-        .settings-section {
-            padding: 15px;
-        }
-        
-        .setting-item {
-            flex-direction: column;
-            gap: 12px;
-            text-align: center;
-        }
-        
-        .setting-info {
-            flex-direction: column;
-        }
-        
-        .account-info-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .quick-links {
-            grid-template-columns: repeat(2, 1fr);
-        }
-        
-        .modal-content {
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-    }
+/* ===== المتغيرات ===== */
+:root {
+    --accent: #00ff88;
+    --accent-dim: rgba(0,255,136,0.12);
+    --bg-card: rgba(17,17,30,0.85);
+    --bg-card2: rgba(24,24,42,0.9);
+    --border: rgba(255,255,255,0.06);
+    --text1: #f0f0f5;
+    --text2: #8b8ba3;
+    --text3: #5a5a72;
+    --danger: #ef4444;
+    --radius: 16px;
+    --radius-sm: 10px;
+}
+
+/* ===== صفحة البروفايل ===== */
+.profile-page {
+    min-height: 100vh;
+    padding: 16px;
+    padding-bottom: 100px;
+}
+
+.profile-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* ===== بطاقة المستخدم ===== */
+.user-hero {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+}
+
+.user-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), #6366f1, var(--accent));
+    background-size: 200% 100%;
+    animation: shimmer 3s linear infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.user-avatar { position: relative; flex-shrink: 0; }
+
+.user-avatar img {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--accent);
+}
+
+.avatar-placeholder {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, var(--accent));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; font-weight: 700; color: #fff;
+}
+
+.user-details { min-width: 0; }
+
+.user-display-name {
+    font-size: 22px; font-weight: 700;
+    color: var(--text1); margin: 0 0 8px;
+}
+
+.user-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.meta-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; color: var(--text2);
+    background: rgba(255,255,255,0.05);
+    padding: 4px 10px; border-radius: 20px;
+    cursor: pointer; transition: all 0.2s;
+}
+
+.meta-chip:hover { background: rgba(255,255,255,0.1); }
+.meta-chip .copy-icon { font-size: 9px; opacity: 0.4; }
+.meta-chip.verified-chip { color: var(--accent); background: var(--accent-dim); }
+.meta-chip.verified-chip .fa-circle-check { font-size: 10px; }
+
+/* ===== بطاقة الرصيد ===== */
+.balance-card {
+    background: linear-gradient(135deg, #0f1628 0%, #131b30 50%, #0d1420 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 20px;
+    margin-bottom: 16px;
+    position: relative; overflow: hidden;
+}
+
+.balance-card::after {
+    content: '';
+    position: absolute; top: -40px; left: -40px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(0,255,136,0.08), transparent 70%);
+    pointer-events: none;
+}
+
+.balance-top {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 10px;
+}
+
+.balance-label {
+    display: flex; align-items: center; gap: 8px;
+    color: var(--text2); font-size: 13px;
+}
+
+.balance-label i { color: var(--accent); }
+
+.balance-link {
+    font-size: 12px; color: var(--accent);
+    text-decoration: none;
+    display: flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: 20px;
+    background: var(--accent-dim); transition: all 0.2s;
+}
+
+.balance-link:hover { background: rgba(0,255,136,0.2); }
+
+.balance-amount {
+    font-size: 36px; font-weight: 800;
+    color: var(--text1); letter-spacing: -1px;
+    position: relative; z-index: 1;
+}
+
+.balance-amount small {
+    font-size: 16px; font-weight: 500;
+    color: var(--text2); margin-right: 4px;
+}
+
+.balance-footer {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    margin-top: 14px; padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+
+.balance-detail {
+    display: flex; align-items: center;
+    gap: 6px; font-size: 12px;
+}
+
+.balance-detail.frozen { color: #f59e0b; }
+.balance-detail.available { color: var(--accent); }
+
+/* ===== الإجراءات السريعة ===== */
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px; margin-bottom: 16px;
+}
+
+.action-card {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 8px;
+    padding: 16px 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: var(--text2); transition: all 0.2s;
+}
+
+.action-card:hover {
+    border-color: rgba(255,255,255,0.12);
+    transform: translateY(-2px);
+    color: var(--text1);
+}
+
+.action-icon {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+}
+
+.action-card span { font-size: 11px; font-weight: 500; }
+
+/* ===== الأقسام ===== */
+.section-block {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px; margin-bottom: 16px;
+}
+
+.section-header {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 18px;
+}
+
+.section-title-group {
+    display: flex; align-items: center; gap: 10px;
+}
+
+.section-title-group i { color: var(--accent); font-size: 16px; }
+
+.section-title-group h2 {
+    color: var(--text1); font-size: 16px;
+    font-weight: 700; margin: 0;
+}
+
+.see-all {
+    font-size: 12px; color: var(--accent);
+    text-decoration: none;
+    display: flex; align-items: center; gap: 4px;
+}
+
+/* ===== نسبة الأمان ===== */
+.security-score {
+    display: flex; align-items: center; gap: 8px;
+}
+
+.score-bar {
+    width: 60px; height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px; overflow: hidden;
+}
+
+.score-fill {
+    height: 100%; border-radius: 3px;
+    transition: width 0.5s;
+}
+
+.score-fill.full { background: var(--accent); }
+.score-fill.half { background: #f59e0b; }
+.score-fill.low { background: var(--danger); }
+
+.score-label { font-size: 12px; font-weight: 700; color: var(--text2); }
+
+/* ===== عناصر الأمان ===== */
+.security-item {
+    display: flex; justify-content: space-between;
+    align-items: center; padding: 14px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 10px;
+}
+
+.security-item:last-child { margin-bottom: 0; }
+
+.security-left {
+    display: flex; align-items: center;
+    gap: 12px; min-width: 0;
+}
+
+.sec-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: rgba(99,102,241,0.12);
+    color: #6366f1;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+}
+
+.sec-icon.done { background: var(--accent-dim); color: var(--accent); }
+
+.sec-text h3 {
+    color: var(--text1); font-size: 14px;
+    font-weight: 600; margin: 0 0 2px;
+}
+
+.sec-text p { color: var(--text3); font-size: 12px; margin: 0; }
+
+.security-right {
+    display: flex; align-items: center;
+    gap: 8px; flex-shrink: 0;
+}
+
+.badge-ok { color: var(--accent); font-size: 20px; }
+
+.sec-btn {
+    padding: 7px 16px; border-radius: 8px;
+    border: 1px solid var(--accent);
+    background: transparent; color: var(--accent);
+    font-family: inherit; font-size: 12px;
+    font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+
+.sec-btn:hover { background: var(--accent); color: #000; }
+
+.sec-btn.danger-ghost {
+    border-color: rgba(239,68,68,0.4); color: var(--danger);
+}
+
+.sec-btn.danger-ghost:hover {
+    background: var(--danger); color: #fff;
+    border-color: var(--danger);
+}
+
+/* ===== معلومات الحساب ===== */
+.info-rows { display: flex; flex-direction: column; }
+
+.info-row {
+    display: flex; justify-content: space-between;
+    align-items: center; padding: 13px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.info-row:last-child { border-bottom: none; }
+
+.info-key {
+    font-size: 13px; color: var(--text2);
+    display: flex; align-items: center; gap: 8px;
+}
+
+.info-key i {
+    width: 16px; text-align: center;
+    color: var(--text3); font-size: 13px;
+}
+
+.info-val { font-size: 13px; color: var(--text1); font-weight: 500; }
+
+.copyable-row {
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    transition: color 0.2s;
+}
+
+.copyable-row:hover { color: var(--accent); }
+
+.copyable-row code {
+    background: rgba(255,255,255,0.05);
+    padding: 2px 8px; border-radius: 4px; font-size: 12px;
+}
+
+.copyable-row .fa-copy { font-size: 11px; opacity: 0.4; }
+
+/* ===== آخر الطلبات ===== */
+.order-row {
+    display: flex; justify-content: space-between;
+    align-items: center; padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.order-row:last-child { border-bottom: none; }
+
+.order-info { display: flex; flex-direction: column; gap: 2px; }
+.order-product { font-size: 13px; color: var(--text1); font-weight: 500; }
+.order-date { font-size: 11px; color: var(--text3); }
+.order-price { font-size: 13px; color: var(--accent); font-weight: 700; }
+
+/* ===== زر تسجيل الخروج ===== */
+.logout-btn {
+    width: 100%; padding: 14px;
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: var(--radius-sm);
+    color: var(--danger); font-family: inherit;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; transition: all 0.2s;
+    margin-bottom: 20px;
+}
+
+.logout-btn:hover {
+    background: rgba(239,68,68,0.15);
+    border-color: rgba(239,68,68,0.4);
+}
+
+/* ===== المودالات ===== */
+.modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center; justify-content: center;
+    padding: 20px;
+}
+
+.modal-overlay.show { display: flex; }
+
+.modal-box {
+    background: #13132a;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    width: 100%; max-width: 400px;
+    max-height: 90vh; overflow-y: auto;
+    position: relative; padding: 28px 24px 24px;
+}
+
+.modal-x {
+    position: absolute; top: 14px; left: 14px;
+    background: rgba(255,255,255,0.06);
+    border: none; color: var(--text3);
+    width: 32px; height: 32px; border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; transition: all 0.2s;
+}
+
+.modal-x:hover { background: rgba(239,68,68,0.15); color: var(--danger); }
+
+.modal-top { text-align: center; margin-bottom: 20px; }
+.modal-emoji { font-size: 40px; margin-bottom: 10px; }
+
+.modal-top h2 { color: var(--text1); font-size: 18px; margin: 0 0 6px; }
+.modal-top p { color: var(--text3); font-size: 13px; margin: 0; }
+
+.modal-warn {
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 10px; padding: 10px 14px;
+    text-align: center; color: #f59e0b;
+    font-size: 12px; margin-bottom: 18px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+
+.modal-alert {
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 13px; margin-bottom: 14px; display: none;
+}
+
+.modal-alert.error {
+    background: rgba(239,68,68,0.1); color: var(--danger);
+    border: 1px solid rgba(239,68,68,0.2);
+}
+
+.modal-alert.success {
+    background: var(--accent-dim); color: var(--accent);
+    border: 1px solid rgba(0,255,136,0.2);
+}
+
+.modal-form { margin-bottom: 16px; }
+
+.modal-form label {
+    display: block; color: var(--text2);
+    font-size: 13px; margin-bottom: 8px; font-weight: 500;
+}
+
+.modal-form input {
+    width: 100%; padding: 13px 14px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text1); font-size: 15px;
+    font-family: inherit; transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.modal-form input:focus { outline: none; border-color: var(--accent); }
+
+.modal-form small {
+    display: block; margin-top: 6px;
+    color: var(--text3); font-size: 11px;
+}
+
+.otp-input {
+    text-align: center !important;
+    letter-spacing: 10px;
+    font-size: 24px !important; font-weight: 700;
+}
+
+.modal-btns { display: flex; gap: 10px; margin-top: 4px; }
+
+.m-btn {
+    flex: 1; padding: 13px;
+    border-radius: var(--radius-sm);
+    border: none; font-family: inherit;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+}
+
+.m-btn.ghost { background: rgba(255,255,255,0.06); color: var(--text2); }
+.m-btn.ghost:hover { background: rgba(255,255,255,0.1); }
+
+.m-btn.primary { background: var(--accent); color: #000; }
+.m-btn.primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+.m-btn.danger { background: var(--danger); color: #fff; }
+.m-btn.danger:hover { filter: brightness(1.1); }
+
+.modal-loading {
+    text-align: center; padding: 30px;
+    color: var(--text3); font-size: 14px;
+}
+
+.modal-loading i {
+    font-size: 24px; color: var(--accent);
+    display: block; margin-bottom: 10px;
+}
+
+/* ===== 2FA ===== */
+.steps-info {
+    display: flex; flex-direction: column; gap: 8px;
+    margin-bottom: 18px; padding: 14px;
+    background: rgba(99,102,241,0.08);
+    border-radius: var(--radius-sm);
+}
+
+.step-item {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: var(--text2);
+}
+
+.step-item span {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(99,102,241,0.2); color: #818cf8;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0;
+}
+
+.qr-box { text-align: center; margin: 16px 0; }
+
+.qr-box img {
+    background: #fff; padding: 12px;
+    border-radius: 12px; max-width: 160px;
+}
+
+.secret-box {
+    text-align: center; padding: 12px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px; cursor: pointer;
+    transition: all 0.2s; margin-bottom: 16px;
+}
+
+.secret-box:hover { background: rgba(99,102,241,0.15); }
+
+.secret-box code {
+    font-size: 13px; color: var(--text1); letter-spacing: 2px;
+}
+
+.secret-box small {
+    display: block; margin-top: 4px;
+    color: #818cf8; font-size: 11px;
+}
+
+/* ===== Toast ===== */
+.copy-toast {
+    position: fixed; bottom: 80px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--accent); color: #000;
+    padding: 10px 24px; border-radius: 24px;
+    font-size: 13px; font-weight: 600;
+    opacity: 0; pointer-events: none;
+    transition: all 0.3s; z-index: 2000;
+}
+
+.copy-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 500px) {
+    .user-hero { flex-direction: column; text-align: center; padding: 20px 16px; }
+    .user-meta { justify-content: center; }
+    .balance-amount { font-size: 30px; }
+    .actions-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .action-icon { width: 36px; height: 36px; font-size: 15px; }
+    .action-card { padding: 12px 6px; }
+    .action-card span { font-size: 10px; }
+    .security-item { flex-direction: column; gap: 12px; text-align: center; }
+    .security-left { flex-direction: column; align-items: center; }
+    .section-block { padding: 16px; }
+    .modal-box { padding: 22px 18px 20px; }
+}
 </style>
 
 <script>
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => {
-            alert('تم النسخ ✅');
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        var toast = document.getElementById('copyToast');
+        toast.classList.add('show');
+        setTimeout(function() { toast.classList.remove('show'); }, 1800);
+    });
+}
+
+// ===== مودال الجوال =====
+function openPhoneModal() {
+    document.getElementById('phoneModal').classList.add('show');
+}
+
+function closePhoneModal() {
+    document.getElementById('phoneModal').classList.remove('show');
+    document.getElementById('phoneError').style.display = 'none';
+    document.getElementById('phoneSuccess').style.display = 'none';
+    document.getElementById('phoneStep1').style.display = 'block';
+    document.getElementById('phoneStep2').style.display = 'none';
+    document.getElementById('phoneStep1Btn').style.display = 'block';
+    document.getElementById('phoneStep2Btn').style.display = 'none';
+    document.getElementById('phoneInput').value = '';
+    document.getElementById('phoneCodeInput').value = '';
+}
+
+async function sendPhoneCode() {
+    var phone = document.getElementById('phoneInput').value.trim();
+    var btn = document.getElementById('phoneStep1Btn');
+    var errorDiv = document.getElementById('phoneError');
+    var successDiv = document.getElementById('phoneSuccess');
+
+    var clean = phone.replace(/[\s\-\+]/g, '');
+    if (!clean.match(/^(05\d{8}|5\d{8}|9665\d{8})$/)) {
+        errorDiv.textContent = 'الرجاء إدخال رقم جوال صحيح (يبدأ بـ 05)';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ جاري الإرسال...';
+    errorDiv.style.display = 'none';
+
+    try {
+        var res = await fetch('/api/send_phone_code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: phone })
         });
-    }
-    
-    function openPhoneModal() {
-        document.getElementById('phoneModal').classList.add('show');
-    }
-    
-    function closePhoneModal() {
-        document.getElementById('phoneModal').classList.remove('show');
-        document.getElementById('phoneError').style.display = 'none';
-        document.getElementById('phoneSuccess').style.display = 'none';
-        document.getElementById('phoneStep1').style.display = 'block';
-        document.getElementById('phoneStep2').style.display = 'none';
-        document.getElementById('phoneStep1Btn').style.display = 'block';
-        document.getElementById('phoneStep2Btn').style.display = 'none';
-        document.getElementById('phoneInput').value = '';
-        document.getElementById('phoneCodeInput').value = '';
-    }
-    
-    async function sendPhoneCode() {
-        const phone = document.getElementById('phoneInput').value.trim();
-        const btn = document.getElementById('phoneStep1Btn');
-        const errorDiv = document.getElementById('phoneError');
-        const successDiv = document.getElementById('phoneSuccess');
-        
-        // التحقق من صيغة الرقم السعودي
-        const cleanPhone = phone.replace(/[\s\-\+]/g, '');
-        if (!cleanPhone.match(/^(05\d{8}|5\d{8}|9665\d{8})$/)) {
-            errorDiv.textContent = 'الرجاء إدخال رقم جوال صحيح (يبدأ بـ 05)';
-            errorDiv.style.display = 'block';
-            return;
-        }
-        
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
-        errorDiv.style.display = 'none';
-        
-        try {
-            const response = await fetch('/api/send_phone_code', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phone: phone })
-            });
-            const data = await response.json();
-            
-            if (data.success) {
-                successDiv.textContent = 'تم إرسال كود التحقق عبر Telegram ✅';
-                successDiv.style.display = 'block';
-                document.getElementById('phoneStep1').style.display = 'none';
-                document.getElementById('phoneStep2').style.display = 'block';
-                document.getElementById('phoneStep1Btn').style.display = 'none';
-                document.getElementById('phoneStep2Btn').style.display = 'block';
-            } else {
-                errorDiv.textContent = data.message;
-                errorDiv.style.display = 'block';
-            }
-        } catch (error) {
-            errorDiv.textContent = 'خطأ في الاتصال بالسيرفر';
+        var data = await res.json();
+
+        if (data.success) {
+            successDiv.textContent = '✅ تم إرسال كود التحقق';
+            successDiv.style.display = 'block';
+            document.getElementById('phoneStep1').style.display = 'none';
+            document.getElementById('phoneStep2').style.display = 'block';
+            document.getElementById('phoneStep1Btn').style.display = 'none';
+            document.getElementById('phoneStep2Btn').style.display = 'block';
+        } else {
+            errorDiv.textContent = data.message;
             errorDiv.style.display = 'block';
         }
-        
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال كود التحقق';
+    } catch (e) {
+        errorDiv.textContent = 'خطأ في الاتصال';
+        errorDiv.style.display = 'block';
     }
-    
-    async function verifyPhoneCode() {
-        const code = document.getElementById('phoneCodeInput').value.trim();
-        const btn = document.getElementById('phoneStep2Btn');
-        const errorDiv = document.getElementById('phoneError');
-        const successDiv = document.getElementById('phoneSuccess');
-        
-        if (!code || code.length !== 6) {
-            errorDiv.textContent = 'الرجاء إدخال كود مكون من 6 أرقام';
-            errorDiv.style.display = 'block';
-            successDiv.style.display = 'none';
-            return;
-        }
-        
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
-        errorDiv.style.display = 'none';
-        
-        try {
-            const response = await fetch('/api/verify_phone_code', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: code })
-            });
-            const data = await response.json();
-            
-            if (data.success) {
-                successDiv.textContent = 'تم توثيق رقم الجوال بنجاح! ✅';
-                successDiv.style.display = 'block';
-                setTimeout(() => location.reload(), 1500);
-            } else {
-                errorDiv.textContent = data.message;
-                errorDiv.style.display = 'block';
-            }
-        } catch (error) {
-            errorDiv.textContent = 'خطأ في الاتصال بالسيرفر';
-            errorDiv.style.display = 'block';
-        }
-        
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check"></i> تأكيد';
+
+    btn.disabled = false;
+    btn.textContent = 'إرسال الكود';
+}
+
+async function verifyPhoneCode() {
+    var code = document.getElementById('phoneCodeInput').value.trim();
+    var btn = document.getElementById('phoneStep2Btn');
+    var errorDiv = document.getElementById('phoneError');
+    var successDiv = document.getElementById('phoneSuccess');
+
+    if (!code || code.length !== 6) {
+        errorDiv.textContent = 'الرجاء إدخال 6 أرقام';
+        errorDiv.style.display = 'block';
+        successDiv.style.display = 'none';
+        return;
     }
-    
-    function openSetup2FAModal() {
-        const modal = document.getElementById('setup2FAModal');
-        modal.classList.add('show');
-        document.getElementById('2faLoading').style.display = 'block';
-        document.getElementById('2faContent').style.display = 'none';
-        
-        fetch('/api/setup_2fa', { method: 'POST' })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('qrCodeImg').src = data.qr_code;
-                    document.getElementById('secretKey').textContent = data.secret;
-                    document.getElementById('2faLoading').style.display = 'none';
-                    document.getElementById('2faContent').style.display = 'block';
-                }
-            })
-            .catch(() => {
-                alert('خطأ في تحميل البيانات');
-                closeSetup2FAModal();
-            });
-    }
-    
-    function closeSetup2FAModal() {
-        document.getElementById('setup2FAModal').classList.remove('show');
-        document.getElementById('totpCode').value = '';
-        document.getElementById('2faError').style.display = 'none';
-    }
-    
-    function copySecret() {
-        const secret = document.getElementById('secretKey').textContent;
-        navigator.clipboard.writeText(secret).then(() => {
-            alert('تم نسخ المفتاح ✅');
+
+    btn.disabled = true;
+    btn.textContent = '⏳ جاري التحقق...';
+    errorDiv.style.display = 'none';
+
+    try {
+        var res = await fetch('/api/verify_phone_code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: code })
         });
-    }
-    
-    async function verify2FASetup() {
-        const code = document.getElementById('totpCode').value.trim();
-        const errorDiv = document.getElementById('2faError');
-        
-        if (!code || code.length !== 6) {
-            errorDiv.textContent = 'الرجاء إدخال كود مكون من 6 أرقام';
+        var data = await res.json();
+
+        if (data.success) {
+            successDiv.textContent = '✅ تم توثيق رقم الجوال بنجاح!';
+            successDiv.style.display = 'block';
+            setTimeout(function() { location.reload(); }, 1200);
+        } else {
+            errorDiv.textContent = data.message;
             errorDiv.style.display = 'block';
-            return;
         }
-        
-        try {
-            const response = await fetch('/api/verify_2fa_setup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: code })
-            });
-            const data = await response.json();
-            
+    } catch (e) {
+        errorDiv.textContent = 'خطأ في الاتصال';
+        errorDiv.style.display = 'block';
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'تأكيد';
+}
+
+// ===== مودال 2FA =====
+function openSetup2FAModal() {
+    var modal = document.getElementById('setup2FAModal');
+    modal.classList.add('show');
+    document.getElementById('2faLoading').style.display = 'block';
+    document.getElementById('2faContent').style.display = 'none';
+
+    fetch('/api/setup_2fa', { method: 'POST' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
             if (data.success) {
-                alert('تم تفعيل المصادقة الثنائية بنجاح! ✅');
-                location.reload();
-            } else {
-                errorDiv.textContent = data.message;
-                errorDiv.style.display = 'block';
+                document.getElementById('qrCodeImg').src = data.qr_code;
+                document.getElementById('secretKey').textContent = data.secret;
+                document.getElementById('2faLoading').style.display = 'none';
+                document.getElementById('2faContent').style.display = 'block';
             }
-        } catch (error) {
-            errorDiv.textContent = 'خطأ في الاتصال بالسيرفر';
+        })
+        .catch(function() {
+            alert('خطأ في تحميل البيانات');
+            closeSetup2FAModal();
+        });
+}
+
+function closeSetup2FAModal() {
+    document.getElementById('setup2FAModal').classList.remove('show');
+    document.getElementById('totpCode').value = '';
+    document.getElementById('2faError').style.display = 'none';
+}
+
+function copySecret() {
+    var secret = document.getElementById('secretKey').textContent;
+    copyToClipboard(secret);
+}
+
+async function verify2FASetup() {
+    var code = document.getElementById('totpCode').value.trim();
+    var errorDiv = document.getElementById('2faError');
+
+    if (!code || code.length !== 6) {
+        errorDiv.textContent = 'الرجاء إدخال 6 أرقام';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    try {
+        var res = await fetch('/api/verify_2fa_setup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: code })
+        });
+        var data = await res.json();
+
+        if (data.success) {
+            var toast = document.getElementById('copyToast');
+            toast.textContent = '✅ تم تفعيل 2FA بنجاح!';
+            toast.classList.add('show');
+            setTimeout(function() { location.reload(); }, 1200);
+        } else {
+            errorDiv.textContent = data.message;
             errorDiv.style.display = 'block';
         }
+    } catch (e) {
+        errorDiv.textContent = 'خطأ في الاتصال';
+        errorDiv.style.display = 'block';
     }
-    
-    function openDisable2FAModal() {
-        document.getElementById('disable2FAModal').classList.add('show');
+}
+
+function openDisable2FAModal() {
+    document.getElementById('disable2FAModal').classList.add('show');
+}
+
+function closeDisable2FAModal() {
+    document.getElementById('disable2FAModal').classList.remove('show');
+    document.getElementById('disableCode').value = '';
+    document.getElementById('disable2faError').style.display = 'none';
+}
+
+async function disable2FA() {
+    var code = document.getElementById('disableCode').value.trim();
+    var errorDiv = document.getElementById('disable2faError');
+
+    if (!code || code.length !== 6) {
+        errorDiv.textContent = 'الرجاء إدخال 6 أرقام';
+        errorDiv.style.display = 'block';
+        return;
     }
-    
-    function closeDisable2FAModal() {
-        document.getElementById('disable2FAModal').classList.remove('show');
-        document.getElementById('disableCode').value = '';
-        document.getElementById('disable2faError').style.display = 'none';
-    }
-    
-    async function disable2FA() {
-        const code = document.getElementById('disableCode').value.trim();
-        const errorDiv = document.getElementById('disable2faError');
-        
-        if (!code || code.length !== 6) {
-            errorDiv.textContent = 'الرجاء إدخال كود مكون من 6 أرقام';
+
+    try {
+        var res = await fetch('/api/disable_2fa', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: code })
+        });
+        var data = await res.json();
+
+        if (data.success) {
+            var toast = document.getElementById('copyToast');
+            toast.textContent = '✅ تم تعطيل 2FA';
+            toast.classList.add('show');
+            setTimeout(function() { location.reload(); }, 1200);
+        } else {
+            errorDiv.textContent = data.message;
             errorDiv.style.display = 'block';
-            return;
         }
-        
-        try {
-            const response = await fetch('/api/disable_2fa', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: code })
-            });
-            const data = await response.json();
-            
-            if (data.success) {
-                alert('تم تعطيل المصادقة الثنائية ✅');
-                location.reload();
-            } else {
-                errorDiv.textContent = data.message;
-                errorDiv.style.display = 'block';
-            }
-        } catch (error) {
-            errorDiv.textContent = 'خطأ في الاتصال بالسيرفر';
-            errorDiv.style.display = 'block';
-        }
+    } catch (e) {
+        errorDiv.textContent = 'خطأ في الاتصال';
+        errorDiv.style.display = 'block';
     }
+}
 </script>
 {% endblock %}
