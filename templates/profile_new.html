@@ -31,58 +31,6 @@
             </div>
         </div>
 
-        <!-- ===== بطاقة الرصيد ===== -->
-        <div class="balance-card">
-            <div class="balance-top">
-                <div class="balance-label">
-                    <i class="fas fa-wallet"></i>
-                    <span>رصيدك الحالي</span>
-                </div>
-                <a href="/wallet" class="balance-link">شحن <i class="fas fa-plus-circle"></i></a>
-            </div>
-            <div class="balance-amount">{{ "%.2f"|format(balance|float) }} <small>ر.س</small></div>
-            <div class="balance-footer">
-                {% if frozen_balance > 0 %}
-                    <div class="balance-detail frozen">
-                        <i class="fas fa-snowflake"></i>
-                        <span>مجمّد: {{ "%.2f"|format(frozen_balance|float) }} ر.س</span>
-                    </div>
-                {% endif %}
-                <div class="balance-detail available">
-                    <i class="fas fa-check-circle"></i>
-                    <span>متاح للسحب: {{ "%.2f"|format(normal_withdraw_amount|float) }} ر.س</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== الإجراءات السريعة ===== -->
-        <div class="actions-grid">
-            <a href="/wallet" class="action-card">
-                <div class="action-icon" style="background: rgba(0,255,136,0.12); color: #00ff88;">
-                    <i class="fas fa-wallet"></i>
-                </div>
-                <span>المحفظة</span>
-            </a>
-            <a href="/my_purchases" class="action-card">
-                <div class="action-icon" style="background: rgba(99,102,241,0.12); color: #6366f1;">
-                    <i class="fas fa-bag-shopping"></i>
-                </div>
-                <span>مشترياتي</span>
-            </a>
-            <a href="/withdraw" class="action-card">
-                <div class="action-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
-                    <i class="fas fa-money-bill-transfer"></i>
-                </div>
-                <span>سحب</span>
-            </a>
-            <a href="/contact-us" class="action-card">
-                <div class="action-icon" style="background: rgba(236,72,153,0.12); color: #ec4899;">
-                    <i class="fas fa-headset"></i>
-                </div>
-                <span>الدعم</span>
-            </a>
-        </div>
-
         <!-- ===== الأمان والتوثيق ===== -->
         <div class="section-block">
             <div class="section-header">
@@ -218,12 +166,6 @@
             </div>
         </div>
         {% endif %}
-
-        <!-- ===== تسجيل الخروج ===== -->
-        <button class="logout-btn" onclick="if(confirm('هل تريد تسجيل الخروج؟')) window.location.href='/logout'">
-            <i class="fas fa-right-from-bracket"></i>
-            تسجيل الخروج
-        </button>
 
     </div>
 </div>
@@ -419,104 +361,6 @@
 .meta-chip.verified-chip { color: var(--accent); background: var(--accent-dim); }
 .meta-chip.verified-chip .fa-circle-check { font-size: 10px; }
 
-/* ===== بطاقة الرصيد ===== */
-.balance-card {
-    background: linear-gradient(135deg, #0f1628 0%, #131b30 50%, #0d1420 100%);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 22px 20px;
-    margin-bottom: 16px;
-    position: relative; overflow: hidden;
-}
-
-.balance-card::after {
-    content: '';
-    position: absolute; top: -40px; left: -40px;
-    width: 120px; height: 120px;
-    background: radial-gradient(circle, rgba(0,255,136,0.08), transparent 70%);
-    pointer-events: none;
-}
-
-.balance-top {
-    display: flex; justify-content: space-between;
-    align-items: center; margin-bottom: 10px;
-}
-
-.balance-label {
-    display: flex; align-items: center; gap: 8px;
-    color: var(--text2); font-size: 13px;
-}
-
-.balance-label i { color: var(--accent); }
-
-.balance-link {
-    font-size: 12px; color: var(--accent);
-    text-decoration: none;
-    display: flex; align-items: center; gap: 5px;
-    padding: 5px 12px; border-radius: 20px;
-    background: var(--accent-dim); transition: all 0.2s;
-}
-
-.balance-link:hover { background: rgba(0,255,136,0.2); }
-
-.balance-amount {
-    font-size: 36px; font-weight: 800;
-    color: var(--text1); letter-spacing: -1px;
-    position: relative; z-index: 1;
-}
-
-.balance-amount small {
-    font-size: 16px; font-weight: 500;
-    color: var(--text2); margin-right: 4px;
-}
-
-.balance-footer {
-    display: flex; flex-wrap: wrap; gap: 12px;
-    margin-top: 14px; padding-top: 14px;
-    border-top: 1px solid var(--border);
-}
-
-.balance-detail {
-    display: flex; align-items: center;
-    gap: 6px; font-size: 12px;
-}
-
-.balance-detail.frozen { color: #f59e0b; }
-.balance-detail.available { color: var(--accent); }
-
-/* ===== الإجراءات السريعة ===== */
-.actions-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px; margin-bottom: 16px;
-}
-
-.action-card {
-    display: flex; flex-direction: column;
-    align-items: center; gap: 8px;
-    padding: 16px 8px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    text-decoration: none;
-    color: var(--text2); transition: all 0.2s;
-}
-
-.action-card:hover {
-    border-color: rgba(255,255,255,0.12);
-    transform: translateY(-2px);
-    color: var(--text1);
-}
-
-.action-icon {
-    width: 42px; height: 42px;
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-}
-
-.action-card span { font-size: 11px; font-weight: 500; }
-
 /* ===== الأقسام ===== */
 .section-block {
     background: var(--bg-card);
@@ -667,39 +511,6 @@
 }
 
 .copyable-row .fa-copy { font-size: 11px; opacity: 0.4; }
-
-/* ===== آخر الطلبات ===== */
-.order-row {
-    display: flex; justify-content: space-between;
-    align-items: center; padding: 12px 0;
-    border-bottom: 1px solid var(--border);
-}
-
-.order-row:last-child { border-bottom: none; }
-
-.order-info { display: flex; flex-direction: column; gap: 2px; }
-.order-product { font-size: 13px; color: var(--text1); font-weight: 500; }
-.order-date { font-size: 11px; color: var(--text3); }
-.order-price { font-size: 13px; color: var(--accent); font-weight: 700; }
-
-/* ===== زر تسجيل الخروج ===== */
-.logout-btn {
-    width: 100%; padding: 14px;
-    background: rgba(239,68,68,0.08);
-    border: 1px solid rgba(239,68,68,0.2);
-    border-radius: var(--radius-sm);
-    color: var(--danger); font-family: inherit;
-    font-size: 14px; font-weight: 600;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    gap: 8px; transition: all 0.2s;
-    margin-bottom: 20px;
-}
-
-.logout-btn:hover {
-    background: rgba(239,68,68,0.15);
-    border-color: rgba(239,68,68,0.4);
-}
 
 /* ===== المودالات ===== */
 .modal-overlay {
@@ -888,11 +699,6 @@
 @media (max-width: 500px) {
     .user-hero { flex-direction: column; text-align: center; padding: 20px 16px; }
     .user-meta { justify-content: center; }
-    .balance-amount { font-size: 30px; }
-    .actions-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
-    .action-icon { width: 36px; height: 36px; font-size: 15px; }
-    .action-card { padding: 12px 6px; }
-    .action-card span { font-size: 10px; }
     .security-item { flex-direction: column; gap: 12px; text-align: center; }
     .security-left { flex-direction: column; align-items: center; }
     .section-block { padding: 16px; }
