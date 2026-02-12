@@ -236,7 +236,20 @@ def block_suspicious_requests():
         logger.warning(f"🚫 حظر مسار WordPress: {path} من {request.remote_addr}")
         return "Forbidden", 403
     
-    # 4. معالجة طلبات POST العشوائية على الصفحة الرئيسية
+    # 4. حظر مسارات الاختراق الإضافية
+    extra_blocked = [
+        '/pma', '/wp-config', '/config.php',
+        '/shell', '/c99', '/r57', '/webshell', '/backdoor',
+        '/.htaccess', '/.htpasswd', '/cgi-bin', '/admin/config',
+        '/phpinfo', '/info.php', '/test.php', '/debug',
+        '/backup', '/vendor/', '/node_modules/', '/.DS_Store'
+    ]
+    for blocked in extra_blocked:
+        if blocked in path:
+            logger.warning(f"🚫 حظر مسار مشبوه: {path} من {request.remote_addr}")
+            return "Forbidden", 403
+    
+    # 5. معالجة طلبات POST العشوائية على الصفحة الرئيسية
     if request.method == 'POST':
         # المسارات المسموح بها للـ POST (يجب أن تكون دقيقة)
         allowed_post_prefixes = [
@@ -431,36 +444,7 @@ def get_user_profile_photo(user_id):
         print(f"⚠️ خطأ في جلب صورة البروفايل: {e}")
         return None
 
-# دالة ensure_product_ids لم تعد مطلوبة - Firebase يولد IDs تلقائياً
-def ensure_product_ids():
-    """هذه الدالة لم تعد مطلوبة - تم الانتقال لـ Firebase"""
-    pass  # المنتجات في Firebase لديها IDs تلقائياً
 
-# دالة migrate_data_to_firebase لم تعد مطلوبة - كل البيانات في Firebase مباشرة
-def migrate_data_to_firebase():
-    """هذه الدالة لم تعد مطلوبة - تم الانتقال الكامل لـ Firebase"""
-    print("ℹ️ دالة migrate_data_to_firebase لم تعد مطلوبة - كل البيانات في Firebase")
-    pass
-
-# دالة load_data_from_firebase لم تعد مطلوبة - كل البيانات تُجلب مباشرة
-def load_data_from_firebase():
-    """هذه الدالة لم تعد مطلوبة - البيانات تُجلب مباشرة من Firebase"""
-    print("ℹ️ البيانات تُجلب مباشرة من Firebase عند الحاجة")
-    pass
-
-# دالة لتوليد كود تحقق عشوائي
-def generate_verification_code(user_id, user_name):
-    # توليد كود من 6 أرقام
-    code = str(random.randint(100000, 999999))
-    
-    # حفظ الكود (صالح لمدة 10 دقائق)
-    verification_codes[str(user_id)] = {
-        'code': code,
-        'name': user_name,
-        'created_at': time.time()
-    }
-    
-    return code
 
 # دالة للتحقق من صحة الكود
 def verify_code(user_id, code):
@@ -482,25 +466,7 @@ def verify_code(user_id, code):
     
     return code_data
 
-# --- كود صفحة الويب (HTML + JavaScript) ---
-
-# --- أوامر البوت ---
-
-# دالة مساعدة لتسجيل الرسائل
-def log_message(message, handler_name):
-    print("="*50)
-    print(f"📨 {handler_name}")
-    print(f"👤 المستخدم: {message.from_user.id} - {message.from_user.first_name}")
-    print(f"💬 النص: {message.text}")
-    print("="*50)
-
-
-# ============================================
-# 🤖 Telegram Bot Handlers
-# تم نقلها إلى telegram/handlers.py و telegram/callbacks.py
-# ============================================
-
-# --- مسارات الموقع (Flask) تم نقلها إلى routes/ ---
+# --- مسارات الموقع (Flask) ---
 
 # مسار جلب طلبات المستخدم
 @app.route('/get_orders')
@@ -950,33 +916,6 @@ def verify_2fa_login():
     except Exception as e:
         print(f"❌ خطأ في التحقق من 2FA: {e}")
         return {'success': False, 'message': '❌ حدث خطأ في السيرفر'}, 500
-
-# --- حماية من محاولات الاختراق ---
-# ملاحظة: تم نقل add_security_headers إلى أعلى الملف لتجنب التكرار
-BLOCKED_PATHS = [
-    '/wp-admin', '/wp-login', '/wp-content', '/wp-includes',
-    '/wordpress', '/.env', '/.git', '/phpmyadmin', '/pma',
-    '/admin.php', '/xmlrpc.php', '/wp-config', '/config.php',
-    '/shell', '/c99', '/r57', '/webshell', '/backdoor',
-    '/.htaccess', '/.htpasswd', '/cgi-bin', '/admin/config',
-    '/phpinfo', '/info.php', '/test.php', '/debug',
-    '/backup', '/.bak', '/.sql', '/.zip', '/.tar',
-    '/vendor/', '/node_modules/', '/.DS_Store'
-]
-
-@app.before_request
-def block_suspicious_requests():
-    """حظر الطلبات المشبوهة"""
-    path = request.path.lower()
-    
-    # التحقق من الروابط المحظورة
-    for blocked in BLOCKED_PATHS:
-        if blocked in path:
-            # سجل المحاولة
-            print(f"🚫 محاولة اختراق محظورة: {request.path} من {request.remote_addr}")
-            return "Forbidden", 403
-    
-    return None
 
 # --- التحقق من صلاحية الجلسة ---
 @app.before_request
@@ -1943,134 +1882,6 @@ _محاولة اختراق واضحة!_
         traceback.print_exc()
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-# ============================================
-# === نقاط استقبال بوابة الدفع (Legacy) ===
-# ============================================
-
-@app.route('/payment/adfaly_webhook', methods=['GET', 'POST'])
-def adfaly_webhook():
-    """استقبال إشعارات الدفع من Adfaly Pay"""
-    
-    # إذا كان الطلب GET (فتح من المتصفح) - عرض رسالة
-    if request.method == 'GET':
-        return jsonify({
-            'status': 'ok',
-            'message': 'Adfaly Pay Webhook Endpoint',
-            'description': 'This endpoint receives payment notifications from Adfaly Pay',
-            'method': 'POST only'
-        })
-    
-    try:
-        # جلب البيانات
-        data = request.json or request.form.to_dict()
-        print(f"📩 Adfaly Webhook: {data}")
-        
-        # استخراج البيانات المهمة
-        invoice_id = data.get('invoice_id') or data.get('order_id') or data.get('id')
-        status = data.get('status') or data.get('payment_status')
-        amount = data.get('amount') or data.get('paid_amount')
-        
-        if not invoice_id:
-            print("❌ Adfaly Webhook: لا يوجد invoice_id")
-            return jsonify({'status': 'error', 'message': 'Missing invoice_id'}), 400
-        
-        # التحقق من حالة الدفع
-        if status and status.lower() in ['paid', 'success', 'completed', 'successful']:
-            # البحث عن الطلب
-            payment_data = pending_payments.get(invoice_id)
-            
-            if not payment_data:
-                # البحث في Firebase
-                try:
-                    doc = db.collection('pending_payments').document(invoice_id).get()
-                    if doc.exists:
-                        payment_data = doc.to_dict()
-                except:
-                    pass
-            
-            if payment_data and payment_data.get('status') != 'completed':
-                user_id = payment_data['user_id']
-                pay_amount = float(payment_data.get('amount', amount or 0))
-                
-                # إضافة الرصيد
-                add_balance(user_id, pay_amount)
-                
-                # إشعار المالك بالشحن
-                notify_new_charge(user_id, pay_amount, method='edfapay')
-                
-                # تسجيل في سجل الشحنات للسحب
-                try:
-                    db.collection('charge_history').add({
-                        'user_id': str(user_id),
-                        'amount': pay_amount,
-                        'method': 'edfapay',
-                        'order_id': invoice_id,
-                        'timestamp': time.time(),
-                        'date': datetime.now().strftime('%Y-%m-%d %H:%M'),
-                        'type': 'payment'
-                    })
-                except Exception as e:
-                    print(f"⚠️ خطأ في تسجيل charge_history: {e}")
-                
-                # تحديث حالة الطلب
-                if invoice_id in pending_payments:
-                    pending_payments[invoice_id]['status'] = 'completed'
-                
-                # تحديث في Firebase
-                try:
-                    db.collection('pending_payments').document(invoice_id).update({
-                        'status': 'completed',
-                        'completed_at': firestore.SERVER_TIMESTAMP
-                    })
-                except Exception as e:
-                    print(f"⚠️ خطأ في تحديث Firebase: {e}")
-                
-                # إرسال إشعار للمستخدم عبر البوت
-                try:
-                    new_balance = get_balance(user_id)
-                    bot.send_message(
-                        int(user_id),
-                        f"✅ *تم شحن رصيدك بنجاح!*\n\n"
-                        f"💰 المبلغ المضاف: {pay_amount} ريال\n"
-                        f"💵 رصيدك الحالي: {new_balance} ريال\n\n"
-                        f"📋 رقم العملية: `{invoice_id}`\n\n"
-                        f"🎉 استمتع بالتسوق!",
-                        parse_mode="Markdown"
-                    )
-                except Exception as e:
-                    print(f"⚠️ خطأ في إرسال إشعار للمستخدم: {e}")
-                
-                # إشعار المالك
-                try:
-                    bot.send_message(
-                        ADMIN_ID,
-                        f"💳 *تم استلام دفعة جديدة!*\n\n"
-                        f"👤 المستخدم: {user_id}\n"
-                        f"💰 المبلغ: {pay_amount} ريال\n"
-                        f"📋 رقم العملية: `{invoice_id}`\n"
-                        f"✅ تم إضافة الرصيد تلقائياً",
-                        parse_mode="Markdown"
-                    )
-                except:
-                    pass
-                
-                print(f"✅ تم شحن {pay_amount} ريال للمستخدم {user_id}")
-                return jsonify({'status': 'success', 'message': 'Payment processed'})
-            
-            else:
-                print(f"⚠️ الطلب {invoice_id} غير موجود أو تم معالجته مسبقاً")
-                return jsonify({'status': 'success', 'message': 'Already processed or not found'})
-        
-        else:
-            print(f"ℹ️ Adfaly Webhook: حالة الدفع: {status}")
-            return jsonify({'status': 'success', 'message': f'Status: {status}'})
-            
-    except Exception as e:
-        print(f"❌ خطأ في adfaly_webhook: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({'status': 'error', 'message': str(e)}), 500
-
 # لاستقبال تحديثات تيليجرام (Webhook)
 @app.route('/webhook', methods=['POST'])
 def getMessage():
@@ -2123,33 +1934,6 @@ def set_webhook():
 @app.route('/health')
 def health():
     return {'status': 'ok'}, 200
-
-# مسار لرفع البيانات إلى Firebase (للمالك فقط)
-@app.route('/migrate_to_firebase')
-def migrate_to_firebase_route():
-    # التحقق من أن المستخدم هو المالك (يمكنك إضافة password parameter)
-    password = request.args.get('password', '')
-    admin_password = os.environ.get('ADMIN_PASS', 'admin123')
-    
-    if password != admin_password:
-        return {'status': 'error', 'message': 'غير مصرح'}, 403
-    
-    # تنفيذ الرفع
-    success = migrate_data_to_firebase()
-    
-    if success:
-        return {
-            'status': 'success',
-            'message': 'تم رفع البيانات بنجاح إلى Firebase',
-            'data': {
-                'products': len(get_all_products_for_store()),
-                'users': len(get_all_users()),
-                'orders': len(get_active_orders()),
-                'keys': len(get_all_charge_keys())
-            }
-        }, 200
-    else:
-        return {'status': 'error', 'message': 'فشل رفع البيانات'}, 500
 
 # صفحة تسجيل الدخول للوحة التحكم (HTML منفصل) - نظام الكود المؤقت
 
@@ -2902,9 +2686,6 @@ def api_set_display_settings():
 # تحميل البيانات من Firebase عند بدء التشغيل (يعمل مع Gunicorn وlocal)
 print("🚀 بدء تشغيل التطبيق...")
 load_all_data_from_firebase()
-
-# التأكد من أن جميع المنتجات لديها UUID
-ensure_product_ids()
 
 if __name__ == "__main__":
     # هذا السطر يجعل البوت يعمل على المنفذ الصحيح في ريندر أو 10000 في جهازك

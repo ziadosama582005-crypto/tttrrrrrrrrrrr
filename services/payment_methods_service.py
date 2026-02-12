@@ -7,14 +7,16 @@
 
 from flask import Blueprint, request, jsonify, session
 from extensions import db
-from firebase_utils import get_user_cart, get_balance
+from firebase_utils import get_balance
+from security_utils import require_session_user, get_session_user_id
 
 payment_bp = Blueprint('payment_options', __name__)
 
 @payment_bp.route('/api/payment/methods', methods=['GET'])
+@require_session_user()
 def get_payment_methods():
     """جلب خيارات الدفع المتاحة للمستخدم"""
-    user_id = session.get('user_id')
+    user_id = get_session_user_id()
     balance = get_balance(user_id)
     
     # الخيارات الأساسية
@@ -50,12 +52,13 @@ def get_payment_methods():
     })
 
 @payment_bp.route('/api/payment/process', methods=['POST'])
+@require_session_user()
 def process_payment():
     """معالجة الدفع حسب الطريقة المختارة"""
+    user_id = get_session_user_id()  # ✅ من Session فقط - لا نقبل user_id من الطلب
     data = request.json
-    user_id = str(data.get('user_id'))
     payment_method = data.get('payment_method')  # wallet, card, installments
-    total_amount = float(data.get('total_amount'))
+    total_amount = float(data.get('total_amount', 0))
     
     print(f"💳 طريقة الدفع: {payment_method}")
     print(f"💰 المبلغ: {total_amount}")

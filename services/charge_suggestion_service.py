@@ -8,13 +8,15 @@
 from flask import Blueprint, request, jsonify, session
 from extensions import db
 from firebase_utils import get_user_cart, get_balance
+from security_utils import require_session_user, get_session_user_id
 
 charge_bp = Blueprint('charge_suggestion', __name__)
 
 @charge_bp.route('/api/cart/check-balance', methods=['GET'])
+@require_session_user()
 def check_balance_warning():
     """التحقق من الرصيد واقتراح الشحن إذا لزم الأمر"""
-    user_id = session.get('user_id')
+    user_id = get_session_user_id()
     cart = get_user_cart(user_id)
     balance = get_balance(user_id)
     
@@ -112,9 +114,10 @@ def generate_smart_suggestions(user_id, shortage, current_balance):
     return suggestions
 
 @charge_bp.route('/api/charge/recommended-amounts', methods=['GET'])
+@require_session_user()
 def recommended_charge_amounts():
     """الحصول على المبالغ الموصى بها للشحن"""
-    user_id = session.get('user_id')
+    user_id = get_session_user_id()
     balance = get_balance(user_id)
     
     # المبالغ الموصى بها حسب الرصيد الحالي
@@ -156,11 +159,12 @@ def recommended_charge_amounts():
     })
 
 @charge_bp.route('/api/charge/quick-charge', methods=['POST'])
+@require_session_user()
 def quick_charge():
     """شحن سريع برقم واحد"""
+    user_id = get_session_user_id()  # ✅ من Session فقط - لا نقبل user_id من الطلب
     data = request.json
-    user_id = str(data.get('user_id'))
-    amount = float(data.get('amount'))
+    amount = float(data.get('amount', 0))
     
     print(f"⚡ شحن سريع: {amount} ريال")
     
