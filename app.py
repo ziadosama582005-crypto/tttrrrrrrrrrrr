@@ -64,7 +64,8 @@ from notifications import (
     notify_withdrawal_request, notify_new_purchase, notify_new_order,
     notify_new_user, notify_product_sold,
     notify_invoice_created, notify_payment_pending,
-    notify_payment_success, notify_payment_failed, notify_recharge_request
+    notify_payment_success, notify_payment_failed, notify_recharge_request,
+    send_order_email
 )
 
 # استيراد أدوات التشفير
@@ -1333,7 +1334,21 @@ def buy_item():
 
         # إرجاع البيانات للموقع
         # ⚠️ إصلاح أمني: لا نرسل hidden_data في الـ response
-        # البيانات تُرسل فقط عبر Telegram للأمان
+        # البيانات تُرسل فقط عبر Telegram والإيميل للأمان
+
+        # إرسال بيانات الطلب بالإيميل (إذا مربوط ومفعّل)
+        buyer_email = user_data.get('email', '')
+        if buyer_email and user_data.get('email_verified', False):
+            email_item = {
+                'name': item.get('item_name', ''),
+                'price': price,
+                'order_id': order_id,
+                'delivery_type': delivery_type
+            }
+            if delivery_type == 'instant' and raw_hidden:
+                email_item['hidden_data'] = hidden_info
+            send_order_email(buyer_email, [email_item], price, new_balance)
+
         return {
             'status': 'success',
             'order_id': order_id,

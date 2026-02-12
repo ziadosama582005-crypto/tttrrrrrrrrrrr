@@ -17,9 +17,10 @@ from encryption_utils import decrypt_data
 
 # استيراد دالة إشعار التفاعلات
 try:
-    from notifications import send_activity_notification
+    from notifications import send_activity_notification, send_order_email
 except ImportError:
     send_activity_notification = lambda *args, **kwargs: None
+    send_order_email = lambda *args, **kwargs: None
 
 # إنشاء Blueprint
 cart_bp = Blueprint('cart', __name__)
@@ -446,7 +447,9 @@ def api_cart_checkout():
                 'purchased_items': purchased_items_data,
                 'new_balance': new_balance,
                 'buyer_name': buyer_name,
-                'order_ids': order_ids
+                'order_ids': order_ids,
+                'buyer_email': user_data.get('email', ''),
+                'email_verified': user_data.get('email_verified', False)
             }
         
         # تنفيذ العملية بأمان
@@ -466,6 +469,8 @@ def api_cart_checkout():
         new_balance = result['new_balance']
         buyer_name = result['buyer_name']
         order_ids = result['order_ids']
+        buyer_email = result.get('buyer_email', '')
+        email_verified = result.get('email_verified', False)
         
         # حذف السلة من Firebase
         clear_user_cart(user_id)
@@ -558,6 +563,21 @@ def api_cart_checkout():
                 except:
                     pass
         
+        # إرسال بيانات الطلب بالإيميل (إذا مربوط ومفعّل)
+        if buyer_email and email_verified:
+            email_items = []
+            for item in purchased_items:
+                ei = {
+                    'name': item.get('name', ''),
+                    'price': item.get('price', 0),
+                    'order_id': item.get('order_id', ''),
+                    'delivery_type': item.get('delivery_type', 'instant')
+                }
+                if item.get('hidden_data') and item.get('delivery_type') == 'instant':
+                    ei['hidden_data'] = decrypt_data(item['hidden_data'])
+                email_items.append(ei)
+            send_order_email(buyer_email, email_items, total, new_balance)
+
         # تسجيل الحدث الأمني
         log_security_event('CHECKOUT_SUCCESS', user_id, f'الإجمالي: {total}, المنتجات: {len(purchased_items)}')
         

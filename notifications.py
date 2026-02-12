@@ -461,3 +461,123 @@ def send_activity_notification(activity_type, user_id, username=None, details=No
     except Exception as e:
         logger.error(f"خطأ في إرسال إشعار النشاط: {e}")
         return False
+
+
+# ==================== إرسال بيانات الطلب بالإيميل ====================
+
+def send_order_email(to_email, order_items, total_price, new_balance=None):
+    """
+    إرسال بيانات الطلب عبر الإيميل للمشتري
+    
+    Args:
+        to_email: إيميل المشتري
+        order_items: قائمة المنتجات [{'name', 'price', 'order_id', 'hidden_data'(مفكوك), 'delivery_type'}]
+        total_price: إجمالي السعر
+        new_balance: الرصيد المتبقي (اختياري)
+    """
+    def _send():
+        try:
+            import smtplib
+            from email.mime.text import MIMEText
+            from email.mime.multipart import MIMEMultipart
+            from config import SMTP_SERVER, SMTP_PORT, SMTP_EMAIL, SMTP_PASSWORD
+
+            if not SMTP_EMAIL or not SMTP_PASSWORD or not to_email:
+                return
+
+            # بناء صفوف المنتجات
+            items_html = ""
+            for item in order_items:
+                is_instant = item.get('delivery_type', 'instant') == 'instant'
+                status_badge = (
+                    '<span style="background:#00b894;color:#fff;padding:3px 10px;border-radius:12px;font-size:12px;">⚡ فوري</span>'
+                    if is_instant else
+                    '<span style="background:#fdcb6e;color:#333;padding:3px 10px;border-radius:12px;font-size:12px;">⏳ يدوي</span>'
+                )
+
+                hidden_section = ""
+                if is_instant and item.get('hidden_data'):
+                    hidden_section = f'''
+                    <div style="background:#f0fff4;border:2px dashed #00b894;border-radius:10px;padding:14px;margin-top:10px;">
+                        <div style="font-size:12px;color:#888;margin-bottom:6px;">🔐 بيانات الاشتراك:</div>
+                        <div style="background:#1a1a2e;color:#55efc4;padding:12px;border-radius:8px;font-family:monospace;font-size:14px;white-space:pre-wrap;word-break:break-all;">{item["hidden_data"]}</div>
+                    </div>'''
+                elif not is_instant:
+                    hidden_section = '''
+                    <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:12px;margin-top:10px;text-align:center;">
+                        <span style="font-size:13px;color:#f57f17;">⏳ سيتم تنفيذ طلبك قريباً</span>
+                    </div>'''
+
+                items_html += f'''
+                <div style="background:#fafafa;border:1px solid #eee;border-radius:12px;padding:16px;margin-bottom:10px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="font-size:15px;font-weight:700;">📦 {item["name"]}</span>
+                        {status_badge}
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:13px;color:#666;">
+                        <span>💰 {item["price"]:.2f} ر.س</span>
+                        <span>🆔 #{item.get("order_id", "")}</span>
+                    </div>
+                    {hidden_section}
+                </div>'''
+
+            balance_section = ""
+            if new_balance is not None:
+                balance_section = f'''
+                <div style="background:#f0f0ff;border-radius:10px;padding:14px;text-align:center;margin-top:16px;">
+                    <span style="color:#888;font-size:13px;">💳 رصيدك المتبقي:</span>
+                    <span style="font-size:20px;font-weight:800;color:#6c5ce7;margin-right:8px;">{new_balance:.2f} ر.س</span>
+                </div>'''
+
+            html = f"""
+            <!DOCTYPE html>
+            <html dir="rtl">
+            <head><meta charset="UTF-8"></head>
+            <body style="margin:0;padding:0;background:#f0f2f5;font-family:'Segoe UI',Tahoma,sans-serif;">
+                <div style="max-width:550px;margin:30px auto;background:#fff;border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,0.1);overflow:hidden;">
+                    <div style="background:linear-gradient(135deg,#667eea,#764ba2);padding:30px;text-align:center;">
+                        <h1 style="color:#fff;margin:0;font-size:26px;">🎉 تم الشراء بنجاح!</h1>
+                        <p style="color:rgba(255,255,255,0.9);margin:8px 0 0;font-size:14px;">تفاصيل طلبك في TR Store</p>
+                    </div>
+                    <div style="padding:24px;">
+                        {items_html}
+                        <div style="background:linear-gradient(135deg,#667eea,#764ba2);border-radius:12px;padding:16px;text-align:center;margin-top:16px;">
+                            <span style="color:rgba(255,255,255,0.8);font-size:13px;">الإجمالي</span><br>
+                            <span style="color:#fff;font-size:24px;font-weight:800;">{total_price:.2f} ر.س</span>
+                        </div>
+                        {balance_section}
+                    </div>
+                    <div style="background:#f8f9fa;padding:16px;text-align:center;border-top:1px solid #eee;">
+                        <p style="color:#aaa;font-size:11px;margin:0;">⚠️ احفظ هذا الإيميل — يحتوي على بيانات مشترياتك</p>
+                        <p style="color:#ccc;font-size:11px;margin:6px 0 0;">TR Store © 2026</p>
+                    </div>
+                </div>
+            </body>
+            </html>"""
+
+            msg = MIMEMultipart('alternative')
+            msg['From'] = f"TR Store <{SMTP_EMAIL}>"
+            msg['To'] = to_email
+            msg['Subject'] = f"✅ تأكيد طلبك — {len(order_items)} منتج | TR Store"
+            msg.attach(MIMEText("تم الشراء بنجاح! افتح الرسالة لعرض التفاصيل.", 'plain', 'utf-8'))
+            msg.attach(MIMEText(html, 'html', 'utf-8'))
+
+            try:
+                with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, timeout=15) as server:
+                    server.login(SMTP_EMAIL, SMTP_PASSWORD)
+                    server.send_message(msg)
+                    logger.info(f"✅ تم إرسال إيميل الطلب إلى: {to_email}")
+            except Exception:
+                with smtplib.SMTP(SMTP_SERVER, 587, timeout=15) as server:
+                    server.ehlo()
+                    server.starttls()
+                    server.ehlo()
+                    server.login(SMTP_EMAIL, SMTP_PASSWORD)
+                    server.send_message(msg)
+                    logger.info(f"✅ تم إرسال إيميل الطلب (TLS) إلى: {to_email}")
+        except Exception as e:
+            logger.error(f"⚠️ فشل إرسال إيميل الطلب إلى {to_email}: {e}")
+
+    # إرسال في thread منفصل حتى لا يبطئ الاستجابة
+    threading.Thread(target=_send, daemon=True).start()
+
