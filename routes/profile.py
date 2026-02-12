@@ -2,7 +2,7 @@
 Profile Routes - مسارات صفحة الحساب الشخصي
 """
 from flask import Blueprint, render_template, session, redirect, url_for, jsonify, request
-from extensions import db, logger, bot, ADMIN_ID
+from extensions import db, logger, bot, ADMIN_ID, BOT_USERNAME
 from google.cloud import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 from telebot import types
@@ -60,8 +60,25 @@ profile_bp = Blueprint('profile', __name__)
 # تخزين مؤقت لأكواد التحقق من رقم الجوال
 phone_verification_codes = {}  # {user_id: {'code': '123456', 'phone': '05xxxxxxxx', 'created_at': timestamp}}
 
+# تخزين مؤقت لأكواد ربط الإيميل
+email_link_codes = {}  # {user_id: {'code': '123456', 'email': 'x@y.com', 'created_at': timestamp}}
+
+# تخزين مؤقت لأكواد ربط تيليجرام
+telegram_link_codes = {}  # {user_id: {'code': '123456', 'telegram_id': '123', 'created_at': timestamp}}
+
 # تخزين مؤقت لإعداد 2FA
 pending_2fa_setup = {}  # {user_id: {'secret': 'XXXX', 'created_at': timestamp}}
+
+# استيراد دالة إرسال الإيميل (lazy import لتجنب circular import)
+EMAIL_AVAILABLE = False
+def _get_send_email_otp():
+    global EMAIL_AVAILABLE
+    try:
+        from routes.auth_routes import send_email_otp
+        EMAIL_AVAILABLE = True
+        return send_email_otp
+    except ImportError:
+        return lambda *a, **kw: False
 
 
 def send_verification_notification(user_id, user_name, telegram_username, verification_type):
@@ -79,6 +96,12 @@ def send_verification_notification(user_id, user_name, telegram_username, verifi
         elif verification_type == '2fa':
             verify_text = "🔐 المصادقة الثنائية (2FA)"
             emoji = "🔐"
+        elif verification_type == 'email':
+            verify_text = "📧 البريد الإلكتروني"
+            emoji = "📧"
+        elif verification_type == 'telegram':
+            verify_text = "🤖 ربط تيليجرام"
+            emoji = "🤖"
         else:
             verify_text = verification_type
             emoji = "✅"
@@ -330,13 +353,22 @@ def profile():
         
         # تاريخ الانضمام
         join_date = user_data.get('created_at', None)
+        join_date_formatted = 'غير محدد'
         if join_date:
-            if hasattr(join_date, 'strftime'):
-                join_date = join_date.strftime('%Y-%m-%d')
-            else:
-                join_date = str(join_date)[:10]
-        else:
-            join_date = 'غير محدد'
+            try:
+                if hasattr(join_date, 'strftime'):
+                    join_date_formatted = join_date.strftime('%d/%m/%Y')
+                elif isinstance(join_date, (int, float)):
+                    from datetime import datetime as dt_cls, timezone
+                    join_date_formatted = dt_cls.fromtimestamp(join_date, timezone.utc).strftime('%d/%m/%Y')
+                else:
+                    join_date_formatted = str(join_date)[:10]
+            except:
+                join_date_formatted = str(join_date)[:10]
+        
+        # بيانات الأمان الإضافية
+        email_verified = user_data.get('email_verified', False)
+        telegram_linked = user_data.get('telegram_started', False) and bool(user_data.get('telegram_id', ''))
         
         return render_template('profile_new.html',
             user_name=user_data.get('username', user_data.get('first_name', user_data.get('name', 'المستخدم'))),
@@ -348,9 +380,12 @@ def profile():
             phone=user_data.get('phone', ''),
             phone_verified=user_data.get('phone_verified', False),
             totp_enabled=user_data.get('totp_enabled', False),
+            email_verified=email_verified,
+            telegram_linked=telegram_linked,
             # بيانات إضافية
             email=user_data.get('email', ''),
             registered_via=user_data.get('registered_via', 'telegram'),
+            bot_username=BOT_USERNAME,
             # بيانات السحب
             can_withdraw_normal=can_withdraw_normal,
             normal_withdraw_amount=normal_withdraw_amount,
@@ -360,7 +395,7 @@ def profile():
             minutes_until_withdraw=minutes_until_next,
             recent_charges=recent_charges,
             # بيانات إضافية للقالب الجديد
-            join_date=join_date
+            join_date_formatted=join_date_formatted
         )
     
     except Exception as e:
@@ -963,6 +998,236 @@ def disable_2fa():
     
     except Exception as e:
         logger.error(f"خطأ في disable_2fa: {e}")
+        return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
+
+
+# ==================== ربط البريد الإلكتروني ====================
+
+@profile_bp.route('/api/link-email/send-code', methods=['POST'])
+def link_email_send_code():
+    """إرسال كود التحقق لربط الإيميل"""
+    try:
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'message': 'يجب تسجيل الدخول أولاً'}), 401
+        
+        user_id = session['user_id']
+        data = request.get_json()
+        email = data.get('email', '').strip().lower()
+        
+        # التحقق من صحة الإيميل
+        import re
+        if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+            return jsonify({'success': False, 'message': 'بريد إلكتروني غير صحيح'}), 400
+        
+        # التحقق إذا الإيميل مستخدم بالفعل من مستخدم آخر
+        try:
+            existing = db.collection('users').where(
+                filter=FieldFilter('email', '==', email)
+            ).limit(1).get()
+            for doc in existing:
+                if doc.id != user_id:
+                    return jsonify({'success': False, 'message': 'هذا البريد مرتبط بحساب آخر'}), 400
+        except:
+            pass
+        
+        # التحقق إذا المستخدم ربط إيميل مسبقاً
+        user_doc = db.collection('users').document(user_id).get()
+        if user_doc.exists:
+            udata = user_doc.to_dict()
+            if udata.get('email_verified', False):
+                return jsonify({'success': False, 'message': 'البريد الإلكتروني مرتبط بالفعل'}), 400
+        
+        # توليد كود
+        code = str(random.randint(100000, 999999))
+        
+        # حفظ الكود مؤقتاً
+        email_link_codes[user_id] = {
+            'code': code,
+            'email': email,
+            'created_at': time.time()
+        }
+        
+        # إرسال الكود عبر الإيميل
+        send_email_fn = _get_send_email_otp()
+        if not EMAIL_AVAILABLE:
+            return jsonify({'success': False, 'message': 'خدمة الإيميل غير متاحة حالياً'}), 500
+        
+        if send_email_fn(email, code):
+            return jsonify({'success': True, 'message': 'تم إرسال كود التحقق'})
+        else:
+            return jsonify({'success': False, 'message': 'فشل إرسال الكود. حاول مرة أخرى'}), 500
+    
+    except Exception as e:
+        logger.error(f"خطأ في link_email_send_code: {e}")
+        return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
+
+
+@profile_bp.route('/api/link-email/verify', methods=['POST'])
+def link_email_verify():
+    """التحقق من كود ربط الإيميل"""
+    try:
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'message': 'يجب تسجيل الدخول أولاً'}), 401
+        
+        user_id = session['user_id']
+        data = request.get_json()
+        code = data.get('code', '').strip()
+        
+        if user_id not in email_link_codes:
+            return jsonify({'success': False, 'message': 'لم يتم طلب كود التحقق'}), 400
+        
+        stored = email_link_codes[user_id]
+        
+        # التحقق من الصلاحية (10 دقائق)
+        if time.time() - stored['created_at'] > 600:
+            del email_link_codes[user_id]
+            return jsonify({'success': False, 'message': 'انتهت صلاحية الكود'}), 400
+        
+        if code != stored['code']:
+            return jsonify({'success': False, 'message': 'الكود غير صحيح'}), 400
+        
+        # حفظ الإيميل في قاعدة البيانات
+        email = stored['email']
+        db.collection('users').document(user_id).update({
+            'email': email,
+            'email_verified': True,
+            'email_verified_at': time.time()
+        })
+        
+        del email_link_codes[user_id]
+        
+        # إشعار
+        user_name = session.get('user_name', 'مستخدم')
+        telegram_username = session.get('telegram_username', '')
+        send_verification_notification(user_id, user_name, telegram_username, 'email')
+        
+        return jsonify({'success': True, 'message': 'تم ربط البريد الإلكتروني بنجاح ✅'})
+    
+    except Exception as e:
+        logger.error(f"خطأ في link_email_verify: {e}")
+        return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
+
+
+# ==================== ربط تيليجرام ====================
+
+@profile_bp.route('/api/link-telegram/send-code', methods=['POST'])
+def link_telegram_send_code():
+    """التحقق من آيدي تيليجرام وإرسال كود"""
+    try:
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'message': 'يجب تسجيل الدخول أولاً'}), 401
+        
+        user_id = session['user_id']
+        data = request.get_json()
+        telegram_id = data.get('telegram_id', '').strip()
+        
+        if not telegram_id or not telegram_id.isdigit():
+            return jsonify({'success': False, 'message': 'آيدي تيليجرام غير صحيح'}), 400
+        
+        # التحقق إذا الآيدي مرتبط بحساب آخر
+        try:
+            existing = db.collection('users').where(
+                filter=FieldFilter('telegram_id', '==', telegram_id)
+            ).limit(1).get()
+            for doc in existing:
+                if doc.id != user_id:
+                    return jsonify({'success': False, 'message': 'هذا الآيدي مرتبط بحساب آخر'}), 400
+        except:
+            pass
+        
+        # التحقق إذا المستخدم كتب /start في البوت (telegram_started = True)
+        tg_user_ref = db.collection('users').document(telegram_id)
+        tg_user_doc = tg_user_ref.get()
+        
+        if not tg_user_doc.exists or not tg_user_doc.to_dict().get('telegram_started', False):
+            return jsonify({
+                'success': False, 
+                'message': 'هذا الآيدي غير موجود. اذهب إلى البوت واكتب /start أولاً ثم حاول مرة أخرى'
+            }), 400
+        
+        # توليد كود
+        code = str(random.randint(100000, 999999))
+        
+        # حفظ الكود مؤقتاً
+        telegram_link_codes[user_id] = {
+            'code': code,
+            'telegram_id': telegram_id,
+            'created_at': time.time()
+        }
+        
+        # إرسال الكود عبر تيليجرام
+        try:
+            msg = f"""🔗 <b>ربط حساب تيليجرام</b>
+
+كود التحقق:
+<code>{code}</code>
+
+⏰ صالح لمدة 2 دقائق
+⚠️ لا تشارك هذا الكود مع أحد!"""
+            bot.send_message(int(telegram_id), msg, parse_mode='HTML')
+            return jsonify({'success': True, 'message': 'تم إرسال كود التحقق'})
+        except Exception as e:
+            logger.error(f"خطأ في إرسال كود تيليجرام: {e}")
+            return jsonify({'success': False, 'message': 'فشل إرسال الكود. تأكد من بدء محادثة مع البوت (/start)'}), 500
+    
+    except Exception as e:
+        logger.error(f"خطأ في link_telegram_send_code: {e}")
+        return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
+
+
+@profile_bp.route('/api/link-telegram/verify', methods=['POST'])
+def link_telegram_verify():
+    """التحقق من كود ربط تيليجرام"""
+    try:
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'message': 'يجب تسجيل الدخول أولاً'}), 401
+        
+        user_id = session['user_id']
+        data = request.get_json()
+        code = data.get('code', '').strip()
+        
+        if user_id not in telegram_link_codes:
+            return jsonify({'success': False, 'message': 'لم يتم طلب كود التحقق'}), 400
+        
+        stored = telegram_link_codes[user_id]
+        
+        # التحقق من الصلاحية (2 دقائق)
+        if time.time() - stored['created_at'] > 120:
+            del telegram_link_codes[user_id]
+            return jsonify({'success': False, 'message': 'انتهت صلاحية الكود'}), 400
+        
+        if code != stored['code']:
+            return jsonify({'success': False, 'message': 'الكود غير صحيح'}), 400
+        
+        telegram_id = stored['telegram_id']
+        
+        # ربط تيليجرام بالحساب الحالي
+        db.collection('users').document(user_id).update({
+            'telegram_id': telegram_id,
+            'telegram_linked': True,
+            'telegram_started': True,
+            'telegram_linked_at': time.time()
+        })
+        
+        # إرسال رسالة تأكيد للمستخدم عبر تيليجرام
+        try:
+            bot.send_message(int(telegram_id), 
+                "✅ تم ربط حساب تيليجرام بنجاح!\n\nالآن ستصلك الإشعارات والأكواد عبر تيليجرام.", 
+                parse_mode='HTML')
+        except:
+            pass
+        
+        del telegram_link_codes[user_id]
+        
+        # إشعار
+        user_name = session.get('user_name', 'مستخدم')
+        telegram_username = session.get('telegram_username', '')
+        send_verification_notification(user_id, user_name, telegram_username, 'telegram')
+        
+        return jsonify({'success': True, 'message': 'تم ربط حساب تيليجرام بنجاح ✅'})
+    
+    except Exception as e:
+        logger.error(f"خطأ في link_telegram_verify: {e}")
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
 
 

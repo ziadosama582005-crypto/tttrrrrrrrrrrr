@@ -40,8 +40,10 @@
                 </div>
                 <div class="security-score">
                     {% set score = 0 %}
-                    {% if phone_verified %}{% set score = score + 50 %}{% endif %}
-                    {% if totp_enabled %}{% set score = score + 50 %}{% endif %}
+                    {% if phone_verified %}{% set score = score + 25 %}{% endif %}
+                    {% if totp_enabled %}{% set score = score + 25 %}{% endif %}
+                    {% if email_verified %}{% set score = score + 25 %}{% endif %}
+                    {% if telegram_linked %}{% set score = score + 25 %}{% endif %}
                     <div class="score-bar">
                         <div class="score-fill {% if score >= 100 %}full{% elif score >= 50 %}half{% else %}low{% endif %}" style="width: {{ score }}%"></div>
                     </div>
@@ -67,6 +69,48 @@
                         <button class="sec-btn" onclick="openPhoneModal()">
                             {% if phone %}توثيق{% else %}إضافة{% endif %}
                         </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ربط الإيميل -->
+            <div class="security-item">
+                <div class="security-left">
+                    <div class="sec-icon {% if email_verified %}done{% endif %}">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="sec-text">
+                        <h3>البريد الإلكتروني</h3>
+                        <p>{% if email_verified %}{{ email }} — مربوط{% elif email %}{{ email }} — غير موثّق{% else %}لم يتم الربط بعد{% endif %}</p>
+                    </div>
+                </div>
+                <div class="security-right">
+                    {% if email_verified %}
+                        <span class="badge-ok"><i class="fas fa-circle-check"></i></span>
+                    {% else %}
+                        <button class="sec-btn" onclick="openEmailModal()">
+                            {% if email %}توثيق{% else %}ربط{% endif %}
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ربط تيليجرام -->
+            <div class="security-item">
+                <div class="security-left">
+                    <div class="sec-icon {% if telegram_linked %}done{% endif %}">
+                        <i class="fab fa-telegram-plane"></i>
+                    </div>
+                    <div class="sec-text">
+                        <h3>تيليجرام</h3>
+                        <p>{% if telegram_linked %}مربوط بالحساب{% else %}اربط حسابك بتيليجرام{% endif %}</p>
+                    </div>
+                </div>
+                <div class="security-right">
+                    {% if telegram_linked %}
+                        <span class="badge-ok"><i class="fas fa-circle-check"></i></span>
+                    {% else %}
+                        <button class="sec-btn" onclick="openTelegramModal()">ربط</button>
                     {% endif %}
                 </div>
             </div>
@@ -130,7 +174,7 @@
                 {% endif %}
                 <div class="info-row">
                     <span class="info-key"><i class="fas fa-calendar-days"></i> الانضمام</span>
-                    <span class="info-val">{{ join_date or 'غير معروف' }}</span>
+                    <span class="info-val">{{ join_date_formatted or 'غير معروف' }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-key"><i class="fas fa-right-to-bracket"></i> طريقة التسجيل</span>
@@ -264,6 +308,73 @@
 
 <!-- ===== نافذة النسخ ===== -->
 <div id="copyToast" class="copy-toast">تم النسخ ✅</div>
+
+<!-- ===== مودال ربط الإيميل ===== -->
+<div class="modal-overlay" id="emailModal">
+    <div class="modal-box">
+        <button class="modal-x" onclick="closeEmailModal()"><i class="fas fa-xmark"></i></button>
+        <div class="modal-top">
+            <div class="modal-emoji">📧</div>
+            <h2>ربط البريد الإلكتروني</h2>
+            <p>أضف إيميلك لتأمين حسابك واسترجاعه</p>
+        </div>
+        <div id="emailError" class="modal-alert error"></div>
+        <div id="emailSuccess" class="modal-alert success"></div>
+        <div id="emailStep1" class="modal-form">
+            <label>البريد الإلكتروني</label>
+            <input type="email" id="emailInput" placeholder="example@email.com" dir="ltr" inputmode="email">
+            <small>سيتم إرسال كود التحقق إلى بريدك</small>
+        </div>
+        <div id="emailStep2" class="modal-form" style="display:none;">
+            <label>كود التحقق (6 أرقام)</label>
+            <input type="text" id="emailCodeInput" class="otp-input" placeholder="------" maxlength="6" inputmode="numeric">
+            <small>تم إرسال الكود إلى بريدك الإلكتروني</small>
+        </div>
+        <div class="modal-btns">
+            <button class="m-btn ghost" onclick="closeEmailModal()">إلغاء</button>
+            <button class="m-btn primary" id="emailStep1Btn" onclick="sendEmailCode()">إرسال الكود</button>
+            <button class="m-btn primary" id="emailStep2Btn" onclick="verifyEmailCode()" style="display:none;">تأكيد</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== مودال ربط تيليجرام ===== -->
+<div class="modal-overlay" id="telegramModal">
+    <div class="modal-box">
+        <button class="modal-x" onclick="closeTelegramModal()"><i class="fas fa-xmark"></i></button>
+        <div class="modal-top">
+            <div class="modal-emoji">🤖</div>
+            <h2>ربط حساب تيليجرام</h2>
+            <p>اربط حسابك بتيليجرام للإشعارات والأمان</p>
+        </div>
+        <div class="modal-warn">
+            <i class="fas fa-triangle-exclamation"></i>
+            يجب أن تكتب <b>/start</b> داخل البوت أولاً
+        </div>
+        <div id="tgError" class="modal-alert error"></div>
+        <div id="tgSuccess" class="modal-alert success"></div>
+        <div id="tgStep1" class="modal-form">
+            <div class="tg-steps-guide">
+                <div class="tg-step"><span>1</span> افتح البوت <a href="https://t.me/{{ bot_username }}" target="_blank" class="tg-bot-link">@{{ bot_username }}</a></div>
+                <div class="tg-step"><span>2</span> اضغط <b>Start</b> أو اكتب <code>/start</code></div>
+                <div class="tg-step"><span>3</span> أدخل آيدي تيليجرام هنا</div>
+            </div>
+            <label>آيدي تيليجرام (رقم)</label>
+            <input type="text" id="tgIdInput" placeholder="123456789" dir="ltr" inputmode="numeric">
+            <small>تجده بالضغط على "آيدي" داخل البوت</small>
+        </div>
+        <div id="tgStep2" class="modal-form" style="display:none;">
+            <label>كود التحقق (6 أرقام)</label>
+            <input type="text" id="tgCodeInput" class="otp-input" placeholder="------" maxlength="6" inputmode="numeric">
+            <small>تم إرسال الكود إلى تيليجرام</small>
+        </div>
+        <div class="modal-btns">
+            <button class="m-btn ghost" onclick="closeTelegramModal()">إلغاء</button>
+            <button class="m-btn primary" id="tgStep1Btn" onclick="sendTelegramCode()">تحقق وأرسل الكود</button>
+            <button class="m-btn primary" id="tgStep2Btn" onclick="verifyTelegramCode()" style="display:none;">تأكيد</button>
+        </div>
+    </div>
+</div>
 
 <style>
 /* ===== المتغيرات ===== */
@@ -704,6 +815,39 @@
     .section-block { padding: 16px; }
     .modal-box { padding: 22px 18px 20px; }
 }
+
+/* ===== دليل ربط تيليجرام ===== */
+.tg-steps-guide {
+    display: flex; flex-direction: column; gap: 8px;
+    margin-bottom: 16px; padding: 14px;
+    background: rgba(0,136,204,0.08);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(0,136,204,0.15);
+}
+
+.tg-step {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: var(--text2);
+}
+
+.tg-step span {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(0,136,204,0.2); color: #0088cc;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0;
+}
+
+.tg-bot-link {
+    color: #0088cc; text-decoration: none; font-weight: 600;
+}
+
+.tg-bot-link:hover { text-decoration: underline; }
+
+.tg-step code {
+    background: rgba(255,255,255,0.08);
+    padding: 1px 6px; border-radius: 4px;
+    font-size: 12px; color: var(--text1);
+}
 </style>
 
 <script>
@@ -927,6 +1071,212 @@ async function disable2FA() {
         errorDiv.textContent = 'خطأ في الاتصال';
         errorDiv.style.display = 'block';
     }
+}
+
+// ===== مودال ربط الإيميل =====
+function openEmailModal() {
+    document.getElementById('emailModal').classList.add('show');
+}
+
+function closeEmailModal() {
+    document.getElementById('emailModal').classList.remove('show');
+    document.getElementById('emailError').style.display = 'none';
+    document.getElementById('emailSuccess').style.display = 'none';
+    document.getElementById('emailStep1').style.display = 'block';
+    document.getElementById('emailStep2').style.display = 'none';
+    document.getElementById('emailStep1Btn').style.display = 'block';
+    document.getElementById('emailStep2Btn').style.display = 'none';
+    document.getElementById('emailInput').value = '';
+    document.getElementById('emailCodeInput').value = '';
+}
+
+async function sendEmailCode() {
+    var email = document.getElementById('emailInput').value.trim();
+    var btn = document.getElementById('emailStep1Btn');
+    var errorDiv = document.getElementById('emailError');
+    var successDiv = document.getElementById('emailSuccess');
+
+    if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+        errorDiv.textContent = 'الرجاء إدخال بريد إلكتروني صحيح';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ جاري الإرسال...';
+    errorDiv.style.display = 'none';
+
+    try {
+        var res = await fetch('/api/link-email/send-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email })
+        });
+        var data = await res.json();
+
+        if (data.success) {
+            successDiv.textContent = '✅ تم إرسال كود التحقق إلى بريدك';
+            successDiv.style.display = 'block';
+            document.getElementById('emailStep1').style.display = 'none';
+            document.getElementById('emailStep2').style.display = 'block';
+            document.getElementById('emailStep1Btn').style.display = 'none';
+            document.getElementById('emailStep2Btn').style.display = 'block';
+        } else {
+            errorDiv.textContent = data.message;
+            errorDiv.style.display = 'block';
+        }
+    } catch (e) {
+        errorDiv.textContent = 'خطأ في الاتصال';
+        errorDiv.style.display = 'block';
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'إرسال الكود';
+}
+
+async function verifyEmailCode() {
+    var code = document.getElementById('emailCodeInput').value.trim();
+    var btn = document.getElementById('emailStep2Btn');
+    var errorDiv = document.getElementById('emailError');
+    var successDiv = document.getElementById('emailSuccess');
+
+    if (!code || code.length !== 6) {
+        errorDiv.textContent = 'الرجاء إدخال 6 أرقام';
+        errorDiv.style.display = 'block';
+        successDiv.style.display = 'none';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ جاري التحقق...';
+    errorDiv.style.display = 'none';
+
+    try {
+        var res = await fetch('/api/link-email/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: code })
+        });
+        var data = await res.json();
+
+        if (data.success) {
+            successDiv.textContent = '✅ تم ربط البريد الإلكتروني بنجاح!';
+            successDiv.style.display = 'block';
+            setTimeout(function() { location.reload(); }, 1200);
+        } else {
+            errorDiv.textContent = data.message;
+            errorDiv.style.display = 'block';
+        }
+    } catch (e) {
+        errorDiv.textContent = 'خطأ في الاتصال';
+        errorDiv.style.display = 'block';
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'تأكيد';
+}
+
+// ===== مودال ربط تيليجرام =====
+function openTelegramModal() {
+    document.getElementById('telegramModal').classList.add('show');
+}
+
+function closeTelegramModal() {
+    document.getElementById('telegramModal').classList.remove('show');
+    document.getElementById('tgError').style.display = 'none';
+    document.getElementById('tgSuccess').style.display = 'none';
+    document.getElementById('tgStep1').style.display = 'block';
+    document.getElementById('tgStep2').style.display = 'none';
+    document.getElementById('tgStep1Btn').style.display = 'block';
+    document.getElementById('tgStep2Btn').style.display = 'none';
+    document.getElementById('tgIdInput').value = '';
+    document.getElementById('tgCodeInput').value = '';
+}
+
+async function sendTelegramCode() {
+    var tgId = document.getElementById('tgIdInput').value.trim();
+    var btn = document.getElementById('tgStep1Btn');
+    var errorDiv = document.getElementById('tgError');
+    var successDiv = document.getElementById('tgSuccess');
+
+    if (!tgId || !tgId.match(/^\d{5,15}$/)) {
+        errorDiv.textContent = 'الرجاء إدخال آيدي تيليجرام صحيح (أرقام فقط)';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ جاري التحقق...';
+    errorDiv.style.display = 'none';
+
+    try {
+        var res = await fetch('/api/link-telegram/send-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ telegram_id: tgId })
+        });
+        var data = await res.json();
+
+        if (data.success) {
+            successDiv.textContent = '✅ تم إرسال كود التحقق عبر تيليجرام';
+            successDiv.style.display = 'block';
+            document.getElementById('tgStep1').style.display = 'none';
+            document.getElementById('tgStep2').style.display = 'block';
+            document.getElementById('tgStep1Btn').style.display = 'none';
+            document.getElementById('tgStep2Btn').style.display = 'block';
+        } else {
+            errorDiv.textContent = data.message;
+            errorDiv.style.display = 'block';
+        }
+    } catch (e) {
+        errorDiv.textContent = 'خطأ في الاتصال';
+        errorDiv.style.display = 'block';
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'تحقق وأرسل الكود';
+}
+
+async function verifyTelegramCode() {
+    var code = document.getElementById('tgCodeInput').value.trim();
+    var btn = document.getElementById('tgStep2Btn');
+    var errorDiv = document.getElementById('tgError');
+    var successDiv = document.getElementById('tgSuccess');
+
+    if (!code || code.length !== 6) {
+        errorDiv.textContent = 'الرجاء إدخال 6 أرقام';
+        errorDiv.style.display = 'block';
+        successDiv.style.display = 'none';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ جاري التحقق...';
+    errorDiv.style.display = 'none';
+
+    try {
+        var res = await fetch('/api/link-telegram/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: code })
+        });
+        var data = await res.json();
+
+        if (data.success) {
+            successDiv.textContent = '✅ تم ربط حساب تيليجرام بنجاح!';
+            successDiv.style.display = 'block';
+            setTimeout(function() { location.reload(); }, 1200);
+        } else {
+            errorDiv.textContent = data.message;
+            errorDiv.style.display = 'block';
+        }
+    } catch (e) {
+        errorDiv.textContent = 'خطأ في الاتصال';
+        errorDiv.style.display = 'block';
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'تأكيد';
 }
 </script>
 {% endblock %}
