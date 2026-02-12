@@ -1,871 +1,531 @@
 <!DOCTYPE html>
-<html dir="rtl">
+<html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>تسجيل الدخول - GamersTR</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         body {
             font-family: 'Tajawal', sans-serif;
             background: #0a0a0f;
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        /* خلفية متحركة */
-        body::before {
-            content: '';
-            position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(0, 255, 136, 0.03) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(0, 255, 136, 0.03) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(200, 255, 0, 0.02) 0%, transparent 40%);
-            animation: bgMove 20s ease-in-out infinite;
-            z-index: -1;
-        }
-        
-        @keyframes bgMove {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            33% { transform: translate(30px, -30px) rotate(5deg); }
-            66% { transform: translate(-20px, 20px) rotate(-5deg); }
-        }
-        
-        /* جزيئات متطايرة */
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-        }
-        
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: #00ff88;
-            border-radius: 50%;
-            opacity: 0.3;
-            animation: float 15s infinite;
-        }
-        
-        .particle:nth-child(1) { left: 10%; animation-delay: 0s; }
-        .particle:nth-child(2) { left: 20%; animation-delay: 2s; }
-        .particle:nth-child(3) { left: 30%; animation-delay: 4s; }
-        .particle:nth-child(4) { left: 40%; animation-delay: 6s; }
-        .particle:nth-child(5) { left: 50%; animation-delay: 8s; }
-        .particle:nth-child(6) { left: 60%; animation-delay: 10s; }
-        .particle:nth-child(7) { left: 70%; animation-delay: 12s; }
-        .particle:nth-child(8) { left: 80%; animation-delay: 14s; }
-        .particle:nth-child(9) { left: 90%; animation-delay: 1s; }
-        .particle:nth-child(10) { left: 95%; animation-delay: 3s; }
-        
-        @keyframes float {
-            0% { transform: translateY(100vh) scale(0); opacity: 0; }
-            10% { opacity: 0.5; }
-            90% { opacity: 0.3; }
-            100% { transform: translateY(-100vh) scale(1); opacity: 0; }
-        }
-        
-        .login-container {
-            background: linear-gradient(145deg, #12121a 0%, #0d0d12 100%);
-            border-radius: 24px;
-            max-width: 420px;
-            width: 100%;
-            padding: 40px 35px;
             color: #fff;
-            position: relative;
-            border: 1px solid rgba(0, 255, 136, 0.15);
-            box-shadow: 
-                0 0 60px rgba(0, 255, 136, 0.08),
-                0 25px 50px rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
-        
-        /* حدود متحركة */
-        .login-container::before {
+
+        .back-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: #888;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+            z-index: 10;
+        }
+        .back-link:active, .back-link:hover {
+            color: #00ff88;
+            border-color: rgba(0,255,136,0.3);
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 460px;
+            background: #13131d;
+            border-radius: 24px;
+            padding: 40px 30px;
+            border: 1.5px solid #1e1e2e;
+            position: relative;
+        }
+
+        /* حد سفلي أخضر متوهج */
+        .login-box::after {
             content: '';
             position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
             bottom: -2px;
-            background: linear-gradient(45deg, 
-                #00ff88 0%, 
-                transparent 40%, 
-                transparent 60%, 
-                #c8ff00 100%);
-            border-radius: 26px;
-            z-index: -1;
-            opacity: 0.5;
-            animation: borderGlow 3s ease-in-out infinite;
+            left: 20%;
+            right: 20%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #00ff88, #c8ff00, transparent);
+            border-radius: 0 0 24px 24px;
+            filter: blur(1px);
         }
-        
-        @keyframes borderGlow {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.6; }
-        }
-        
-        .logo-area {
+
+        .logo-section {
             text-align: center;
-            margin-bottom: 35px;
+            margin-bottom: 30px;
         }
-        
         .logo-icon {
-            width: 70px;
-            height: 70px;
-            margin: 0 auto 20px;
-            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
-            border-radius: 20px;
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            border-radius: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
-            box-shadow: 
-                0 10px 30px rgba(0, 255, 136, 0.3),
-                0 0 20px rgba(0, 255, 136, 0.2);
-            animation: logoFloat 3s ease-in-out infinite;
-        }
-        
-        @keyframes logoFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-        
-        h1 {
-            color: #fff;
             font-size: 28px;
-            font-weight: 800;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
         }
-        
-        .subtitle {
-            color: #6b7280;
+        .logo-section h1 {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+        .logo-section p {
+            color: #666;
             font-size: 14px;
         }
-        
-        .form-group {
+
+        .form-field {
             margin-bottom: 20px;
-            position: relative;
         }
-        
-        .form-group label {
+        .form-field label {
             display: block;
-            margin-bottom: 10px;
-            color: #9ca3af;
+            color: #999;
             font-size: 13px;
             font-weight: 500;
-            letter-spacing: 0.5px;
+            margin-bottom: 8px;
         }
-        
-        .input-wrapper {
-            position: relative;
-        }
-        
-        .input-wrapper::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 12px;
-            padding: 2px;
-            background: linear-gradient(135deg, rgba(0, 255, 136, 0.3), rgba(0, 255, 136, 0.1));
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .input-wrapper:focus-within::before {
-            opacity: 1;
-        }
-        
-        input {
+        .form-field input {
             width: 100%;
-            padding: 16px 18px;
-            border: 1px solid #2a2a35;
-            border-radius: 12px;
-            background: #15151d;
+            padding: 15px 16px;
+            border: 1.5px solid #2a2a3a;
+            border-radius: 14px;
+            background: #0e0e16;
             color: #fff;
             font-size: 16px;
             font-family: 'Tajawal', sans-serif;
-            transition: all 0.3s ease;
             text-align: right;
-        }
-        
-        input:focus {
             outline: none;
+            transition: border-color 0.2s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .form-field input:focus {
             border-color: #00ff88;
-            background: #1a1a24;
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
         }
-        
-        input::placeholder {
-            color: #4b5563;
+        .form-field input::placeholder {
+            color: #444;
         }
-        
-        .code-input {
-            letter-spacing: 12px;
-            font-size: 28px;
+        .form-field input[dir="ltr"] {
+            text-align: left;
+        }
+
+        .code-field input {
+            letter-spacing: 10px;
+            font-size: 26px;
             font-weight: 700;
             text-align: center;
             color: #00ff88;
-            background: #0d0d12;
-            padding: 20px;
+            padding: 18px 16px;
         }
-        
-        button {
+
+        .btn-primary {
             width: 100%;
             padding: 16px;
-            background: linear-gradient(135deg, #c8ff00 0%, #9acd32 100%);
+            background: linear-gradient(135deg, #c8ff00, #9acd32);
             color: #0a0a0f;
             border: none;
-            border-radius: 12px;
+            border-radius: 14px;
             font-size: 16px;
             font-weight: 700;
             font-family: 'Tajawal', sans-serif;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-            position: relative;
-            overflow: hidden;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            transition: opacity 0.2s, transform 0.1s;
+            margin-top: 5px;
+            -webkit-tap-highlight-color: transparent;
         }
-        
-        button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s ease;
+        .btn-primary:active:not(:disabled) {
+            transform: scale(0.98);
         }
-        
-        button:hover:not(:disabled)::before {
-            left: 100%;
-        }
-        
-        button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 
-                0 15px 35px rgba(200, 255, 0, 0.3),
-                0 0 20px rgba(200, 255, 0, 0.2);
-        }
-        
-        button:active:not(:disabled) {
-            transform: translateY(0);
-        }
-        
-        button:disabled {
+        .btn-primary:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
         }
-        
-        .back-btn {
+
+        .btn-secondary {
+            width: 100%;
+            padding: 14px;
             background: transparent;
-            border: 1px solid #2a2a35;
-            color: #9ca3af;
+            color: #888;
+            border: 1.5px solid #2a2a3a;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
             margin-top: 10px;
+            transition: border-color 0.2s, color 0.2s;
+            -webkit-tap-highlight-color: transparent;
         }
-        
-        .back-btn:hover:not(:disabled) {
+        .btn-secondary:active {
             border-color: #00ff88;
             color: #00ff88;
-            background: rgba(0, 255, 136, 0.05);
-            box-shadow: none;
         }
-        
-        .message {
-            padding: 14px 18px;
-            border-radius: 12px;
-            font-size: 14px;
-            margin-top: 15px;
+
+        .switch-link {
             text-align: center;
-            display: none;
-            animation: slideIn 0.3s ease;
+            margin: 18px 0;
         }
-        
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .error {
-            background: rgba(255, 71, 87, 0.1);
-            color: #ff4757;
-            border: 1px solid rgba(255, 71, 87, 0.3);
-            display: block;
-        }
-        
-        .success {
-            background: rgba(0, 255, 136, 0.1);
-            color: #00ff88;
-            border: 1px solid rgba(0, 255, 136, 0.3);
-            display: block;
-        }
-        
-        .info {
-            background: rgba(0, 136, 255, 0.1);
-            color: #0088ff;
-            border: 1px solid rgba(0, 136, 255, 0.3);
-            display: block;
-        }
-        
-        .step {
-            display: none;
-        }
-        
-        .step.active {
-            display: block;
-            animation: fadeIn 0.4s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.98); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        
-        .timer {
-            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 255, 136, 0.05) 100%);
-            border: 1px solid rgba(0, 255, 136, 0.2);
-            color: #00ff88;
-            font-weight: 700;
-            text-align: center;
-            margin: 25px 0;
-            font-size: 32px;
-            padding: 20px;
-            border-radius: 16px;
-            font-variant-numeric: tabular-nums;
-            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
-        }
-        
-        .security-note {
-            background: rgba(0, 255, 136, 0.05);
-            border: 1px solid rgba(0, 255, 136, 0.1);
-            color: #6b7280;
-            padding: 16px;
-            border-radius: 12px;
-            font-size: 12px;
-            margin-top: 25px;
-            text-align: center;
-            line-height: 1.7;
-        }
-        
-        .security-note span {
-            color: #00ff88;
-        }
-        
-        .help-text {
-            color: #4b5563;
-            font-size: 12px;
-            margin-top: 15px;
-            text-align: center;
-        }
-        
-        .switch-method {
-            text-align: center;
-            margin: 20px 0;
-        }
-        
-        .switch-method a {
+        .switch-link a {
             color: #00ff88;
             text-decoration: none;
             font-size: 14px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 8px;
+            display: inline-block;
+            -webkit-tap-highlight-color: transparent;
         }
-        
-        .switch-method a:hover {
-            background: rgba(0, 255, 136, 0.1);
+        .switch-link a:active {
+            background: rgba(0,255,136,0.1);
         }
-        
-        .login-input-section {
+
+        .help-note {
+            color: #555;
+            font-size: 12px;
+            margin-top: 14px;
+            text-align: center;
+        }
+
+        .timer-box {
+            background: rgba(0,255,136,0.08);
+            border: 1px solid rgba(0,255,136,0.15);
+            color: #00ff88;
+            font-weight: 700;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 28px;
+            padding: 16px;
+            border-radius: 14px;
+        }
+
+        .msg {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-top: 14px;
+            text-align: center;
             display: none;
         }
-        
-        .login-input-section.active {
+        .msg.err {
+            background: rgba(255,71,87,0.1);
+            color: #ff4757;
+            border: 1px solid rgba(255,71,87,0.2);
             display: block;
         }
-        
-        /* ريسبونسيف */
+        .msg.ok {
+            background: rgba(0,255,136,0.1);
+            color: #00ff88;
+            border: 1px solid rgba(0,255,136,0.2);
+            display: block;
+        }
+
+        .step { display: none; }
+        .step.active { display: block; }
+        .section { display: none; }
+        .section.active { display: block; }
+
+        .security-hint {
+            color: #555;
+            font-size: 12px;
+            margin-top: 20px;
+            text-align: center;
+            line-height: 1.7;
+        }
+        .security-hint b { color: #00ff88; }
+
         @media (max-width: 480px) {
-            .login-container {
-                padding: 30px 25px;
-            }
-            
-            h1 {
-                font-size: 24px;
-            }
-            
-            .code-input {
-                letter-spacing: 8px;
-                font-size: 24px;
-            }
-            
-            .timer {
-                font-size: 28px;
-            }
+            body { padding: 15px; }
+            .login-box { padding: 30px 22px; }
+            .logo-section h1 { font-size: 20px; }
+            .code-field input { letter-spacing: 8px; font-size: 22px; }
         }
     </style>
 </head>
 <body>
-    <!-- جزيئات متطايرة -->
-    <div class="particles">
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-    </div>
 
-    <div class="login-container">
-        <a href="/" style="position:absolute;top:20px;right:20px;display:flex;align-items:center;gap:6px;color:#6b7280;text-decoration:none;font-size:13px;padding:8px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);transition:all 0.3s;z-index:10;font-family:'Tajawal',sans-serif;" onmouseover="this.style.color='#00ff88';this.style.borderColor='rgba(0,255,136,0.3)';this.style.background='rgba(0,255,136,0.05)'" onmouseout="this.style.color='#6b7280';this.style.borderColor='rgba(255,255,255,0.08)';this.style.background='transparent'">الرئيسية →</a>
-        <!-- الخطوة 1: إدخال المعرف -->
+    <a href="/" class="back-link">الرئيسية →</a>
+
+    <div class="login-box">
+
+        <!-- ===== الخطوة 1: إدخال المعرف ===== -->
         <div id="step1" class="step active">
-            <div class="logo-area">
+            <div class="logo-section">
                 <div class="logo-icon">🔐</div>
                 <h1>تسجيل الدخول</h1>
-                <p class="subtitle" id="loginSubtitle">أدخل رقم Telegram ID الخاص بك</p>
+                <p id="loginSubtitle">سجّل دخولك للمتابعة</p>
             </div>
-            
-            <!-- قسم التلغرام -->
-            <div id="telegramSection" class="login-input-section active">
+
+            <!-- تلغرام -->
+            <div id="telegramSection" class="section active">
                 <form id="userIdForm">
-                    <div class="form-group">
+                    <div class="form-field">
                         <label>🆔 رقم Telegram ID</label>
-                        <div class="input-wrapper">
-                            <input type="text" id="userId" placeholder="مثال: 123456789" inputmode="numeric" autocomplete="off">
-                        </div>
+                        <input type="text" id="userId" placeholder="مثال: 123456789" inputmode="numeric" autocomplete="off">
                     </div>
-                    <div class="switch-method">
-                        <a onclick="switchToEmail()">📧 التسجيل بالإيميل</a>
+                    <div class="switch-link">
+                        <a onclick="switchToEmail()">📧 الدخول بالإيميل</a>
                     </div>
-                    <button type="submit" id="sendCodeBtn">إرسال كود التحقق</button>
+                    <button type="submit" id="sendCodeBtn" class="btn-primary">إرسال كود التحقق</button>
                 </form>
-                <div class="help-text">
-                    💡 لا تعرف رقمك؟ أرسل /id للبوت
-                </div>
+                <div class="help-note">💡 لا تعرف رقمك؟ أرسل /id للبوت</div>
             </div>
-            
-            <!-- قسم الإيميل -->
-            <div id="emailSection" class="login-input-section">
+
+            <!-- إيميل -->
+            <div id="emailSection" class="section">
                 <form id="emailForm">
-                    <div class="form-group">
+                    <div class="form-field">
                         <label>📧 البريد الإلكتروني</label>
-                        <div class="input-wrapper">
-                            <input type="email" id="loginEmail" placeholder="example@gmail.com" dir="ltr" autocomplete="email">
-                        </div>
+                        <input type="email" id="loginEmail" placeholder="example@gmail.com" dir="ltr" autocomplete="email">
                     </div>
-                    <div class="switch-method">
-                        <a onclick="switchToTelegram()">🆔 التسجيل بـ Telegram ID</a>
+                    <div class="switch-link">
+                        <a onclick="switchToTelegram()">🆔 الدخول بـ Telegram ID</a>
                     </div>
-                    <button type="submit" id="sendCodeEmailBtn">إرسال كود التحقق</button>
+                    <button type="submit" id="sendCodeEmailBtn" class="btn-primary">إرسال كود التحقق</button>
                 </form>
-                <div class="help-text">
-                    📩 سيصلك كود التحقق على إيميلك
-                </div>
+                <div class="help-note">📩 سيصلك كود التحقق على إيميلك</div>
             </div>
-            
-            <div id="error1" class="message error"></div>
-            
-            <div class="security-note">
-                🔒 سيتم إرسال <span>كود مؤقت</span> عبر البوت للتحقق من هويتك
-            </div>
+
+            <div id="error1" class="msg"></div>
+            <div class="security-hint">🔒 سيتم إرسال <b>كود مؤقت</b> للتحقق من هويتك</div>
         </div>
-        
-        <!-- الخطوة 2: كود التحقق -->
+
+        <!-- ===== الخطوة 2: كود التحقق ===== -->
         <div id="step2" class="step">
-            <div class="logo-area">
+            <div class="logo-section">
                 <div class="logo-icon">✉️</div>
                 <h1>كود التحقق</h1>
-                <p class="subtitle">أدخل الكود المرسل لك في Telegram</p>
+                <p>أدخل الكود المرسل لك</p>
             </div>
-            
-            <div class="timer">⏱️ <span id="countdown">2:00</span></div>
-            
+
+            <div class="timer-box">⏱️ <span id="countdown">2:00</span></div>
+
             <form id="codeForm">
-                <div class="form-group">
+                <div class="form-field code-field">
                     <label>🔢 كود التحقق (6 أرقام)</label>
-                    <div class="input-wrapper">
-                        <input type="text" id="verifyCode" class="code-input" placeholder="● ● ● ● ● ●" maxlength="6" required inputmode="numeric" autocomplete="off">
-                    </div>
+                    <input type="text" id="verifyCode" placeholder="------" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
                 </div>
-                <button type="submit" id="verifyBtn">تأكيد الدخول</button>
-                <button type="button" class="back-btn" onclick="goBack()">← رجوع</button>
+                <button type="submit" id="verifyBtn" class="btn-primary">تأكيد الدخول</button>
+                <button type="button" class="btn-secondary" onclick="goBack()">← رجوع</button>
             </form>
-            
-            <div id="error2" class="message error"></div>
-            <div id="success2" class="message success"></div>
-            
-            <div class="security-note">
-                🔐 لا تشارك الكود مع <span>أي شخص</span> - سري تماماً
-            </div>
+
+            <div id="error2" class="msg"></div>
+            <div id="success2" class="msg"></div>
+            <div class="security-hint">🔐 لا تشارك الكود مع <b>أي شخص</b></div>
         </div>
-        
-        <!-- الخطوة 3: المصادقة الثنائية -->
+
+        <!-- ===== الخطوة 3: المصادقة الثنائية ===== -->
         <div id="step3" class="step">
-            <div class="logo-area">
+            <div class="logo-section">
                 <div class="logo-icon">🛡️</div>
                 <h1>المصادقة الثنائية</h1>
-                <p class="subtitle">أدخل الكود من Google Authenticator</p>
+                <p>أدخل الكود من Google Authenticator</p>
             </div>
-            
+
             <form id="twoFAForm">
-                <div class="form-group">
+                <div class="form-field code-field">
                     <label>🔐 كود المصادقة (6 أرقام)</label>
-                    <div class="input-wrapper">
-                        <input type="text" id="twoFACode" class="code-input" placeholder="● ● ● ● ● ●" maxlength="6" required inputmode="numeric" autocomplete="off">
-                    </div>
+                    <input type="text" id="twoFACode" placeholder="------" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
                 </div>
-                <button type="submit" id="verify2FABtn">تأكيد الدخول</button>
-                <button type="button" class="back-btn" onclick="goBackToStep1()">← رجوع للبداية</button>
+                <button type="submit" id="verify2FABtn" class="btn-primary">تأكيد الدخول</button>
+                <button type="button" class="btn-secondary" onclick="goBackToStep1()">← رجوع للبداية</button>
             </form>
-            
-            <div id="error3" class="message error"></div>
-            <div id="success3" class="message success"></div>
-            
-            <div class="security-note">
-                ⚡ الكود يتغير كل <span>30 ثانية</span> - أدخله بسرعة!
-            </div>
+
+            <div id="error3" class="msg"></div>
+            <div id="success3" class="msg"></div>
+            <div class="security-hint">⚡ الكود يتغير كل <b>30 ثانية</b></div>
         </div>
+
     </div>
 
-    <script>
-        let countdownInterval;
-        let secondsLeft = 120;
-        let currentUserId = '';
-        let currentEmail = null;
-        let loginMethod = 'telegram';
-        
-        function switchToEmail() {
-            loginMethod = 'email';
-            document.getElementById('telegramSection').classList.remove('active');
-            document.getElementById('emailSection').classList.add('active');
-            document.getElementById('loginSubtitle').textContent = 'أدخل بريدك الإلكتروني';
-            document.getElementById('error1').style.display = 'none';
-            document.getElementById('loginEmail').focus();
-        }
-        
-        function switchToTelegram() {
-            loginMethod = 'telegram';
-            document.getElementById('emailSection').classList.remove('active');
-            document.getElementById('telegramSection').classList.add('active');
-            document.getElementById('loginSubtitle').textContent = 'أدخل رقم Telegram ID الخاص بك';
-            document.getElementById('error1').style.display = 'none';
-            document.getElementById('userId').focus();
-        }
-        
-        // تسجيل الدخول بالتلغرام
-        document.getElementById('userIdForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const userId = document.getElementById('userId').value.trim();
-            const btn = document.getElementById('sendCodeBtn');
-            const errorDiv = document.getElementById('error1');
-            
-            if (!userId || !userId.match(/^\d+$/)) {
-                errorDiv.textContent = '❌ الرجاء إدخال رقم صحيح فقط';
-                errorDiv.style.display = 'block';
-                return;
-            }
-            
-            currentUserId = userId;
-            btn.disabled = true;
-            btn.innerHTML = '⏳ جاري الإرسال...';
-            errorDiv.style.display = 'none';
-            
-            try {
-                const response = await fetch('/api/send_code', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: userId })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    document.getElementById('step1').classList.remove('active');
-                    document.getElementById('step2').classList.add('active');
-                    startCountdown();
-                    document.getElementById('verifyCode').focus();
-                } else {
-                    errorDiv.textContent = '❌ ' + data.message;
-                    errorDiv.style.display = 'block';
-                    btn.disabled = false;
-                    btn.innerHTML = 'إرسال كود التحقق';
-                }
-            } catch (error) {
-                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
-                errorDiv.style.display = 'block';
-                btn.disabled = false;
-                btn.innerHTML = 'إرسال كود التحقق';
-            }
-        });
-        
-        // تسجيل الدخول بالإيميل
-        document.getElementById('emailForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-            const btn = document.getElementById('sendCodeEmailBtn');
-            const errorDiv = document.getElementById('error1');
-            
-            if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-                errorDiv.textContent = '❌ الرجاء إدخال بريد إلكتروني صحيح';
-                errorDiv.style.display = 'block';
-                return;
-            }
-            
-            btn.disabled = true;
-            btn.innerHTML = '⏳ جاري الإرسال...';
-            errorDiv.style.display = 'none';
-            
-            try {
-                const response = await fetch('/api/auth/send-code', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    currentEmail = email;
-                    currentUserId = null;
-                    document.getElementById('step1').classList.remove('active');
-                    document.getElementById('step2').classList.add('active');
-                    startCountdown();
-                    document.getElementById('verifyCode').focus();
-                } else {
-                    errorDiv.textContent = '❌ ' + data.message;
-                    errorDiv.style.display = 'block';
-                    btn.disabled = false;
-                    btn.innerHTML = 'إرسال كود التحقق';
-                }
-            } catch (error) {
-                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
-                errorDiv.style.display = 'block';
-                btn.disabled = false;
-                btn.innerHTML = 'إرسال كود التحقق';
-            }
-        });
-        
-        // التحقق من الكود
-        document.getElementById('codeForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const code = document.getElementById('verifyCode').value.trim();
-            const btn = document.getElementById('verifyBtn');
-            const errorDiv = document.getElementById('error2');
-            const successDiv = document.getElementById('success2');
-            
-            if (!code || code.length !== 6 || !code.match(/^\d{6}$/)) {
-                errorDiv.textContent = '❌ الرجاء إدخال 6 أرقام صحيحة';
-                errorDiv.style.display = 'block';
-                return;
-            }
-            
-            btn.disabled = true;
-            btn.innerHTML = '⏳ جاري التحقق...';
-            errorDiv.style.display = 'none';
-            successDiv.style.display = 'none';
-            
-            try {
-                // تحديد الـ endpoint حسب طريقة تسجيل الدخول
-                let response;
-                if (currentEmail) {
-                    response = await fetch('/api/auth/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: currentEmail, code: code })
-                    });
-                } else {
-                    response = await fetch('/verify', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ user_id: currentUserId, code: code })
-                    });
-                }
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    if (data.requires_2fa) {
-                        successDiv.textContent = '🔐 مطلوب كود المصادقة الثنائية';
-                        successDiv.style.display = 'block';
-                        clearInterval(countdownInterval);
-                        setTimeout(() => {
-                            document.getElementById('step2').classList.remove('active');
-                            document.getElementById('step3').classList.add('active');
-                            document.getElementById('twoFACode').focus();
-                        }, 1000);
-                    } else {
-                        successDiv.textContent = '✅ تم التحقق! جاري نقلك...';
-                        successDiv.style.display = 'block';
-                        clearInterval(countdownInterval);
-                        setTimeout(() => {
-                            window.location.href = '/';
-                        }, 1500);
-                    }
-                } else {
-                    errorDiv.textContent = '❌ ' + data.message;
-                    errorDiv.style.display = 'block';
-                    btn.disabled = false;
-                    btn.innerHTML = 'تأكيد الدخول';
-                }
-            } catch (error) {
-                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
-                errorDiv.style.display = 'block';
-                btn.disabled = false;
-                btn.innerHTML = 'تأكيد الدخول';
-            }
-        });
-        
-        // التحقق من 2FA
-        document.getElementById('twoFAForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const totpCode = document.getElementById('twoFACode').value.trim();
-            const btn = document.getElementById('verify2FABtn');
-            const errorDiv = document.getElementById('error3');
-            const successDiv = document.getElementById('success3');
-            
-            if (!totpCode || totpCode.length !== 6 || !totpCode.match(/^\d{6}$/)) {
-                errorDiv.textContent = '❌ الرجاء إدخال 6 أرقام صحيحة';
-                errorDiv.style.display = 'block';
-                return;
-            }
-            
-            btn.disabled = true;
-            btn.innerHTML = '⏳ جاري التحقق...';
-            errorDiv.style.display = 'none';
-            successDiv.style.display = 'none';
-            
-            try {
-                const response = await fetch('/verify_2fa_login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ totp_code: totpCode })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    successDiv.textContent = '✅ تم التحقق! جاري نقلك...';
-                    successDiv.style.display = 'block';
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 1500);
-                } else {
-                    errorDiv.textContent = data.message || '❌ الكود غير صحيح';
-                    errorDiv.style.display = 'block';
-                    btn.disabled = false;
-                    btn.innerHTML = 'تأكيد الدخول';
-                }
-            } catch (error) {
-                errorDiv.textContent = '❌ خطأ في الاتصال بالسيرفر';
-                errorDiv.style.display = 'block';
-                btn.disabled = false;
-                btn.innerHTML = 'تأكيد الدخول';
-            }
-        });
-        
-        function startCountdown() {
-            secondsLeft = 120;
-            updateCountdown();
-            countdownInterval = setInterval(() => {
-                secondsLeft--;
-                updateCountdown();
-                if (secondsLeft <= 0) {
+<script>
+    var countdownInterval;
+    var secondsLeft = 120;
+    var currentUserId = '';
+    var currentEmail = null;
+
+    function switchToEmail() {
+        document.getElementById('telegramSection').classList.remove('active');
+        document.getElementById('emailSection').classList.add('active');
+        document.getElementById('loginSubtitle').textContent = 'أدخل بريدك الإلكتروني';
+        document.getElementById('error1').className = 'msg';
+    }
+
+    function switchToTelegram() {
+        document.getElementById('emailSection').classList.remove('active');
+        document.getElementById('telegramSection').classList.add('active');
+        document.getElementById('loginSubtitle').textContent = 'سجّل دخولك للمتابعة';
+        document.getElementById('error1').className = 'msg';
+    }
+
+    function showErr(id, text) {
+        var el = document.getElementById(id);
+        el.textContent = '❌ ' + text;
+        el.className = 'msg err';
+    }
+    function showOk(id, text) {
+        var el = document.getElementById(id);
+        el.textContent = text;
+        el.className = 'msg ok';
+    }
+    function hideMsg(id) {
+        document.getElementById(id).className = 'msg';
+    }
+
+    // إرسال كود تلغرام
+    document.getElementById('userIdForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var userId = document.getElementById('userId').value.trim();
+        var btn = document.getElementById('sendCodeBtn');
+        if (!userId || !/^\d+$/.test(userId)) { showErr('error1', 'الرجاء إدخال رقم صحيح'); return; }
+        currentUserId = userId;
+        currentEmail = null;
+        btn.disabled = true; btn.textContent = '⏳ جاري الإرسال...';
+        hideMsg('error1');
+        try {
+            var res = await fetch('/api/send_code', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({user_id: userId}) });
+            var data = await res.json();
+            if (data.success) { goToStep2(); }
+            else { showErr('error1', data.message); btn.disabled = false; btn.textContent = 'إرسال كود التحقق'; }
+        } catch(err) { showErr('error1', 'خطأ في الاتصال'); btn.disabled = false; btn.textContent = 'إرسال كود التحقق'; }
+    });
+
+    // إرسال كود إيميل
+    document.getElementById('emailForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var email = document.getElementById('loginEmail').value.trim().toLowerCase();
+        var btn = document.getElementById('sendCodeEmailBtn');
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('error1', 'الرجاء إدخال بريد صحيح'); return; }
+        currentEmail = email;
+        currentUserId = null;
+        btn.disabled = true; btn.textContent = '⏳ جاري الإرسال...';
+        hideMsg('error1');
+        try {
+            var res = await fetch('/api/auth/send-code', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: email}) });
+            var data = await res.json();
+            if (data.success) { goToStep2(); }
+            else { showErr('error1', data.message); btn.disabled = false; btn.textContent = 'إرسال كود التحقق'; }
+        } catch(err) { showErr('error1', 'خطأ في الاتصال'); btn.disabled = false; btn.textContent = 'إرسال كود التحقق'; }
+    });
+
+    function goToStep2() {
+        document.getElementById('step1').classList.remove('active');
+        document.getElementById('step2').classList.add('active');
+        startCountdown();
+    }
+
+    // تأكيد الكود
+    document.getElementById('codeForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var code = document.getElementById('verifyCode').value.trim();
+        var btn = document.getElementById('verifyBtn');
+        if (!code || code.length !== 6 || !/^\d{6}$/.test(code)) { showErr('error2', 'الرجاء إدخال 6 أرقام'); return; }
+        btn.disabled = true; btn.textContent = '⏳ جاري التحقق...';
+        hideMsg('error2'); hideMsg('success2');
+        try {
+            var url, body;
+            if (currentEmail) { url = '/api/auth/login'; body = {email: currentEmail, code: code}; }
+            else { url = '/verify'; body = {user_id: currentUserId, code: code}; }
+            var res = await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+            var data = await res.json();
+            if (data.success) {
+                if (data.requires_2fa) {
+                    showOk('success2', '🔐 مطلوب كود المصادقة الثنائية');
                     clearInterval(countdownInterval);
-                    document.getElementById('error2').textContent = '⏰ انتهت صلاحية الكود! الرجاء المحاولة مجدداً';
-                    document.getElementById('error2').style.display = 'block';
-                    document.getElementById('verifyBtn').disabled = true;
+                    setTimeout(function() {
+                        document.getElementById('step2').classList.remove('active');
+                        document.getElementById('step3').classList.add('active');
+                    }, 800);
+                } else {
+                    showOk('success2', '✅ تم التحقق! جاري نقلك...');
+                    clearInterval(countdownInterval);
+                    setTimeout(function() { window.location.href = '/'; }, 1200);
                 }
-            }, 1000);
-        }
-        
-        function updateCountdown() {
-            const minutes = Math.floor(secondsLeft / 60);
-            const seconds = secondsLeft % 60;
-            document.getElementById('countdown').textContent = minutes + ':' + seconds.toString().padStart(2, '0');
-        }
-        
-        function goBack() {
-            clearInterval(countdownInterval);
-            document.getElementById('step2').classList.remove('active');
-            document.getElementById('step1').classList.add('active');
-            document.getElementById('userId').value = '';
-            document.getElementById('verifyCode').value = '';
-            document.getElementById('error1').style.display = 'none';
-            document.getElementById('error2').style.display = 'none';
-            document.getElementById('success2').style.display = 'none';
-            document.getElementById('sendCodeBtn').disabled = false;
-            document.getElementById('sendCodeBtn').innerHTML = 'إرسال كود التحقق';
-            document.getElementById('sendCodeEmailBtn').disabled = false;
-            document.getElementById('sendCodeEmailBtn').innerHTML = 'إرسال كود التحقق';
-            document.getElementById('verifyBtn').disabled = false;
-            document.getElementById('verifyBtn').innerHTML = 'تأكيد الدخول';
-        }
-        
-        function goBackToStep1() {
-            document.getElementById('step3').classList.remove('active');
-            document.getElementById('step1').classList.add('active');
-            document.getElementById('userId').value = '';
-            document.getElementById('verifyCode').value = '';
-            document.getElementById('twoFACode').value = '';
-            document.getElementById('error1').style.display = 'none';
-            document.getElementById('error3').style.display = 'none';
-            document.getElementById('success3').style.display = 'none';
-            document.getElementById('sendCodeBtn').disabled = false;
-            document.getElementById('sendCodeBtn').innerHTML = 'إرسال كود التحقق';
-            document.getElementById('sendCodeEmailBtn').disabled = false;
-            document.getElementById('sendCodeEmailBtn').innerHTML = 'إرسال كود التحقق';
-            document.getElementById('userId').focus();
-        }
-        
-        // منع إدخال غير الأرقام
-        document.getElementById('userId').addEventListener('input', function(e) {
+            } else { showErr('error2', data.message); btn.disabled = false; btn.textContent = 'تأكيد الدخول'; }
+        } catch(err) { showErr('error2', 'خطأ في الاتصال'); btn.disabled = false; btn.textContent = 'تأكيد الدخول'; }
+    });
+
+    // 2FA
+    document.getElementById('twoFAForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var code = document.getElementById('twoFACode').value.trim();
+        var btn = document.getElementById('verify2FABtn');
+        if (!code || code.length !== 6 || !/^\d{6}$/.test(code)) { showErr('error3', 'الرجاء إدخال 6 أرقام'); return; }
+        btn.disabled = true; btn.textContent = '⏳ جاري التحقق...';
+        hideMsg('error3'); hideMsg('success3');
+        try {
+            var res = await fetch('/verify_2fa_login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({totp_code: code}) });
+            var data = await res.json();
+            if (data.success) {
+                showOk('success3', '✅ تم التحقق! جاري نقلك...');
+                setTimeout(function() { window.location.href = '/'; }, 1200);
+            } else { showErr('error3', data.message || 'الكود غير صحيح'); btn.disabled = false; btn.textContent = 'تأكيد الدخول'; }
+        } catch(err) { showErr('error3', 'خطأ في الاتصال'); btn.disabled = false; btn.textContent = 'تأكيد الدخول'; }
+    });
+
+    function startCountdown() {
+        secondsLeft = 120;
+        updateCountdown();
+        countdownInterval = setInterval(function() {
+            secondsLeft--;
+            updateCountdown();
+            if (secondsLeft <= 0) {
+                clearInterval(countdownInterval);
+                showErr('error2', '⏰ انتهت صلاحية الكود');
+                document.getElementById('verifyBtn').disabled = true;
+            }
+        }, 1000);
+    }
+    function updateCountdown() {
+        var m = Math.floor(secondsLeft / 60);
+        var s = secondsLeft % 60;
+        document.getElementById('countdown').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    function goBack() {
+        clearInterval(countdownInterval);
+        document.getElementById('step2').classList.remove('active');
+        document.getElementById('step1').classList.add('active');
+        document.getElementById('verifyCode').value = '';
+        hideMsg('error1'); hideMsg('error2'); hideMsg('success2');
+        document.getElementById('sendCodeBtn').disabled = false;
+        document.getElementById('sendCodeBtn').textContent = 'إرسال كود التحقق';
+        document.getElementById('sendCodeEmailBtn').disabled = false;
+        document.getElementById('sendCodeEmailBtn').textContent = 'إرسال كود التحقق';
+        document.getElementById('verifyBtn').disabled = false;
+        document.getElementById('verifyBtn').textContent = 'تأكيد الدخول';
+    }
+
+    function goBackToStep1() {
+        document.getElementById('step3').classList.remove('active');
+        document.getElementById('step1').classList.add('active');
+        document.getElementById('twoFACode').value = '';
+        document.getElementById('verifyCode').value = '';
+        hideMsg('error1'); hideMsg('error3'); hideMsg('success3');
+        document.getElementById('sendCodeBtn').disabled = false;
+        document.getElementById('sendCodeBtn').textContent = 'إرسال كود التحقق';
+        document.getElementById('sendCodeEmailBtn').disabled = false;
+        document.getElementById('sendCodeEmailBtn').textContent = 'إرسال كود التحقق';
+    }
+
+    // أرقام فقط
+    ['userId','verifyCode','twoFACode'].forEach(function(id) {
+        document.getElementById(id).addEventListener('input', function() {
             this.value = this.value.replace(/[^0-9]/g, '');
         });
-        
-        document.getElementById('verifyCode').addEventListener('input', function(e) {
-            this.value = this.value.replace(/[^0-9]/g, '');
-        });
-        
-        document.getElementById('twoFACode').addEventListener('input', function(e) {
-            this.value = this.value.replace(/[^0-9]/g, '');
-        });
-        
-        // Focus عند التحميل
-        window.addEventListener('load', () => {
-            document.getElementById('userId').focus();
-        });
-    </script>
+    });
+</script>
 </body>
 </html>
