@@ -268,15 +268,30 @@
                 <p id="loginSubtitle">سجّل دخولك للمتابعة</p>
             </div>
 
+            <!-- جوال واتساب -->
+            <div id="phoneSection" class="section active">
+                <form id="phoneForm">
+                    <div class="form-field">
+                        <label>📱 رقم الجوال</label>
+                        <input type="tel" id="loginPhone" placeholder="05xxxxxxxx" dir="ltr" inputmode="tel" autocomplete="tel">
+                    </div>
+                    <div class="switch-link">
+                        <a onclick="switchToEmail()">📧 الدخول بالإيميل</a> · <a onclick="switchToTelegram()">🆔 Telegram</a>
+                    </div>
+                    <button type="submit" id="sendCodePhoneBtn" class="btn-primary">📲 إرسال كود واتساب</button>
+                </form>
+                <div class="help-note">💬 سيصلك كود التحقق على واتساب</div>
+            </div>
+
             <!-- تلغرام -->
-            <div id="telegramSection" class="section active">
+            <div id="telegramSection" class="section">
                 <form id="userIdForm">
                     <div class="form-field">
                         <label>🆔 رقم Telegram ID</label>
                         <input type="text" id="userId" placeholder="مثال: 123456789" inputmode="numeric" autocomplete="off">
                     </div>
                     <div class="switch-link">
-                        <a onclick="switchToEmail()">📧 الدخول بالإيميل</a>
+                        <a onclick="switchToPhone()">📱 الدخول بالجوال</a> · <a onclick="switchToEmail()">📧 إيميل</a>
                     </div>
                     <button type="submit" id="sendCodeBtn" class="btn-primary">إرسال كود التحقق</button>
                 </form>
@@ -291,7 +306,7 @@
                         <input type="email" id="loginEmail" placeholder="example@gmail.com" dir="ltr" autocomplete="email">
                     </div>
                     <div class="switch-link">
-                        <a onclick="switchToTelegram()">🆔 الدخول بـ Telegram ID</a>
+                        <a onclick="switchToPhone()">📱 الدخول بالجوال</a> · <a onclick="switchToTelegram()">🆔 Telegram</a>
                     </div>
                     <button type="submit" id="sendCodeEmailBtn" class="btn-primary">إرسال كود التحقق</button>
                 </form>
@@ -413,20 +428,28 @@
     var regSecondsLeft = 120;
     var currentUserId = '';
     var currentEmail = null;
+    var currentPhone = null;
     var isRegistering = false;
 
+    function switchToPhone() {
+        document.querySelectorAll('#step1 .section').forEach(function(s) { s.classList.remove('active'); });
+        document.getElementById('phoneSection').classList.add('active');
+        document.getElementById('loginSubtitle').textContent = 'أدخل رقم جوالك';
+        hideMsg('error1');
+    }
+
     function switchToEmail() {
-        document.getElementById('telegramSection').classList.remove('active');
+        document.querySelectorAll('#step1 .section').forEach(function(s) { s.classList.remove('active'); });
         document.getElementById('emailSection').classList.add('active');
         document.getElementById('loginSubtitle').textContent = 'أدخل بريدك الإلكتروني';
-        document.getElementById('error1').className = 'msg';
+        hideMsg('error1');
     }
 
     function switchToTelegram() {
-        document.getElementById('emailSection').classList.remove('active');
+        document.querySelectorAll('#step1 .section').forEach(function(s) { s.classList.remove('active'); });
         document.getElementById('telegramSection').classList.add('active');
         document.getElementById('loginSubtitle').textContent = 'سجّل دخولك للمتابعة';
-        document.getElementById('error1').className = 'msg';
+        hideMsg('error1');
     }
 
     function showErr(id, text) {
@@ -451,6 +474,7 @@
         if (!userId || !/^\d+$/.test(userId)) { showErr('error1', 'الرجاء إدخال رقم صحيح'); return; }
         currentUserId = userId;
         currentEmail = null;
+        currentPhone = null;
         btn.disabled = true; btn.textContent = '⏳ جاري الإرسال...';
         hideMsg('error1');
         try {
@@ -459,6 +483,29 @@
             if (data.success) { goToStep2(); }
             else { showErr('error1', data.message); btn.disabled = false; btn.textContent = 'إرسال كود التحقق'; }
         } catch(err) { showErr('error1', 'خطأ في الاتصال'); btn.disabled = false; btn.textContent = 'إرسال كود التحقق'; }
+    });
+
+    // إرسال كود جوال واتساب
+    document.getElementById('phoneForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var phone = document.getElementById('loginPhone').value.trim();
+        var btn = document.getElementById('sendCodePhoneBtn');
+        if (!phone || phone.length < 10) { showErr('error1', 'الرجاء إدخال رقم جوال صحيح'); return; }
+        currentPhone = phone;
+        currentEmail = null;
+        currentUserId = null;
+        btn.disabled = true; btn.textContent = '⏳ جاري الإرسال...';
+        hideMsg('error1');
+        try {
+            var res = await fetch('/api/auth/send-code-phone', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({phone: phone}) });
+            var data = await res.json();
+            if (data.success) {
+                if (data.user_id) currentUserId = data.user_id;
+                isRegistering = false;
+                goToStep2();
+            } else { showErr('error1', data.message); }
+            btn.disabled = false; btn.textContent = '📲 إرسال كود واتساب';
+        } catch(err) { showErr('error1', 'خطأ في الاتصال'); btn.disabled = false; btn.textContent = '📲 إرسال كود واتساب'; }
     });
 
     // إرسال كود إيميل
@@ -502,6 +549,7 @@
         try {
             var url, body;
             if (currentEmail) { url = '/api/auth/login'; body = {email: currentEmail, code: code}; }
+            else if (currentPhone) { url = '/api/auth/login-phone'; body = {phone: currentPhone, code: code, user_id: currentUserId || ''}; }
             else { url = '/verify'; body = {user_id: currentUserId, code: code}; }
             var res = await fetch(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
             var data = await res.json();
@@ -567,6 +615,8 @@
         document.getElementById('sendCodeBtn').textContent = 'إرسال كود التحقق';
         document.getElementById('sendCodeEmailBtn').disabled = false;
         document.getElementById('sendCodeEmailBtn').textContent = 'إرسال كود التحقق';
+        document.getElementById('sendCodePhoneBtn').disabled = false;
+        document.getElementById('sendCodePhoneBtn').textContent = '📲 إرسال كود واتساب';
         document.getElementById('verifyBtn').disabled = false;
         document.getElementById('verifyBtn').textContent = 'تأكيد الدخول';
         showStep('step1');
@@ -580,6 +630,8 @@
         document.getElementById('sendCodeBtn').textContent = 'إرسال كود التحقق';
         document.getElementById('sendCodeEmailBtn').disabled = false;
         document.getElementById('sendCodeEmailBtn').textContent = 'إرسال كود التحقق';
+        document.getElementById('sendCodePhoneBtn').disabled = false;
+        document.getElementById('sendCodePhoneBtn').textContent = '📲 إرسال كود واتساب';
         showStep('step1');
     }
 
