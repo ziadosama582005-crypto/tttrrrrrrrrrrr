@@ -572,7 +572,9 @@ def register_verify():
             'first_name': pending['name'],
             'balance': 0.0,
             'created_at': time.time(),
-            'registered_via': 'whatsapp'
+            'registered_via': 'whatsapp',
+            'phone_verified': True,
+            'phone_verified_at': time.time()
         }
 
         db.collection('users').document(new_user_id).set(new_user)
@@ -864,11 +866,17 @@ def login_phone():
         session.permanent = True
         session.modified = True
 
-        # مسح الكود
-        db.collection('users').document(str(session['user_id'])).update({
+        # مسح الكود + توثيق الرقم تلقائياً
+        update_data = {
             'verification_code': None,
-            'code_time': None
-        })
+            'code_time': None,
+            'phone_verified': True,
+            'phone_verified_at': time.time()
+        }
+        # تحديث رقم الجوال إذا لم يكن محفوظاً
+        if phone and not user_data.get('phone'):
+            update_data['phone'] = phone
+        db.collection('users').document(str(session['user_id'])).update(update_data)
 
         log_login_success(session['user_id'])
         print(f"✅ تم تسجيل دخول المستخدم بالجوال: {session['user_id']}")
