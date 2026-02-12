@@ -9,7 +9,7 @@
 import os
 import logging
 from functools import wraps
-from flask import session, jsonify, abort, request
+from flask import session, jsonify, abort, request, redirect, url_for
 from google.cloud import firestore
 
 # تحديد logger
@@ -23,7 +23,10 @@ def require_session_user():
         def decorated_function(*args, **kwargs):
             user_id = session.get('user_id')
             if not user_id:
-                return jsonify({'status': 'error', 'message': 'غير مسجل دخول'}), 401
+                # إذا الطلب API يرجع JSON، وإلا redirect للرئيسية
+                if request.path.startswith('/api/'):
+                    return jsonify({'status': 'error', 'message': 'غير مسجل دخول'}), 401
+                return redirect('/')
             return f(*args, **kwargs)
         return decorated_function
     return decorator
