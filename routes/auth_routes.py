@@ -1,7 +1,7 @@
 """
 Auth Routes - تسجيل الدخول والتحقق والتسجيل
 """
-from flask import Blueprint, request, jsonify, session, redirect, url_for
+from flask import Blueprint, request, jsonify, session, redirect, url_for, render_template
 from extensions import db, bot
 from utils import regenerate_session, generate_code, validate_phone
 import time
@@ -160,7 +160,10 @@ def login():
         
         return jsonify({'success': True, 'message': 'تم تسجيل الدخول بنجاح'})
     
-    return {'page': 'login'}
+    # GET - عرض صفحة تسجيل الدخول
+    if session.get('user_id'):
+        return redirect('/')
+    return render_template('login_user.html')
 
 @auth_bp.route('/verify-code', methods=['POST'])
 def verify_code_api():

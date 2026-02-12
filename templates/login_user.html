@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دخول المتجر</title>
+    <title>تسجيل الدخول - GamersTR</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -447,6 +448,7 @@
     </div>
 
     <div class="login-container">
+        <a href="/" style="position:absolute;top:20px;right:20px;display:flex;align-items:center;gap:6px;color:#6b7280;text-decoration:none;font-size:13px;padding:8px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);transition:all 0.3s;z-index:10;font-family:'Tajawal',sans-serif;" onmouseover="this.style.color='#00ff88';this.style.borderColor='rgba(0,255,136,0.3)';this.style.background='rgba(0,255,136,0.05)'" onmouseout="this.style.color='#6b7280';this.style.borderColor='rgba(255,255,255,0.08)';this.style.background='transparent'">الرئيسية →</a>
         <!-- الخطوة 1: إدخال المعرف -->
         <div id="step1" class="step active">
             <div class="logo-area">
@@ -819,15 +821,14 @@
             document.getElementById('step2').classList.remove('active');
             document.getElementById('step1').classList.add('active');
             document.getElementById('userId').value = '';
-            document.getElementById('loginPhone').value = '';
             document.getElementById('verifyCode').value = '';
             document.getElementById('error1').style.display = 'none';
             document.getElementById('error2').style.display = 'none';
             document.getElementById('success2').style.display = 'none';
             document.getElementById('sendCodeBtn').disabled = false;
             document.getElementById('sendCodeBtn').innerHTML = 'إرسال كود التحقق';
-            document.getElementById('sendCodePhoneBtn').disabled = false;
-            document.getElementById('sendCodePhoneBtn').innerHTML = 'إرسال كود التحقق';
+            document.getElementById('sendCodeEmailBtn').disabled = false;
+            document.getElementById('sendCodeEmailBtn').innerHTML = 'إرسال كود التحقق';
             document.getElementById('verifyBtn').disabled = false;
             document.getElementById('verifyBtn').innerHTML = 'تأكيد الدخول';
         }
@@ -836,7 +837,6 @@
             document.getElementById('step3').classList.remove('active');
             document.getElementById('step1').classList.add('active');
             document.getElementById('userId').value = '';
-            document.getElementById('loginPhone').value = '';
             document.getElementById('verifyCode').value = '';
             document.getElementById('twoFACode').value = '';
             document.getElementById('error1').style.display = 'none';
@@ -844,6 +844,8 @@
             document.getElementById('success3').style.display = 'none';
             document.getElementById('sendCodeBtn').disabled = false;
             document.getElementById('sendCodeBtn').innerHTML = 'إرسال كود التحقق';
+            document.getElementById('sendCodeEmailBtn').disabled = false;
+            document.getElementById('sendCodeEmailBtn').innerHTML = 'إرسال كود التحقق';
             document.getElementById('userId').focus();
         }
         

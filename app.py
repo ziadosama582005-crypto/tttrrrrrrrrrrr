@@ -536,16 +536,6 @@ def get_user_orders():
     
     return {'orders': user_orders}
 
-# ✅ صفحة الدخول - طلب User ID والكود
-@app.route('/login', endpoint='login_page')
-def login():
-    """صفحة الدخول - إدخال User ID والكود"""
-    # إذا كان المستخدم مسجل دخول بالفعل، إعادة توجيه للصفحة الرئيسية
-    if session.get('user_id'):
-        return redirect(url_for('index'))
-    
-    return render_template('login_user.html')
-
 # ✅ API endpoint لإرسال كود التحقق للمستخدم
 @app.route('/api/send_code', methods=['POST'])
 @limiter.limit("3 per minute")  # 🔒 منع الإساءة
