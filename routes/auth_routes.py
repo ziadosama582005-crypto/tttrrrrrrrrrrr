@@ -392,8 +392,8 @@ def send_code_email():
             user_ref = users_ref.document(user_id)
             print(f"✅ تم العثور على المستخدم: {user_id}")
         else:
-            # 🔒 رسالة موحدة لمنع Email Enumeration
-            return jsonify({'success': True, 'message': 'إذا كان الحساب موجوداً، سيتم إرسال الكود'})
+            # الحساب غير مسجل - إعلام المستخدم
+            return jsonify({'success': False, 'not_registered': True, 'message': 'الحساب غير مسجل. يمكنك إنشاء حساب جديد'})
 
         # توليد وحفظ الكود
         new_code = generate_code()
@@ -417,6 +417,139 @@ def send_code_email():
     except Exception as e:
         print(f"❌ Error: {e}")
         return jsonify({'success': False, 'message': 'حدث خطأ في النظام'})
+
+
+# ==================== تسجيل حساب جديد بالإيميل ====================
+
+# تخزين مؤقت لبيانات التسجيل
+_pending_registrations = {}  # {email: {'code': '...', 'phone': '...', 'name': '...', 'time': ...}}
+
+@auth_bp.route('/api/auth/register-send-code', methods=['POST'])
+def register_send_code():
+    """إرسال كود التحقق لتسجيل حساب جديد بالإيميل"""
+    allowed, error_msg = check_login_rate_limit()
+    if not allowed:
+        return jsonify({'success': False, 'message': error_msg})
+
+    data = request.json
+    if not data:
+        return jsonify({'success': False, 'message': 'بيانات غير صالحة'})
+
+    email = data.get('email', '').strip().lower()
+    phone = data.get('phone', '').strip()
+    name = data.get('name', '').strip()
+
+    if not email or '@' not in email:
+        return jsonify({'success': False, 'message': 'الرجاء إدخال بريد إلكتروني صحيح'})
+    if not phone:
+        return jsonify({'success': False, 'message': 'الرجاء إدخال رقم الجوال'})
+    if not name:
+        return jsonify({'success': False, 'message': 'الرجاء إدخال الاسم'})
+
+    # تنظيف رقم الجوال
+    import re
+    phone = phone.replace(' ', '').replace('-', '').replace('+', '')
+    if phone.startswith('966'):
+        phone = '0' + phone[3:]
+    elif phone.startswith('5') and len(phone) == 9:
+        phone = '0' + phone
+
+    try:
+        # تأكد الإيميل غير مسجل
+        query = db.collection('users').where('email', '==', email).limit(1)
+        results = list(query.stream())
+        if results:
+            return jsonify({'success': False, 'message': 'هذا البريد مسجل بالفعل. يمكنك تسجيل الدخول مباشرة'})
+
+        # توليد كود
+        new_code = generate_code()
+        _pending_registrations[email] = {
+            'code': new_code,
+            'phone': phone,
+            'name': name,
+            'time': time.time()
+        }
+
+        # إرسال الكود بالإيميل
+        if send_email_otp(email, new_code):
+            return jsonify({'success': True, 'message': f'✅ تم إرسال كود التحقق إلى {email}'})
+        else:
+            return jsonify({'success': False, 'message': 'فشل إرسال الكود. حاول مرة أخرى'})
+
+    except Exception as e:
+        print(f"❌ Register send code error: {e}")
+        return jsonify({'success': False, 'message': 'حدث خطأ في النظام'})
+
+
+@auth_bp.route('/api/auth/register-verify', methods=['POST'])
+def register_verify():
+    """التحقق من الكود وإنشاء حساب جديد"""
+    allowed, error_msg = check_login_rate_limit()
+    if not allowed:
+        return jsonify({'success': False, 'message': error_msg})
+
+    data = request.json
+    if not data:
+        return jsonify({'success': False, 'message': 'بيانات غير صالحة'})
+
+    email = data.get('email', '').strip().lower()
+    code = data.get('code', '').strip()
+
+    if not email or not code:
+        return jsonify({'success': False, 'message': 'الرجاء إدخال البريد والكود'})
+
+    pending = _pending_registrations.get(email)
+    if not pending:
+        return jsonify({'success': False, 'message': 'لم يتم طلب كود لهذا البريد. أعد المحاولة'})
+
+    # التحقق من انتهاء الصلاحية (10 دقائق)
+    if time.time() - pending['time'] > 600:
+        _pending_registrations.pop(email, None)
+        return jsonify({'success': False, 'message': 'انتهت صلاحية الكود. اطلب كود جديد'})
+
+    if str(pending['code']) != code:
+        remaining = record_failed_login()
+        if remaining == 0:
+            return jsonify({'success': False, 'message': '⛔ تم حظرك لمدة 15 دقيقة بسبب محاولات فاشلة متكررة'})
+        return jsonify({'success': False, 'message': f'الكود غير صحيح. المحاولات المتبقية: {remaining}'})
+
+    try:
+        # ✅ إنشاء الحساب
+        reset_login_attempts()
+        import uuid
+        new_user_id = str(uuid.uuid4())[:12]  # معرف فريد
+
+        new_user = {
+            'email': email,
+            'phone': pending['phone'],
+            'username': pending['name'],
+            'first_name': pending['name'],
+            'balance': 0.0,
+            'created_at': time.time(),
+            'registered_via': 'email'
+        }
+
+        db.collection('users').document(new_user_id).set(new_user)
+        _pending_registrations.pop(email, None)
+
+        # تسجيل الدخول تلقائياً
+        regenerate_session()
+        session['user_id'] = new_user_id
+        session['user_name'] = pending['name']
+        session['user_email'] = email
+        session['logged_in'] = True
+        session['login_time'] = time.time()
+        session.permanent = True
+        session.modified = True
+
+        log_login_success(new_user_id)
+        print(f"✅ تم تسجيل حساب جديد: {new_user_id} - {email}")
+
+        return jsonify({'success': True, 'message': '🎉 تم إنشاء حسابك بنجاح! جاري نقلك...', 'is_new': True})
+
+    except Exception as e:
+        print(f"❌ Register verify error: {e}")
+        return jsonify({'success': False, 'message': 'حدث خطأ أثناء إنشاء الحساب'})
 
 
 @auth_bp.route('/api/auth/login', methods=['POST'])

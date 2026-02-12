@@ -295,6 +295,9 @@
                     </div>
                     <button type="submit" id="sendCodeEmailBtn" class="btn-primary">إرسال كود التحقق</button>
                 </form>
+                <div class="switch-link" style="margin-top:14px">
+                    <a onclick="goToRegister()">🆕 ليس لديك حساب؟ سجّل الآن</a>
+                </div>
                 <div class="help-note">📩 سيصلك كود التحقق على إيميلك</div>
             </div>
 
@@ -348,13 +351,69 @@
             <div class="security-hint">⚡ الكود يتغير كل <b>30 ثانية</b></div>
         </div>
 
+        <!-- ===== الخطوة 4: تسجيل حساب جديد ===== -->
+        <div id="step4" class="step">
+            <div class="logo-section">
+                <div class="logo-icon">🆕</div>
+                <h1>حساب جديد</h1>
+                <p>أكمل بياناتك لإنشاء حسابك</p>
+            </div>
+
+            <form id="registerForm">
+                <div class="form-field">
+                    <label>📧 البريد الإلكتروني</label>
+                    <input type="email" id="regEmail" dir="ltr" readonly style="opacity:0.7; cursor:default;">
+                </div>
+                <div class="form-field">
+                    <label>👤 الاسم</label>
+                    <input type="text" id="regName" placeholder="اسمك الكامل" autocomplete="name">
+                </div>
+                <div class="form-field">
+                    <label>📱 رقم الجوال</label>
+                    <input type="tel" id="regPhone" placeholder="05xxxxxxxx" dir="ltr" inputmode="tel" autocomplete="tel">
+                </div>
+                <button type="submit" id="regSendCodeBtn" class="btn-primary">إرسال كود التحقق ✉️</button>
+                <button type="button" class="btn-secondary" onclick="goBackToStep1()">← رجوع لتسجيل الدخول</button>
+            </form>
+
+            <div id="error4" class="msg"></div>
+            <div class="security-hint">📩 سيصلك كود التحقق على <b>بريدك الإلكتروني</b></div>
+        </div>
+
+        <!-- ===== الخطوة 5: كود التحقق للتسجيل ===== -->
+        <div id="step5" class="step">
+            <div class="logo-section">
+                <div class="logo-icon">📩</div>
+                <h1>تأكيد الحساب</h1>
+                <p>أدخل الكود المرسل لبريدك</p>
+            </div>
+
+            <div class="timer-box">⏱️ <span id="regCountdown">2:00</span></div>
+
+            <form id="regCodeForm">
+                <div class="form-field code-field">
+                    <label>🔢 كود التحقق (6 أرقام)</label>
+                    <input type="text" id="regVerifyCode" placeholder="------" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+                </div>
+                <button type="submit" id="regVerifyBtn" class="btn-primary">تأكيد وإنشاء الحساب 🎉</button>
+                <button type="button" class="btn-secondary" onclick="goBackToStep4()">← رجوع</button>
+            </form>
+
+            <div id="error5" class="msg"></div>
+            <div id="success5" class="msg"></div>
+            <div class="security-hint">🔐 لا تشارك الكود مع <b>أي شخص</b></div>
+        </div>
+
     </div>
 
 <script>
     var countdownInterval;
+    var regCountdownInterval;
     var secondsLeft = 120;
+    var regSecondsLeft = 120;
     var currentUserId = '';
     var currentEmail = null;
+    var isRegistering = false;
 
     function switchToEmail() {
         document.getElementById('telegramSection').classList.remove('active');
@@ -410,13 +469,19 @@
         if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('error1', 'الرجاء إدخال بريد صحيح'); return; }
         currentEmail = email;
         currentUserId = null;
-        btn.disabled = true; btn.textContent = '⏳ جاري الإرسال...';
+        btn.disabled = true; btn.textContent = '⏳ جاري التحقق...';
         hideMsg('error1');
         try {
             var res = await fetch('/api/auth/send-code', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email: email}) });
             var data = await res.json();
-            if (data.success) { goToStep2(); }
-            else { showErr('error1', data.message); btn.disabled = false; btn.textContent = 'إرسال كود التحقق'; }
+            if (data.success) { isRegistering = false; goToStep2(); }
+            else if (data.not_registered) {
+                // الحساب غير مسجل - عرض نموذج التسجيل
+                document.getElementById('regEmail').value = email;
+                showStep('step4');
+            }
+            else { showErr('error1', data.message); }
+            btn.disabled = false; btn.textContent = 'إرسال كود التحقق';
         } catch(err) { showErr('error1', 'خطأ في الاتصال'); btn.disabled = false; btn.textContent = 'إرسال كود التحقق'; }
     });
 
@@ -496,8 +561,6 @@
 
     function goBack() {
         clearInterval(countdownInterval);
-        document.getElementById('step2').classList.remove('active');
-        document.getElementById('step1').classList.add('active');
         document.getElementById('verifyCode').value = '';
         hideMsg('error1'); hideMsg('error2'); hideMsg('success2');
         document.getElementById('sendCodeBtn').disabled = false;
@@ -506,26 +569,133 @@
         document.getElementById('sendCodeEmailBtn').textContent = 'إرسال كود التحقق';
         document.getElementById('verifyBtn').disabled = false;
         document.getElementById('verifyBtn').textContent = 'تأكيد الدخول';
+        showStep('step1');
     }
 
     function goBackToStep1() {
-        document.getElementById('step3').classList.remove('active');
-        document.getElementById('step1').classList.add('active');
         document.getElementById('twoFACode').value = '';
         document.getElementById('verifyCode').value = '';
-        hideMsg('error1'); hideMsg('error3'); hideMsg('success3');
+        hideMsg('error1'); hideMsg('error3'); hideMsg('success3'); hideMsg('error4');
         document.getElementById('sendCodeBtn').disabled = false;
         document.getElementById('sendCodeBtn').textContent = 'إرسال كود التحقق';
         document.getElementById('sendCodeEmailBtn').disabled = false;
         document.getElementById('sendCodeEmailBtn').textContent = 'إرسال كود التحقق';
+        showStep('step1');
     }
 
     // أرقام فقط
-    ['userId','verifyCode','twoFACode'].forEach(function(id) {
+    ['userId','verifyCode','twoFACode','regVerifyCode'].forEach(function(id) {
         document.getElementById(id).addEventListener('input', function() {
             this.value = this.value.replace(/[^0-9]/g, '');
         });
     });
+
+    // عرض خطوة معينة
+    function showStep(stepId) {
+        document.querySelectorAll('.step').forEach(function(s) { s.classList.remove('active'); });
+        document.getElementById(stepId).classList.add('active');
+    }
+
+    // ===== نموذج التسجيل =====
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var email = document.getElementById('regEmail').value.trim().toLowerCase();
+        var name = document.getElementById('regName').value.trim();
+        var phone = document.getElementById('regPhone').value.trim();
+        var btn = document.getElementById('regSendCodeBtn');
+
+        if (!name) { showErr('error4', 'الرجاء إدخال الاسم'); return; }
+        if (!phone) { showErr('error4', 'الرجاء إدخال رقم الجوال'); return; }
+
+        btn.disabled = true; btn.textContent = '⏳ جاري الإرسال...';
+        hideMsg('error4');
+        try {
+            var res = await fetch('/api/auth/register-send-code', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({email: email, name: name, phone: phone})
+            });
+            var data = await res.json();
+            if (data.success) {
+                isRegistering = true;
+                currentEmail = email;
+                showStep('step5');
+                startRegCountdown();
+            } else {
+                showErr('error4', data.message);
+            }
+            btn.disabled = false; btn.textContent = 'إرسال كود التحقق ✉️';
+        } catch(err) {
+            showErr('error4', 'خطأ في الاتصال');
+            btn.disabled = false; btn.textContent = 'إرسال كود التحقق ✉️';
+        }
+    });
+
+    // تأكيد كود التسجيل
+    document.getElementById('regCodeForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var code = document.getElementById('regVerifyCode').value.trim();
+        var btn = document.getElementById('regVerifyBtn');
+        if (!code || code.length !== 6 || !/^\d{6}$/.test(code)) { showErr('error5', 'الرجاء إدخال 6 أرقام'); return; }
+
+        btn.disabled = true; btn.textContent = '⏳ جاري التحقق...';
+        hideMsg('error5'); hideMsg('success5');
+        try {
+            var res = await fetch('/api/auth/register-verify', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({email: currentEmail, code: code})
+            });
+            var data = await res.json();
+            if (data.success) {
+                clearInterval(regCountdownInterval);
+                showOk('success5', '🎉 تم إنشاء حسابك بنجاح! جاري نقلك...');
+                setTimeout(function() { window.location.href = '/'; }, 1500);
+            } else {
+                showErr('error5', data.message);
+                btn.disabled = false; btn.textContent = 'تأكيد وإنشاء الحساب 🎉';
+            }
+        } catch(err) {
+            showErr('error5', 'خطأ في الاتصال');
+            btn.disabled = false; btn.textContent = 'تأكيد وإنشاء الحساب 🎉';
+        }
+    });
+
+    // عداد التسجيل
+    function startRegCountdown() {
+        regSecondsLeft = 120;
+        updateRegCountdown();
+        regCountdownInterval = setInterval(function() {
+            regSecondsLeft--;
+            updateRegCountdown();
+            if (regSecondsLeft <= 0) {
+                clearInterval(regCountdownInterval);
+                showErr('error5', '⏰ انتهت صلاحية الكود');
+                document.getElementById('regVerifyBtn').disabled = true;
+            }
+        }, 1000);
+    }
+    function updateRegCountdown() {
+        var m = Math.floor(regSecondsLeft / 60);
+        var s = regSecondsLeft % 60;
+        document.getElementById('regCountdown').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    function goBackToStep4() {
+        clearInterval(regCountdownInterval);
+        document.getElementById('regVerifyCode').value = '';
+        hideMsg('error5'); hideMsg('success5');
+        document.getElementById('regVerifyBtn').disabled = false;
+        document.getElementById('regVerifyBtn').textContent = 'تأكيد وإنشاء الحساب 🎉';
+        showStep('step4');
+    }
+
+    function goToRegister() {
+        var email = document.getElementById('loginEmail').value.trim().toLowerCase();
+        if (email) document.getElementById('regEmail').value = email;
+        hideMsg('error1');
+        showStep('step4');
+    }
 </script>
 </body>
 </html>
