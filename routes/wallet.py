@@ -269,12 +269,10 @@ def wallet_pay():
 
 
 @wallet_bp.route('/my_purchases')
+@require_session_user()
 def my_purchases_page():
-    """صفحة مشترياتي"""
-    user_id = session.get('user_id')
-    
-    if not user_id:
-        return redirect('/')
+    """صفحة مشترياتي - محمي"""
+    user_id = get_session_user_id()
     
     purchases = []
     try:
