@@ -726,7 +726,6 @@ def get_all_products_for_store():
             data = doc.to_dict()
             data['id'] = doc.id
             products.append(data)
-        print(f"✅ تم جلب {len(products)} منتج من Firebase للمتجر")
         return products
     except Exception as e:
         print(f"❌ خطأ في جلب المنتجات للمتجر: {e}")
@@ -744,7 +743,6 @@ def get_sold_products():
             data = doc.to_dict()
             data['id'] = doc.id
             products.append(data)
-        print(f"✅ تم جلب {len(products)} منتج مباع من Firebase")
         return products
     except Exception as e:
         print(f"❌ خطأ في جلب المنتجات المباعة: {e}")

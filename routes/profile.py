@@ -240,9 +240,6 @@ def profile():
                 time_diff = now - charge_dt
                 minutes_passed = time_diff.total_seconds() / 60
                 
-                # طباعة للمراقبة (يظهر في Terminal)
-                print(f"💰 Charge: {charge_amt} SAR, Mins Passed: {minutes_passed:.2f}")
-                
                 # شرط التجميد
                 if minutes_passed < FREEZE_MINUTES:
                     total_frozen_balance += charge_amt
