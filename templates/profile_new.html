@@ -52,88 +52,61 @@
             </div>
 
             <!-- توثيق الجوال -->
-            <div class="security-item">
-                <div class="security-left">
-                    <div class="sec-icon {% if phone_verified %}done{% endif %}">
-                        <i class="fas fa-mobile-screen-button"></i>
-                    </div>
-                    <div class="sec-text">
-                        <h3>رقم الجوال</h3>
-                        <p>{% if phone_verified %}{{ phone }} — موثّق{% elif phone %}{{ phone }} — بانتظار التوثيق{% else %}لم يُضف بعد{% endif %}</p>
-                    </div>
+            <div class="security-grid">
+            <div class="security-card {% if phone_verified %}verified{% endif %}" {% if not phone_verified %}onclick="openPhoneModal()"{% endif %}>
+                <div class="sec-card-icon {% if phone_verified %}done{% endif %}">
+                    <i class="fas fa-mobile-screen-button"></i>
                 </div>
-                <div class="security-right">
-                    {% if phone_verified %}
-                        <span class="badge-ok"><i class="fas fa-circle-check"></i></span>
-                    {% else %}
-                        <button class="sec-btn" onclick="openPhoneModal()">
-                            {% if phone %}توثيق{% else %}إضافة{% endif %}
-                        </button>
-                    {% endif %}
-                </div>
+                <h3>رقم الجوال</h3>
+                <p>{% if phone_verified %}موثّق{% else %}غير موثق{% endif %}</p>
+                {% if phone_verified %}
+                    <span class="sec-card-badge"><i class="fas fa-circle-check"></i></span>
+                {% else %}
+                    <span class="sec-card-action">إضافة</span>
+                {% endif %}
             </div>
 
             <!-- ربط الإيميل -->
-            <div class="security-item">
-                <div class="security-left">
-                    <div class="sec-icon {% if email_verified %}done{% endif %}">
-                        <i class="fas fa-envelope"></i>
-                    </div>
-                    <div class="sec-text">
-                        <h3>البريد الإلكتروني</h3>
-                        <p>{% if email_verified %}{{ email }} — مربوط{% elif email %}{{ email }} — غير موثّق{% else %}لم يتم الربط بعد{% endif %}</p>
-                    </div>
+            <div class="security-card {% if email_verified %}verified{% endif %}" {% if not email_verified %}onclick="openEmailModal()"{% endif %}>
+                <div class="sec-card-icon {% if email_verified %}done{% endif %}">
+                    <i class="fas fa-envelope"></i>
                 </div>
-                <div class="security-right">
-                    {% if email_verified %}
-                        <span class="badge-ok"><i class="fas fa-circle-check"></i></span>
-                    {% else %}
-                        <button class="sec-btn" onclick="openEmailModal()">
-                            {% if email %}توثيق{% else %}ربط{% endif %}
-                        </button>
-                    {% endif %}
-                </div>
+                <h3>الإيميل</h3>
+                <p>{% if email_verified %}مربوط{% else %}غير مربوط{% endif %}</p>
+                {% if email_verified %}
+                    <span class="sec-card-badge"><i class="fas fa-circle-check"></i></span>
+                {% else %}
+                    <span class="sec-card-action">ربط</span>
+                {% endif %}
             </div>
 
             <!-- ربط تيليجرام -->
-            <div class="security-item">
-                <div class="security-left">
-                    <div class="sec-icon {% if telegram_linked %}done{% endif %}">
-                        <i class="fab fa-telegram-plane"></i>
-                    </div>
-                    <div class="sec-text">
-                        <h3>تيليجرام</h3>
-                        <p>{% if telegram_linked %}مربوط بالحساب{% else %}اربط حسابك بتيليجرام{% endif %}</p>
-                    </div>
+            <div class="security-card {% if telegram_linked %}verified{% endif %}" {% if not telegram_linked %}onclick="openTelegramModal()"{% endif %}>
+                <div class="sec-card-icon {% if telegram_linked %}done{% endif %}">
+                    <i class="fab fa-telegram-plane"></i>
                 </div>
-                <div class="security-right">
-                    {% if telegram_linked %}
-                        <span class="badge-ok"><i class="fas fa-circle-check"></i></span>
-                    {% else %}
-                        <button class="sec-btn" onclick="openTelegramModal()">ربط</button>
-                    {% endif %}
-                </div>
+                <h3>تيليجرام</h3>
+                <p>{% if telegram_linked %}مربوط{% else %}غير مربوط{% endif %}</p>
+                {% if telegram_linked %}
+                    <span class="sec-card-badge"><i class="fas fa-circle-check"></i></span>
+                {% else %}
+                    <span class="sec-card-action">ربط</span>
+                {% endif %}
             </div>
 
             <!-- المصادقة الثنائية -->
-            <div class="security-item">
-                <div class="security-left">
-                    <div class="sec-icon {% if totp_enabled %}done{% endif %}">
-                        <i class="fas fa-lock"></i>
-                    </div>
-                    <div class="sec-text">
-                        <h3>المصادقة الثنائية (2FA)</h3>
-                        <p>{% if totp_enabled %}مفعّلة — Google Authenticator{% else %}حماية إضافية عبر تطبيق المصادقة{% endif %}</p>
-                    </div>
+            <div class="security-card {% if totp_enabled %}verified{% endif %}" {% if not totp_enabled %}onclick="openSetup2FAModal()"{% elif totp_enabled %}onclick="openDisable2FAModal()"{% endif %}>
+                <div class="sec-card-icon {% if totp_enabled %}done{% endif %}">
+                    <i class="fas fa-lock"></i>
                 </div>
-                <div class="security-right">
-                    {% if totp_enabled %}
-                        <span class="badge-ok"><i class="fas fa-circle-check"></i></span>
-                        <button class="sec-btn danger-ghost" onclick="openDisable2FAModal()">تعطيل</button>
-                    {% else %}
-                        <button class="sec-btn" onclick="openSetup2FAModal()">تفعيل</button>
-                    {% endif %}
-                </div>
+                <h3>2FA</h3>
+                <p>{% if totp_enabled %}مفعّلة{% else %}غير مفعلة{% endif %}</p>
+                {% if totp_enabled %}
+                    <span class="sec-card-badge"><i class="fas fa-circle-check"></i></span>
+                {% else %}
+                    <span class="sec-card-action">تفعيل</span>
+                {% endif %}
+            </div>
             </div>
         </div>
 
@@ -524,65 +497,73 @@
 
 .score-label { font-size: 12px; font-weight: 700; color: var(--text2); }
 
-/* ===== عناصر الأمان ===== */
-.security-item {
-    display: flex; justify-content: space-between;
-    align-items: center; padding: 14px;
+/* ===== شبكة الأمان 2×2 ===== */
+.security-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.security-card {
+    display: flex; flex-direction: column;
+    align-items: center; text-align: center;
+    padding: 18px 12px 14px;
     background: rgba(255,255,255,0.02);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    margin-bottom: 10px;
+    cursor: pointer; transition: all 0.2s;
+    position: relative;
 }
 
-.security-item:last-child { margin-bottom: 0; }
-
-.security-left {
-    display: flex; align-items: center;
-    gap: 12px; min-width: 0;
+.security-card:hover {
+    border-color: rgba(255,255,255,0.12);
+    transform: translateY(-2px);
+    background: rgba(255,255,255,0.04);
 }
 
-.sec-icon {
-    width: 40px; height: 40px;
-    border-radius: 10px;
+.security-card.verified {
+    border-color: rgba(0,255,136,0.15);
+    background: rgba(0,255,136,0.03);
+    cursor: default;
+}
+
+.security-card.verified:hover {
+    transform: none;
+}
+
+.sec-card-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
     background: rgba(99,102,241,0.12);
     color: #6366f1;
     display: flex; align-items: center; justify-content: center;
-    font-size: 16px; flex-shrink: 0;
+    font-size: 18px; margin-bottom: 10px;
 }
 
-.sec-icon.done { background: var(--accent-dim); color: var(--accent); }
-
-.sec-text h3 {
-    color: var(--text1); font-size: 14px;
-    font-weight: 600; margin: 0 0 2px;
+.sec-card-icon.done {
+    background: var(--accent-dim);
+    color: var(--accent);
 }
 
-.sec-text p { color: var(--text3); font-size: 12px; margin: 0; }
-
-.security-right {
-    display: flex; align-items: center;
-    gap: 8px; flex-shrink: 0;
+.security-card h3 {
+    color: var(--text1); font-size: 13px;
+    font-weight: 600; margin: 0 0 3px;
 }
 
-.badge-ok { color: var(--accent); font-size: 20px; }
-
-.sec-btn {
-    padding: 7px 16px; border-radius: 8px;
-    border: 1px solid var(--accent);
-    background: transparent; color: var(--accent);
-    font-family: inherit; font-size: 12px;
-    font-weight: 600; cursor: pointer; transition: all 0.2s;
+.security-card p {
+    color: var(--text3); font-size: 11px; margin: 0;
 }
 
-.sec-btn:hover { background: var(--accent); color: #000; }
-
-.sec-btn.danger-ghost {
-    border-color: rgba(239,68,68,0.4); color: var(--danger);
+.sec-card-badge {
+    position: absolute; top: 10px; left: 10px;
+    color: var(--accent); font-size: 16px;
 }
 
-.sec-btn.danger-ghost:hover {
-    background: var(--danger); color: #fff;
-    border-color: var(--danger);
+.sec-card-action {
+    margin-top: 8px; padding: 4px 14px;
+    border-radius: 6px; font-size: 11px;
+    font-weight: 600; color: var(--accent);
+    background: var(--accent-dim);
 }
 
 /* ===== معلومات الحساب ===== */
@@ -810,8 +791,9 @@
 @media (max-width: 500px) {
     .user-hero { flex-direction: column; text-align: center; padding: 20px 16px; }
     .user-meta { justify-content: center; }
-    .security-item { flex-direction: column; gap: 12px; text-align: center; }
-    .security-left { flex-direction: column; align-items: center; }
+    .security-grid { gap: 8px; }
+    .security-card { padding: 14px 8px 12px; }
+    .sec-card-icon { width: 38px; height: 38px; font-size: 16px; }
     .section-block { padding: 16px; }
     .modal-box { padding: 22px 18px 20px; }
 }
