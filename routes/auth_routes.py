@@ -481,7 +481,7 @@ def register_send_code():
                 result = send_otp_whatsapp(phone)
                 if result.get('success'):
                     _pending_registrations[phone] = {
-                        'authentica_id': result.get('authentica_id'),
+                        'via_authentica': True,
                         'name': name,
                         'time': time.time()
                     }
@@ -542,11 +542,11 @@ def register_verify():
 
     # التحقق من الكود
     code_valid = False
-    if pending.get('authentica_id'):
+    if pending.get('via_authentica'):
         # تحقق عبر Authentica
         try:
             from services.authentica_service import verify_otp_authentica
-            result = verify_otp_authentica(pending['authentica_id'], code)
+            result = verify_otp_authentica(phone, code)
             code_valid = result.get('success', False)
         except Exception as e:
             print(f"⚠️ Authentica verify error: {e}")
