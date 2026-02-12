@@ -382,31 +382,27 @@
 
             <form id="registerForm">
                 <div class="form-field">
-                    <label>📧 البريد الإلكتروني</label>
-                    <input type="email" id="regEmail" dir="ltr" readonly style="opacity:0.7; cursor:default;">
-                </div>
-                <div class="form-field">
-                    <label>👤 الاسم</label>
+                    <label>� الاسم</label>
                     <input type="text" id="regName" placeholder="اسمك الكامل" autocomplete="name">
                 </div>
                 <div class="form-field">
                     <label>📱 رقم الجوال</label>
                     <input type="tel" id="regPhone" placeholder="05xxxxxxxx" dir="ltr" inputmode="tel" autocomplete="tel">
                 </div>
-                <button type="submit" id="regSendCodeBtn" class="btn-primary">إرسال كود التحقق ✉️</button>
+                <button type="submit" id="regSendCodeBtn" class="btn-primary">📲 إرسال كود واتساب</button>
                 <button type="button" class="btn-secondary" onclick="goBackToStep1()">← رجوع لتسجيل الدخول</button>
             </form>
 
             <div id="error4" class="msg"></div>
-            <div class="security-hint">📩 سيصلك كود التحقق على <b>بريدك الإلكتروني</b></div>
+            <div class="security-hint">💬 سيتم إرسال كود واتساب للتحقق من <b>رقمك</b></div>
         </div>
 
         <!-- ===== الخطوة 5: كود التحقق للتسجيل ===== -->
         <div id="step5" class="step">
             <div class="logo-section">
-                <div class="logo-icon">📩</div>
+                <div class="logo-icon">�</div>
                 <h1>تأكيد الحساب</h1>
-                <p>أدخل الكود المرسل لبريدك</p>
+                <p>أدخل الكود المرسل على واتساب</p>
             </div>
 
             <div class="timer-box">⏱️ <span id="regCountdown">2:00</span></div>
@@ -657,7 +653,6 @@
     // ===== نموذج التسجيل =====
     document.getElementById('registerForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        var email = document.getElementById('regEmail').value.trim().toLowerCase();
         var name = document.getElementById('regName').value.trim();
         var phone = document.getElementById('regPhone').value.trim();
         var btn = document.getElementById('regSendCodeBtn');
@@ -671,21 +666,21 @@
             var res = await fetch('/api/auth/register-send-code', {
                 method: 'POST',
                 headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({email: email, name: name, phone: phone})
+                body: JSON.stringify({name: name, phone: phone})
             });
             var data = await res.json();
             if (data.success) {
                 isRegistering = true;
-                currentEmail = email;
+                currentPhone = phone;
                 showStep('step5');
                 startRegCountdown();
             } else {
                 showErr('error4', data.message);
             }
-            btn.disabled = false; btn.textContent = 'إرسال كود التحقق ✉️';
+            btn.disabled = false; btn.textContent = '📲 إرسال كود واتساب';
         } catch(err) {
             showErr('error4', 'خطأ في الاتصال');
-            btn.disabled = false; btn.textContent = 'إرسال كود التحقق ✉️';
+            btn.disabled = false; btn.textContent = '📲 إرسال كود واتساب';
         }
     });
 
@@ -702,7 +697,7 @@
             var res = await fetch('/api/auth/register-verify', {
                 method: 'POST',
                 headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({email: currentEmail, code: code})
+                body: JSON.stringify({phone: currentPhone, code: code})
             });
             var data = await res.json();
             if (data.success) {
@@ -749,8 +744,6 @@
     }
 
     function goToRegister() {
-        var email = document.getElementById('loginEmail').value.trim().toLowerCase();
-        if (email) document.getElementById('regEmail').value = email;
         hideMsg('error1');
         showStep('step4');
     }

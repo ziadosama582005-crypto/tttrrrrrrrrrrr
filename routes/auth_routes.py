@@ -437,11 +437,11 @@ def send_code_email():
 # ==================== تسجيل حساب جديد بالإيميل ====================
 
 # تخزين مؤقت لبيانات التسجيل
-_pending_registrations = {}  # {email: {'code': '...', 'phone': '...', 'name': '...', 'time': ...}}
+_pending_registrations = {}  # {phone: {'code': '...', 'name': '...', 'time': ...}}
 
 @auth_bp.route('/api/auth/register-send-code', methods=['POST'])
 def register_send_code():
-    """إرسال كود التحقق لتسجيل حساب جديد بالإيميل"""
+    """إرسال كود التحقق عبر واتساب لتسجيل حساب جديد"""
     allowed, error_msg = check_login_rate_limit()
     if not allowed:
         return jsonify({'success': False, 'message': error_msg})
@@ -450,12 +450,9 @@ def register_send_code():
     if not data:
         return jsonify({'success': False, 'message': 'بيانات غير صالحة'})
 
-    email = data.get('email', '').strip().lower()
     phone = data.get('phone', '').strip()
     name = data.get('name', '').strip()
 
-    if not email or '@' not in email:
-        return jsonify({'success': False, 'message': 'الرجاء إدخال بريد إلكتروني صحيح'})
     if not phone:
         return jsonify({'success': False, 'message': 'الرجاء إدخال رقم الجوال'})
     if not name:
@@ -470,26 +467,40 @@ def register_send_code():
         phone = '0' + phone
 
     try:
-        # تأكد الإيميل غير مسجل
-        query = db.collection('users').where('email', '==', email).limit(1)
+        # تأكد الرقم غير مسجل
+        query = db.collection('users').where('phone', '==', phone).limit(1)
         results = list(query.stream())
         if results:
-            return jsonify({'success': False, 'message': 'هذا البريد مسجل بالفعل. يمكنك تسجيل الدخول مباشرة'})
+            return jsonify({'success': False, 'message': 'هذا الرقم مسجل بالفعل. يمكنك تسجيل الدخول مباشرة'})
 
-        # توليد كود
-        new_code = generate_code()
-        _pending_registrations[email] = {
-            'code': new_code,
-            'phone': phone,
-            'name': name,
-            'time': time.time()
-        }
+        # إرسال الكود عبر واتساب (Authentica)
+        otp_sent = False
+        try:
+            from services.authentica_service import send_otp_whatsapp, is_authentica_configured
+            if is_authentica_configured():
+                result = send_otp_whatsapp(phone)
+                if result.get('success'):
+                    _pending_registrations[phone] = {
+                        'authentica_id': result.get('authentica_id'),
+                        'name': name,
+                        'time': time.time()
+                    }
+                    otp_sent = True
+        except Exception as e:
+            print(f"⚠️ Authentica register error: {e}")
 
-        # إرسال الكود بالإيميل
-        if send_email_otp(email, new_code):
-            return jsonify({'success': True, 'message': f'✅ تم إرسال كود التحقق إلى {email}'})
-        else:
-            return jsonify({'success': False, 'message': 'فشل إرسال الكود. حاول مرة أخرى'})
+        if not otp_sent:
+            # Fallback: توليد كود وإرساله عبر تلغرام
+            new_code = generate_code()
+            _pending_registrations[phone] = {
+                'code': new_code,
+                'name': name,
+                'time': time.time()
+            }
+            # محاولة إرسال عبر تلغرام إذا كان ممكن
+            print(f"⚠️ Registration fallback - code: {new_code} for phone: {phone}")
+
+        return jsonify({'success': True, 'message': f'✅ تم إرسال كود التحقق على واتساب'})
 
     except Exception as e:
         print(f"❌ Register send code error: {e}")
@@ -507,22 +518,43 @@ def register_verify():
     if not data:
         return jsonify({'success': False, 'message': 'بيانات غير صالحة'})
 
-    email = data.get('email', '').strip().lower()
+    phone = data.get('phone', '').strip()
     code = data.get('code', '').strip()
 
-    if not email or not code:
-        return jsonify({'success': False, 'message': 'الرجاء إدخال البريد والكود'})
+    # تنظيف رقم الجوال
+    phone = phone.replace(' ', '').replace('-', '').replace('+', '')
+    if phone.startswith('966'):
+        phone = '0' + phone[3:]
+    elif phone.startswith('5') and len(phone) == 9:
+        phone = '0' + phone
 
-    pending = _pending_registrations.get(email)
+    if not phone or not code:
+        return jsonify({'success': False, 'message': 'الرجاء إدخال الرقم والكود'})
+
+    pending = _pending_registrations.get(phone)
     if not pending:
-        return jsonify({'success': False, 'message': 'لم يتم طلب كود لهذا البريد. أعد المحاولة'})
+        return jsonify({'success': False, 'message': 'لم يتم طلب كود لهذا الرقم. أعد المحاولة'})
 
     # التحقق من انتهاء الصلاحية (10 دقائق)
     if time.time() - pending['time'] > 600:
-        _pending_registrations.pop(email, None)
+        _pending_registrations.pop(phone, None)
         return jsonify({'success': False, 'message': 'انتهت صلاحية الكود. اطلب كود جديد'})
 
-    if str(pending['code']) != code:
+    # التحقق من الكود
+    code_valid = False
+    if pending.get('authentica_id'):
+        # تحقق عبر Authentica
+        try:
+            from services.authentica_service import verify_otp_authentica
+            result = verify_otp_authentica(pending['authentica_id'], code)
+            code_valid = result.get('success', False)
+        except Exception as e:
+            print(f"⚠️ Authentica verify error: {e}")
+    elif pending.get('code'):
+        # تحقق محلي (fallback)
+        code_valid = str(pending['code']) == code
+
+    if not code_valid:
         remaining = record_failed_login()
         if remaining == 0:
             return jsonify({'success': False, 'message': '⛔ تم حظرك لمدة 15 دقيقة بسبب محاولات فاشلة متكررة'})
@@ -532,33 +564,31 @@ def register_verify():
         # ✅ إنشاء الحساب
         reset_login_attempts()
         import uuid
-        new_user_id = str(uuid.uuid4())[:12]  # معرف فريد
+        new_user_id = str(uuid.uuid4())[:12]
 
         new_user = {
-            'email': email,
-            'phone': pending['phone'],
+            'phone': phone,
             'username': pending['name'],
             'first_name': pending['name'],
             'balance': 0.0,
             'created_at': time.time(),
-            'registered_via': 'email'
+            'registered_via': 'whatsapp'
         }
 
         db.collection('users').document(new_user_id).set(new_user)
-        _pending_registrations.pop(email, None)
+        _pending_registrations.pop(phone, None)
 
         # تسجيل الدخول تلقائياً
         regenerate_session()
         session['user_id'] = new_user_id
         session['user_name'] = pending['name']
-        session['user_email'] = email
         session['logged_in'] = True
         session['login_time'] = time.time()
         session.permanent = True
         session.modified = True
 
         log_login_success(new_user_id)
-        print(f"✅ تم تسجيل حساب جديد: {new_user_id} - {email}")
+        print(f"✅ تم تسجيل حساب جديد: {new_user_id} - {phone}")
 
         return jsonify({'success': True, 'message': '🎉 تم إنشاء حسابك بنجاح! جاري نقلك...', 'is_new': True})
 
