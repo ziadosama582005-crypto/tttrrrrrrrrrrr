@@ -22,6 +22,12 @@ try:
 except ImportError:
     send_activity_notification = lambda *args, **kwargs: None
 
+# استيراد مولّد فواتير السحب
+try:
+    from invoice_generator import send_withdrawal_invoice_email
+except ImportError:
+    send_withdrawal_invoice_email = None
+
 # استيراد firestore للـ SERVER_TIMESTAMP
 try:
     from firebase_admin import firestore
@@ -2060,6 +2066,37 @@ def handle_withdraw_approve(call):
             bot.send_message(int(user_id), user_message)
         except Exception as e:
             print(f"⚠️ فشل إشعار المستخدم: {e}")
+        
+        # إنشاء فاتورة PDF وإرسالها بالبريد الإلكتروني
+        if send_withdrawal_invoice_email:
+            try:
+                user_ref = db.collection('users').document(str(user_id))
+                user_doc = user_ref.get()
+                user_email = None
+                if user_doc.exists:
+                    user_data = user_doc.to_dict()
+                    user_email = user_data.get('linked_email') or user_data.get('email')
+                
+                if user_email:
+                    invoice_data = {
+                        'withdrawal_id': request_id,
+                        'amount': amount,
+                        'net_amount': net_amount,
+                        'fee': request_data.get('fee', 0),
+                        'fee_percentage': request_data.get('fee_percentage', 0),
+                        'withdrawal_type': request_data.get('withdrawal_type', 'bank'),
+                        'bank_name': request_data.get('bank_name', ''),
+                        'iban': request_data.get('iban', ''),
+                        'wallet_type': request_data.get('wallet_type', ''),
+                        'wallet_number': request_data.get('wallet_number', ''),
+                        'full_name': request_data.get('full_name', 'غير محدد'),
+                        'created_at': request_data.get('created_at'),
+                        'approved_at': request_data.get('approved_at'),
+                    }
+                    send_withdrawal_invoice_email(user_email, invoice_data)
+                    print(f"📧 جاري إرسال فاتورة السحب إلى: {user_email}")
+            except Exception as e:
+                print(f"⚠️ فشل إرسال فاتورة السحب: {e}")
         
         # تحديث رسالة الأدمن
         try:
