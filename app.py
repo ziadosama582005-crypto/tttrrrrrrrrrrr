@@ -9,7 +9,7 @@ import html
 import logging
 import telebot
 from telebot import types
-from flask import Flask, request, render_template_string, render_template, redirect, session, jsonify, url_for
+from flask import Flask, request, render_template_string, render_template, redirect, session, jsonify, url_for, send_from_directory
 import json
 import random
 import hashlib
@@ -1939,6 +1939,11 @@ def set_webhook():
 @app.route('/health')
 def health():
     return {'status': 'ok'}, 200
+
+# Service Worker - يجب تقديمه من الجذر لتغطية كل الصفحات
+@app.route('/sw.js')
+def serve_sw():
+    return send_from_directory('static', 'sw.js', mimetype='application/javascript')
 
 # صفحة تسجيل الدخول للوحة التحكم (HTML منفصل) - نظام الكود المؤقت
 

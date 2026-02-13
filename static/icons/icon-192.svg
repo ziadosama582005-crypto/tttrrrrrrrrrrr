@@ -1,0 +1,6 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='192' height='192' viewBox='0 0 192 192'>
+  <defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='#6c5ce7'/><stop offset='100%' stop-color='#8b7cf7'/></linearGradient></defs>
+  <rect width='192' height='192' rx='40' fill='url(#g)'/>
+  <text x='96' y='115' text-anchor='middle' fill='white' font-size='72' font-weight='bold' font-family='Arial'>TR</text>
+  <text x='96' y='155' text-anchor='middle' fill='rgba(255,255,255,0.7)' font-size='24' font-family='Arial'>Admin</text>
+</svg>
