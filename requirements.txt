@@ -10,3 +10,5 @@ requests>=2.31.0,<3.0
 pyotp>=2.9.0,<3.0
 qrcode[pil]>=7.4.0,<8.0
 cryptography>=41.0.0,<43.0
+fpdf2>=2.7.9,<3.0
+uharfbuzz>=0.37.0

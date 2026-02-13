@@ -14,6 +14,7 @@ import os
 import logging
 from notifications import notify_owner, notify_all_admins, is_admin_or_owner
 from encryption_utils import encrypt_data, decrypt_data
+from invoice_generator import send_withdrawal_invoice_email
 
 # 🔒 استيراد نظام Security Logging
 try:
@@ -2277,6 +2278,39 @@ def api_approve_withdrawal(withdrawal_id):
                 bot.send_message(chat_id=user_id, text=message)
             except Exception as e:
                 logger.error(f"Error sending approval notification: {e}")
+        
+        # إنشاء فاتورة PDF وإرسالها بالبريد الإلكتروني
+        try:
+            user_email = None
+            if user_id:
+                user_ref = db.collection('users').document(str(user_id))
+                user_doc = user_ref.get()
+                if user_doc.exists:
+                    user_data = user_doc.to_dict()
+                    user_email = user_data.get('linked_email') or user_data.get('email')
+            
+            if user_email:
+                invoice_data = {
+                    'withdrawal_id': withdrawal_id,
+                    'amount': amount,
+                    'net_amount': net_amount,
+                    'fee': data.get('fee', 0),
+                    'fee_percentage': data.get('fee_percentage', 0),
+                    'withdrawal_type': data.get('withdrawal_type', 'bank'),
+                    'bank_name': data.get('bank_name', ''),
+                    'iban': data.get('iban', ''),
+                    'wallet_type': data.get('wallet_type', ''),
+                    'wallet_number': data.get('wallet_number', ''),
+                    'full_name': data.get('full_name', 'غير محدد'),
+                    'created_at': data.get('created_at'),
+                    'approved_at': data.get('approved_at'),
+                }
+                send_withdrawal_invoice_email(user_email, invoice_data)
+                logger.info(f"📧 جاري إرسال فاتورة السحب إلى: {user_email}")
+            else:
+                logger.info(f"⚠️ لا يوجد بريد إلكتروني للمستخدم {user_id} - لم يتم إرسال فاتورة")
+        except Exception as e:
+            logger.error(f"Error sending withdrawal invoice: {e}")
         
         return jsonify({'status': 'success', 'message': 'تم الموافقة على الطلب'})
     
