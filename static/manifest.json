@@ -13,16 +13,28 @@
   "categories": ["business", "utilities"],
   "icons": [
     {
-      "src": "/static/icons/icon-192.svg",
+      "src": "/static/icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "/static/icons/icon-512.svg",
+      "src": "/static/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/static/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
@@ -30,25 +42,25 @@
       "name": "الطلبات",
       "short_name": "الطلبات",
       "url": "/admin/orders",
-      "icons": [{"src": "/static/icons/icon-192.svg", "sizes": "192x192"}]
+      "icons": [{"src": "/static/icons/icon-192.png", "sizes": "192x192"}]
     },
     {
       "name": "طلبات السحب",
       "short_name": "السحب",
       "url": "/admin/withdrawals",
-      "icons": [{"src": "/static/icons/icon-192.svg", "sizes": "192x192"}]
+      "icons": [{"src": "/static/icons/icon-192.png", "sizes": "192x192"}]
     },
     {
       "name": "المنتجات",
       "short_name": "المنتجات",
       "url": "/admin/products",
-      "icons": [{"src": "/static/icons/icon-192.svg", "sizes": "192x192"}]
+      "icons": [{"src": "/static/icons/icon-192.png", "sizes": "192x192"}]
     },
     {
       "name": "العملاء",
       "short_name": "العملاء",
       "url": "/admin/customers",
-      "icons": [{"src": "/static/icons/icon-192.svg", "sizes": "192x192"}]
+      "icons": [{"src": "/static/icons/icon-192.png", "sizes": "192x192"}]
     }
   ]
 }
