@@ -14,6 +14,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 
+import arabic_reshaper
+from bidi.algorithm import get_display
 from fpdf import FPDF
 
 logger = logging.getLogger(__name__)
@@ -22,6 +24,14 @@ logger = logging.getLogger(__name__)
 FONTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'fonts')
 FONT_REGULAR = os.path.join(FONTS_DIR, 'Amiri-Regular.ttf')
 FONT_BOLD = os.path.join(FONTS_DIR, 'Amiri-Bold.ttf')
+
+
+def ar(text: str) -> str:
+    """تحويل النص العربي ليظهر بشكل صحيح في PDF (ربط الحروف + اتجاه RTL)"""
+    if not text:
+        return text
+    reshaped = arabic_reshaper.reshape(text)
+    return get_display(reshaped)
 
 
 class WithdrawalInvoicePDF(FPDF):
@@ -38,7 +48,6 @@ class WithdrawalInvoicePDF(FPDF):
             self.add_font('Amiri', '', FONT_REGULAR)
         if os.path.exists(FONT_BOLD):
             self.add_font('Amiri', 'B', FONT_BOLD)
-        self.set_text_shaping(True)
 
     def header(self):
         """ترويسة الفاتورة"""
@@ -55,7 +64,7 @@ class WithdrawalInvoicePDF(FPDF):
         # عنوان الفاتورة
         self.set_font('Amiri', '', 16)
         self.set_text_color(230, 230, 255)
-        self.cell(0, 10, 'إيصال سحب رصيد', align='C', new_x='LEFT', new_y='NEXT')
+        self.cell(0, 10, ar('إيصال سحب رصيد'), align='C', new_x='LEFT', new_y='NEXT')
 
         self.ln(15)
 
@@ -67,8 +76,9 @@ class WithdrawalInvoicePDF(FPDF):
         self.ln(5)
         self.set_font('Amiri', '', 9)
         self.set_text_color(150, 150, 150)
-        self.cell(0, 5, 'هذا إيصال إلكتروني صادر تلقائياً من TR Store', align='C', new_x='LEFT', new_y='NEXT')
-        self.cell(0, 5, f'تاريخ الإصدار: {datetime.now().strftime("%Y-%m-%d %H:%M")}', align='C', new_x='LEFT', new_y='NEXT')
+        self.cell(0, 5, ar('هذا إيصال إلكتروني صادر تلقائياً من TR Store'), align='C', new_x='LEFT', new_y='NEXT')
+        date_now = datetime.now().strftime("%Y-%m-%d %H:%M")
+        self.cell(0, 5, ar(f'تاريخ الإصدار: {date_now}'), align='C', new_x='LEFT', new_y='NEXT')
 
     def _draw_info_row(self, label: str, value: str, is_highlight: bool = False):
         """رسم صف معلومات"""
@@ -77,13 +87,14 @@ class WithdrawalInvoicePDF(FPDF):
             self.set_fill_color(240, 245, 255)
             self.rect(15, self.get_y(), 180, row_h, 'F')
 
-        self.set_font('Amiri', 'B', 12)
-        self.set_text_color(100, 100, 100)
         # القيمة على اليسار
-        self.cell(90, row_h, value, align='L')
+        self.set_font('Amiri', '', 12)
+        self.set_text_color(100, 100, 100)
+        self.cell(90, row_h, ar(value), align='L')
         # التسمية على اليمين
+        self.set_font('Amiri', 'B', 12)
         self.set_text_color(60, 60, 60)
-        self.cell(90, row_h, label, align='R', new_x='LEFT', new_y='NEXT')
+        self.cell(90, row_h, ar(label), align='R', new_x='LEFT', new_y='NEXT')
 
     def _draw_amount_row(self, label: str, amount: float, is_total: bool = False):
         """رسم صف مبلغ"""
@@ -99,8 +110,9 @@ class WithdrawalInvoicePDF(FPDF):
             self.set_font('Amiri', '', 12)
             self.set_text_color(60, 60, 60)
 
-        self.cell(90, row_h, f'{amount:.2f} ر.س', align='L')
-        self.cell(90, row_h, label, align='R', new_x='LEFT', new_y='NEXT')
+        self.cell(90, row_h, ar(f'{amount:.2f} ر.س'), align='L')
+        self.set_font('Amiri', 'B' if is_total else '', 14 if is_total else 12)
+        self.cell(90, row_h, ar(label), align='R', new_x='LEFT', new_y='NEXT')
 
     def build(self) -> bytes:
         """بناء الفاتورة وإرجاعها كـ bytes"""
@@ -110,14 +122,15 @@ class WithdrawalInvoicePDF(FPDF):
         # === معلومات الفاتورة ===
         self.set_font('Amiri', 'B', 14)
         self.set_text_color(102, 126, 234)
-        self.cell(0, 10, 'معلومات الطلب', align='R', new_x='LEFT', new_y='NEXT')
+        self.cell(0, 10, ar('معلومات الطلب'), align='R', new_x='LEFT', new_y='NEXT')
         self.set_draw_color(102, 126, 234)
         self.line(15, self.get_y(), 195, self.get_y())
         self.ln(3)
 
         # رقم الطلب
         withdrawal_id = data.get('withdrawal_id', 'N/A')
-        self._draw_info_row('رقم الإيصال', f'#{withdrawal_id[:12]}' if len(str(withdrawal_id)) > 12 else f'#{withdrawal_id}', True)
+        short_id = withdrawal_id[:12] if len(str(withdrawal_id)) > 12 else withdrawal_id
+        self._draw_info_row('رقم الإيصال', f'#{short_id}', True)
 
         # تاريخ الطلب
         created_at = data.get('created_at')
@@ -142,7 +155,7 @@ class WithdrawalInvoicePDF(FPDF):
         self._draw_info_row('تاريخ الموافقة', approved_str, True)
 
         # الحالة
-        self._draw_info_row('الحالة', '✓ تمت الموافقة', False)
+        self._draw_info_row('الحالة', 'تمت الموافقة', False)
 
         # اسم المستفيد
         full_name = data.get('full_name', 'غير محدد')
@@ -153,7 +166,7 @@ class WithdrawalInvoicePDF(FPDF):
         # === تفاصيل المبالغ ===
         self.set_font('Amiri', 'B', 14)
         self.set_text_color(102, 126, 234)
-        self.cell(0, 10, 'تفاصيل المبلغ', align='R', new_x='LEFT', new_y='NEXT')
+        self.cell(0, 10, ar('تفاصيل المبلغ'), align='R', new_x='LEFT', new_y='NEXT')
         self.set_draw_color(102, 126, 234)
         self.line(15, self.get_y(), 195, self.get_y())
         self.ln(3)
@@ -164,7 +177,7 @@ class WithdrawalInvoicePDF(FPDF):
         net_amount = data.get('net_amount', 0)
 
         self._draw_amount_row('المبلغ المطلوب', amount)
-        fee_label = f'رسوم الخدمة ({fee_percentage}%)' if fee_percentage else 'رسوم الخدمة'
+        fee_label = f'رسوم الخدمة (%{fee_percentage})' if fee_percentage else 'رسوم الخدمة'
         self._draw_amount_row(fee_label, fee)
         self.ln(2)
         self._draw_amount_row('المبلغ الصافي', net_amount, is_total=True)
@@ -174,7 +187,7 @@ class WithdrawalInvoicePDF(FPDF):
         # === طريقة التحويل ===
         self.set_font('Amiri', 'B', 14)
         self.set_text_color(102, 126, 234)
-        self.cell(0, 10, 'طريقة التحويل', align='R', new_x='LEFT', new_y='NEXT')
+        self.cell(0, 10, ar('طريقة التحويل'), align='R', new_x='LEFT', new_y='NEXT')
         self.set_draw_color(102, 126, 234)
         self.line(15, self.get_y(), 195, self.get_y())
         self.ln(3)
@@ -186,7 +199,7 @@ class WithdrawalInvoicePDF(FPDF):
             bank_name = data.get('bank_name', 'غير محدد')
             iban = data.get('iban', 'غير محدد')
             self._draw_info_row('البنك', bank_name, False)
-            self._draw_info_row('رقم الآيبان (IBAN)', iban, True)
+            self._draw_info_row('IBAN رقم الآيبان', iban, True)
         else:
             self._draw_info_row('طريقة السحب', 'محفظة إلكترونية', True)
             wallet_type = data.get('wallet_type', 'غير محدد')
@@ -204,8 +217,8 @@ class WithdrawalInvoicePDF(FPDF):
         self.set_font('Amiri', '', 11)
         self.set_text_color(120, 100, 0)
         self.set_y(note_y + 3)
-        self.cell(0, 8, 'سيتم تحويل المبلغ خلال 24-48 ساعة عمل إلى الحساب المحدد أعلاه.', align='C', new_x='LEFT', new_y='NEXT')
-        self.cell(0, 8, 'في حال وجود أي استفسار يرجى التواصل مع الدعم الفني.', align='C', new_x='LEFT', new_y='NEXT')
+        self.cell(0, 8, ar('سيتم تحويل المبلغ خلال 1 إلى 5 ساعات وتكون بحسابك.'), align='C', new_x='LEFT', new_y='NEXT')
+        self.cell(0, 8, ar('في حال وجود أي استفسار يرجى التواصل مع الدعم الفني.'), align='C', new_x='LEFT', new_y='NEXT')
 
         # إخراج PDF كـ bytes
         return self.output()
@@ -294,7 +307,7 @@ def send_withdrawal_invoice_email(to_email: str, withdrawal_data: dict):
                         </div>
                     </div>
                     <div style="background:#f8f9fa;padding:16px;text-align:center;border-top:1px solid #eee;">
-                        <p style="color:#aaa;font-size:11px;margin:0;">سيتم تحويل المبلغ خلال 24-48 ساعة عمل</p>
+                        <p style="color:#aaa;font-size:11px;margin:0;">سيتم تحويل المبلغ خلال 1 إلى 5 ساعات وتكون بحسابك</p>
                         <p style="color:#ccc;font-size:11px;margin:6px 0 0;">TR Store © {datetime.now().year}</p>
                     </div>
                 </div>

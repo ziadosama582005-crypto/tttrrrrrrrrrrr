@@ -2274,7 +2274,7 @@ def api_approve_withdrawal(withdrawal_id):
 💰 المبلغ المطلوب: {amount} ر.س
 💵 المبلغ الصافي: {net_amount} ر.س
 
-سيتم تحويل المبلغ خلال 24-48 ساعة عمل."""
+سيتم تحويل المبلغ خلال 1 إلى 5 ساعات وتكون بحسابك."""
                 bot.send_message(chat_id=user_id, text=message)
             except Exception as e:
                 logger.error(f"Error sending approval notification: {e}")
