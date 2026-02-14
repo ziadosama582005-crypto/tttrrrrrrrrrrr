@@ -1945,6 +1945,14 @@ def health():
 def serve_sw():
     return send_from_directory('static', 'sw.js', mimetype='application/javascript')
 
+@app.route('/customer-sw.js')
+def serve_customer_sw():
+    return send_from_directory('static', 'customer-sw.js', mimetype='application/javascript')
+
+@app.route('/customer-manifest.json')
+def serve_customer_manifest():
+    return send_from_directory('static', 'customer-manifest.json', mimetype='application/manifest+json')
+
 # صفحة تسجيل الدخول للوحة التحكم (HTML منفصل) - نظام الكود المؤقت
 
 # لوحة التحكم للمالك (محدثة بنظام الكود المؤقت) - نسخة محسنة مع Sidebar
