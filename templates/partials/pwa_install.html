@@ -1,0 +1,92 @@
+<!-- PWA Install Banner -->
+<div id="pwa-install-banner" style="display:none;">
+    <div class="pwa-install-inner">
+        <img src="/static/icons/app-icon-96.png" alt="TR Store" class="pwa-install-icon">
+        <div class="pwa-install-text">
+            <strong>تثبيت تطبيق TR Store</strong>
+            <span>تجربة أسرع وإشعارات فورية</span>
+        </div>
+        <button id="pwa-install-btn" class="pwa-install-action">تثبيت</button>
+        <button id="pwa-install-close" class="pwa-install-dismiss">&times;</button>
+    </div>
+</div>
+
+<!-- iOS Install Instructions -->
+<div id="ios-install-modal" style="display:none;">
+    <div class="ios-modal-overlay" onclick="closeIosModal()"></div>
+    <div class="ios-modal-content">
+        <button class="ios-modal-close" onclick="closeIosModal()">&times;</button>
+        <img src="/static/icons/app-icon-96.png" alt="TR Store" style="width:64px;height:64px;border-radius:16px;margin-bottom:16px;">
+        <h3>تثبيت تطبيق TR Store</h3>
+        <p>لتثبيت التطبيق على جهازك:</p>
+        <div class="ios-steps">
+            <div class="ios-step">
+                <span class="step-num">1</span>
+                <span>اضغط على زر المشاركة <i class="fas fa-share-from-square"></i></span>
+            </div>
+            <div class="ios-step">
+                <span class="step-num">2</span>
+                <span>اختر "إضافة إلى الشاشة الرئيسية" <i class="fas fa-plus-square"></i></span>
+            </div>
+            <div class="ios-step">
+                <span class="step-num">3</span>
+                <span>اضغط "إضافة" في الأعلى</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    #pwa-install-banner{position:fixed;bottom:0;left:0;right:0;z-index:10000;padding:12px 16px;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);border-top:2px solid #6c5ce7;box-shadow:0 -4px 20px rgba(0,0,0,0.4);animation:pwaSlideUp 0.4s ease-out}
+    @keyframes pwaSlideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+    .pwa-install-inner{display:flex;align-items:center;gap:12px;max-width:600px;margin:0 auto}
+    .pwa-install-icon{width:48px;height:48px;border-radius:12px;flex-shrink:0}
+    .pwa-install-text{flex:1;display:flex;flex-direction:column;gap:2px}
+    .pwa-install-text strong{color:#fff;font-size:14px}
+    .pwa-install-text span{color:#888;font-size:12px}
+    .pwa-install-action{background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:#fff;border:none;padding:10px 24px;border-radius:10px;font-family:'Tajawal',sans-serif;font-weight:600;font-size:14px;cursor:pointer;white-space:nowrap}
+    .pwa-install-action:active{transform:scale(0.95)}
+    .pwa-install-dismiss{background:none;border:none;color:#666;font-size:22px;cursor:pointer;padding:4px 8px;line-height:1}
+    .ios-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10001}
+    .ios-modal-content{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:10002;background:#1a1a2e;border-radius:20px;padding:30px 24px;width:calc(100% - 32px);max-width:380px;text-align:center;border:1px solid rgba(108,92,231,0.3);animation:pwaSlideUp 0.4s ease-out}
+    .ios-modal-close{position:absolute;top:12px;left:12px;background:none;border:none;color:#888;font-size:24px;cursor:pointer}
+    .ios-modal-content h3{color:#fff;margin-bottom:8px;font-size:18px}
+    .ios-modal-content p{color:#999;font-size:14px;margin-bottom:20px}
+    .ios-steps{display:flex;flex-direction:column;gap:14px;text-align:right}
+    .ios-step{display:flex;align-items:center;gap:12px;background:rgba(108,92,231,0.1);padding:12px 16px;border-radius:12px;color:#e2e8f0;font-size:14px}
+    .ios-step i{color:#6c5ce7}
+    .step-num{background:#6c5ce7;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+</style>
+
+<script>
+(function(){
+    if('serviceWorker' in navigator){
+        navigator.serviceWorker.register('/customer-sw.js',{scope:'/'}).catch(function(){});
+    }
+    var isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+    if(isStandalone)return;
+    var dismissed=localStorage.getItem('pwa-install-dismissed');
+    if(dismissed&&(Date.now()-parseInt(dismissed)<7*24*60*60*1000))return;
+    var deferredPrompt=null;
+    var banner=document.getElementById('pwa-install-banner');
+    var installBtn=document.getElementById('pwa-install-btn');
+    var closeBtn=document.getElementById('pwa-install-close');
+    window.addEventListener('beforeinstallprompt',function(e){
+        e.preventDefault();deferredPrompt=e;banner.style.display='block';
+    });
+    if(installBtn){installBtn.addEventListener('click',function(){
+        if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(function(r){
+            deferredPrompt=null;banner.style.display='none';
+            if(r.outcome==='dismissed')localStorage.setItem('pwa-install-dismissed',Date.now().toString());
+        });}
+    });}
+    if(closeBtn){closeBtn.addEventListener('click',function(){
+        banner.style.display='none';localStorage.setItem('pwa-install-dismissed',Date.now().toString());
+    });}
+    var isIos=/iphone|ipad|ipod/i.test(navigator.userAgent);
+    var isSafari=/safari/i.test(navigator.userAgent)&&!/crios|fxios|chrome/i.test(navigator.userAgent);
+    if(isIos&&isSafari&&!isStandalone){setTimeout(function(){document.getElementById('ios-install-modal').style.display='block';},3000);}
+    window.closeIosModal=function(){document.getElementById('ios-install-modal').style.display='none';localStorage.setItem('pwa-install-dismissed',Date.now().toString());};
+    window.addEventListener('appinstalled',function(){banner.style.display='none';deferredPrompt=null;});
+})();
+</script>
