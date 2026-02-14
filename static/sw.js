@@ -1,7 +1,7 @@
-// TR Admin PWA - Service Worker v1.0
-const CACHE_NAME = 'tr-admin-v1';
-const STATIC_CACHE = 'tr-admin-static-v1';
-const DYNAMIC_CACHE = 'tr-admin-dynamic-v1';
+// TR Admin PWA - Service Worker v1.1
+const CACHE_NAME = 'tr-admin-v1.1';
+const STATIC_CACHE = 'tr-admin-static-v1.1';
+const DYNAMIC_CACHE = 'tr-admin-dynamic-v1.1';
 
 // الملفات الثابتة للتخزين المسبق
 const PRECACHE_URLS = [
@@ -53,6 +53,9 @@ self.addEventListener('fetch', event => {
 
   // تجاهل الطلبات غير HTTP
   if (!url.protocol.startsWith('http')) return;
+
+  // تجاهل الطلبات الخارجية (صور التصنيفات، CDN، خطوط، إلخ) — تمر مباشرة بدون تدخل
+  if (url.origin !== self.location.origin) return;
 
   // API requests — شبكة فقط (لا كاش)
   if (url.pathname.startsWith('/api/')) {
@@ -112,7 +115,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // بقية الطلبات — شبكة مع fallback
+  // بقية الطلبات المحلية — شبكة مع fallback
   event.respondWith(
     fetch(request).catch(() => caches.match(request))
   );
