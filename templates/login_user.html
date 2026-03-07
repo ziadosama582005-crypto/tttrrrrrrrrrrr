@@ -23,91 +23,11 @@
             position: relative;
         }
 
-        /* خلفية متحركة */
-        .bg-animated {
+        /* Vanta.js 3D Background */
+        #vanta-bg {
             position: fixed;
             inset: 0;
             z-index: 0;
-            overflow: hidden;
-            pointer-events: none;
-        }
-        .bg-animated .shape {
-            position: absolute;
-            border-radius: 50%;
-            opacity: 0.08;
-            filter: blur(60px);
-            animation: floatShape 20s ease-in-out infinite;
-        }
-        .bg-animated .shape:nth-child(1) {
-            width: 400px; height: 400px;
-            background: #6c5ce7;
-            top: -10%; right: -5%;
-            animation-duration: 18s;
-        }
-        .bg-animated .shape:nth-child(2) {
-            width: 350px; height: 350px;
-            background: #00ff88;
-            bottom: -15%; left: -10%;
-            animation-duration: 22s;
-            animation-delay: -5s;
-        }
-        .bg-animated .shape:nth-child(3) {
-            width: 250px; height: 250px;
-            background: #a29bfe;
-            top: 40%; left: 50%;
-            animation-duration: 25s;
-            animation-delay: -10s;
-        }
-        .bg-animated .shape:nth-child(4) {
-            width: 200px; height: 200px;
-            background: #00cec9;
-            top: 10%; left: 20%;
-            animation-duration: 20s;
-            animation-delay: -3s;
-        }
-        .bg-animated .shape:nth-child(5) {
-            width: 300px; height: 300px;
-            background: #fd79a8;
-            bottom: 10%; right: 15%;
-            animation-duration: 24s;
-            animation-delay: -8s;
-        }
-        @keyframes floatShape {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            25% { transform: translate(30px, -40px) scale(1.1); }
-            50% { transform: translate(-20px, 20px) scale(0.95); }
-            75% { transform: translate(15px, 35px) scale(1.05); }
-        }
-
-        /* خطوط شبكية */
-        .bg-grid {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            background-image:
-                linear-gradient(rgba(108,92,231,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(108,92,231,0.03) 1px, transparent 1px);
-            background-size: 60px 60px;
-            pointer-events: none;
-        }
-
-        /* نجوم صغيرة */
-        .bg-stars {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-        }
-        .bg-stars .star {
-            position: absolute;
-            width: 2px; height: 2px;
-            background: #fff;
-            border-radius: 50%;
-            animation: twinkle 3s ease-in-out infinite;
-        }
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.1; }
-            50% { opacity: 0.6; }
         }
 
         .back-link {
@@ -350,16 +270,8 @@
 </head>
 <body>
 
-    <!-- خلفية متحركة -->
-    <div class="bg-animated">
-        <div class="shape"></div>
-        <div class="shape"></div>
-        <div class="shape"></div>
-        <div class="shape"></div>
-        <div class="shape"></div>
-    </div>
-    <div class="bg-grid"></div>
-    <div class="bg-stars" id="bgStars"></div>
+    <!-- Vanta.js 3D Background -->
+    <div id="vanta-bg"></div>
 
     <a href="/" class="back-link">الرئيسية →</a>
 
@@ -853,21 +765,29 @@
         showStep('step4');
     }
 </script>
+    <!-- Vanta.js 3D -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
     <script>
-    // توليد النجوم
     (function(){
-        var c=document.getElementById('bgStars');
-        if(!c)return;
-        for(var i=0;i<40;i++){
-            var s=document.createElement('div');
-            s.className='star';
-            s.style.left=Math.random()*100+'%';
-            s.style.top=Math.random()*100+'%';
-            s.style.animationDelay=(-Math.random()*3)+'s';
-            s.style.animationDuration=(2+Math.random()*3)+'s';
-            c.appendChild(s);
-        }
-    })();
+        try {
+            VANTA.NET({
+                el: "#vanta-bg",
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200.00,
+                minWidth: 200.00,
+                scale: 1.00,
+                scaleMobile: 1.00,
+                color: 0x6c5ce7,
+                backgroundColor: 0x0a0a0f,
+                points: 8.00,
+                maxDistance: 22.00,
+                spacing: 18.00,
+                showDots: true
+            });
+        } catch(e) {}
     </script>
     {% include 'partials/pwa_install.html' %}
 </body>
