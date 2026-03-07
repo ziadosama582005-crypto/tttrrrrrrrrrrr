@@ -198,7 +198,8 @@ def wallet_pay():
             'payer_phone': formatted_phone,
             'payer_ip': '176.44.76.222',
             'term_url_3ds': f"{SITE_URL}/payment/success?order_id={order_id}",
-            'auth': 'Y',
+            'checkout_expiry_mins': '60',
+            'auth': 'N',
             'recurring_init': 'N',
             'hash': final_hash
         }
