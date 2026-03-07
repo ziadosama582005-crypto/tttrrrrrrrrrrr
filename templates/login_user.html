@@ -269,7 +269,7 @@
                 <p id="loginSubtitle">سجّل دخولك للمتابعة</p>
             </div>
 
-            <!-- جوال واتساب -->
+            <!-- جوال SMS -->
             <div id="phoneSection" class="section active">
                 <form id="phoneForm">
                     <div class="form-field">
@@ -279,12 +279,12 @@
                     <div class="switch-link">
                         <a onclick="switchToEmail()">📧 الدخول بالإيميل</a> · <a onclick="switchToTelegram()">🆔 Telegram</a>
                     </div>
-                    <button type="submit" id="sendCodePhoneBtn" class="btn-primary">📲 إرسال كود واتساب</button>
+                    <button type="submit" id="sendCodePhoneBtn" class="btn-primary">📲 إرسال كود SMS</button>
                 </form>
                 <div class="switch-link" style="margin-top:14px">
                     <a onclick="goToRegister()">🆕 ليس لديك حساب؟ سجّل الآن</a>
                 </div>
-                <div class="help-note">💬 سيصلك كود التحقق على واتساب</div>
+                <div class="help-note">💬 سيصلك كود التحقق برسالة SMS</div>
             </div>
 
             <!-- تلغرام -->
@@ -390,12 +390,12 @@
                     <label>📱 رقم الجوال</label>
                     <input type="tel" id="regPhone" placeholder="05xxxxxxxx" dir="ltr" inputmode="tel" autocomplete="tel">
                 </div>
-                <button type="submit" id="regSendCodeBtn" class="btn-primary">📲 إرسال كود واتساب</button>
+                <button type="submit" id="regSendCodeBtn" class="btn-primary">📲 إرسال كود SMS</button>
                 <button type="button" class="btn-secondary" onclick="goBackToStep1()">← رجوع لتسجيل الدخول</button>
             </form>
 
             <div id="error4" class="msg"></div>
-            <div class="security-hint">💬 سيتم إرسال كود واتساب للتحقق من <b>رقمك</b></div>
+            <div class="security-hint">💬 سيتم إرسال كود SMS للتحقق من <b>رقمك</b></div>
         </div>
 
         <!-- ===== الخطوة 5: كود التحقق للتسجيل ===== -->
@@ -403,7 +403,7 @@
             <div class="logo-section">
                 <div class="logo-icon">�</div>
                 <h1>تأكيد الحساب</h1>
-                <p>أدخل الكود المرسل على واتساب</p>
+                <p>أدخل الكود المرسل برسالة SMS</p>
             </div>
 
             <div class="timer-box">⏱️ <span id="regCountdown">2:00</span></div>
@@ -488,7 +488,7 @@
         } catch(err) { showErr('error1', 'خطأ في الاتصال'); btn.disabled = false; btn.textContent = 'إرسال كود التحقق'; }
     });
 
-    // إرسال كود جوال واتساب
+    // إرسال كود جوال SMS
     document.getElementById('phoneForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         var phone = document.getElementById('loginPhone').value.trim();
@@ -507,8 +507,8 @@
                 isRegistering = false;
                 goToStep2();
             } else { showErr('error1', data.message); }
-            btn.disabled = false; btn.textContent = '📲 إرسال كود واتساب';
-        } catch(err) { showErr('error1', 'خطأ في الاتصال'); btn.disabled = false; btn.textContent = '📲 إرسال كود واتساب'; }
+            btn.disabled = false; btn.textContent = '📲 إرسال كود SMS';
+        } catch(err) { showErr('error1', 'خطأ في الاتصال'); btn.disabled = false; btn.textContent = '📲 إرسال كود SMS'; }
     });
 
     // إرسال كود إيميل
@@ -619,7 +619,7 @@
         document.getElementById('sendCodeEmailBtn').disabled = false;
         document.getElementById('sendCodeEmailBtn').textContent = 'إرسال كود التحقق';
         document.getElementById('sendCodePhoneBtn').disabled = false;
-        document.getElementById('sendCodePhoneBtn').textContent = '📲 إرسال كود واتساب';
+        document.getElementById('sendCodePhoneBtn').textContent = '📲 إرسال كود SMS';
         document.getElementById('verifyBtn').disabled = false;
         document.getElementById('verifyBtn').textContent = 'تأكيد الدخول';
         showStep('step1');
@@ -634,7 +634,7 @@
         document.getElementById('sendCodeEmailBtn').disabled = false;
         document.getElementById('sendCodeEmailBtn').textContent = 'إرسال كود التحقق';
         document.getElementById('sendCodePhoneBtn').disabled = false;
-        document.getElementById('sendCodePhoneBtn').textContent = '📲 إرسال كود واتساب';
+        document.getElementById('sendCodePhoneBtn').textContent = '📲 إرسال كود SMS';
         showStep('step1');
     }
 
@@ -678,10 +678,10 @@
             } else {
                 showErr('error4', data.message);
             }
-            btn.disabled = false; btn.textContent = '📲 إرسال كود واتساب';
+            btn.disabled = false; btn.textContent = '📲 إرسال كود SMS';
         } catch(err) {
             showErr('error4', 'خطأ في الاتصال');
-            btn.disabled = false; btn.textContent = '📲 إرسال كود واتساب';
+            btn.disabled = false; btn.textContent = '📲 إرسال كود SMS';
         }
     });
 
