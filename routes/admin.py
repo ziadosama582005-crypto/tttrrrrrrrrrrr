@@ -291,7 +291,9 @@ def api_send_admin_code():
                 })
         
         # التحقق من كلمة المرور
-        admin_password = os.environ.get('ADMIN_PASS', 'admin123')
+        admin_password = os.environ.get('ADMIN_PASS')
+        if not admin_password:
+            return jsonify({'status': 'error', 'message': 'النظام غير مُعد بشكل صحيح'}), 503
         
         if password != admin_password:
             # تسجيل المحاولة الفاشلة

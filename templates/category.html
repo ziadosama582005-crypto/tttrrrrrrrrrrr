@@ -463,7 +463,7 @@
         }
     }
     (function() {
-        var jsonStr = '{{ categories_json|safe }}';
+        var jsonStr = {{ categories_json|tojson }};
         try {
             window.categoriesData = JSON.parse(jsonStr);
         } catch(e) {

@@ -19,8 +19,7 @@ IS_PRODUCTION = os.environ.get("RENDER", False) or os.environ.get("PRODUCTION", 
 
 if IS_PRODUCTION and not ENCRYPTION_KEY:
     print("❌ خطأ حرج: ENCRYPTION_KEY مطلوب في بيئة الإنتاج!")
-    print("❌ لا يمكن تشغيل التطبيق بدون مفتاح التشفير في الإنتاج")
-    # لا نوقف التطبيق لكن نسجل التحذير
+    raise SystemExit("ENCRYPTION_KEY is required in production")
     
 # كائن Fernet للتشفير
 _fernet = None

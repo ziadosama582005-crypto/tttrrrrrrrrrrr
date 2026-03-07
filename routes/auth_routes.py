@@ -271,8 +271,7 @@ def register():
     
     return jsonify({
         'success': True,
-        'message': 'تم التسجيل بنجاح',
-        'code': new_user['verification_code']
+        'message': 'تم التسجيل بنجاح'
     })
 
 @auth_bp.route('/user-profile', methods=['GET'])

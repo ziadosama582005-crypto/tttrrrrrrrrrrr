@@ -129,7 +129,7 @@ def get_balance(user_id):
         return 0.0
 
 def add_balance(user_id, amount, users_wallets=None, description='شحن رصيد', order_id=''):
-    """إضافة رصيد للمستخدم في Firebase والذاكرة"""
+    """إضافة رصيد للمستخدم في Firebase والذاكرة (مع Transaction لمنع Race Condition)"""
     uid = str(user_id)
     
     # تحديث الذاكرة إذا تم تمريرها
@@ -138,19 +138,26 @@ def add_balance(user_id, amount, users_wallets=None, description='شحن رصي�
             users_wallets[uid] = 0.0
         users_wallets[uid] += float(amount)
     
-    # جلب الرصيد الحالي من Firebase
-    current_balance = get_balance(uid)
-    new_balance = current_balance + float(amount)
-    
-    # حفظ في Firebase
     try:
-        if db:
-            db.collection('users').document(uid).set({
-                'balance': new_balance,
-                'telegram_id': uid,
-                'updated_at': firestore.SERVER_TIMESTAMP,
-                'last_charge_at': firestore.SERVER_TIMESTAMP  # تحديث وقت آخر شحن للسحب
-            }, merge=True)
+        if db and firestore:
+            transaction = db.transaction()
+            doc_ref = db.collection('users').document(uid)
+            
+            @firestore.transactional
+            def update_in_transaction(txn, ref):
+                snapshot = ref.get(transaction=txn)
+                current_balance = snapshot.get('balance') if snapshot.exists else 0.0
+                current_balance = float(current_balance or 0.0)
+                new_bal = current_balance + float(amount)
+                txn.set(ref, {
+                    'balance': new_bal,
+                    'telegram_id': uid,
+                    'updated_at': firestore.SERVER_TIMESTAMP,
+                    'last_charge_at': firestore.SERVER_TIMESTAMP
+                }, merge=True)
+                return current_balance, new_bal
+            
+            current_balance, new_balance = update_in_transaction(transaction, doc_ref)
             print(f"✅ تم حفظ رصيد المستخدم {uid}: {new_balance} ريال في Firestore")
             
             # تسجيل العملية في balance_logs
@@ -168,10 +175,10 @@ def add_balance(user_id, amount, users_wallets=None, description='شحن رصي�
     except Exception as e:
         print(f"❌ خطأ في حفظ الرصيد إلى Firebase: {e}")
     
-    return new_balance
+    return get_balance(uid)
 
 def deduct_balance(user_id, amount, users_wallets=None, description='خصم رصيد', order_id=''):
-    """خصم رصيد من المستخدم"""
+    """خصم رصيد من المستخدم (مع Transaction لمنع Race Condition)"""
     uid = str(user_id)
     
     # تحديث الذاكرة إذا تم تمريرها
@@ -179,18 +186,25 @@ def deduct_balance(user_id, amount, users_wallets=None, description='خصم رص
         if uid in users_wallets:
             users_wallets[uid] -= float(amount)
     
-    # جلب الرصيد الحالي من Firebase
-    current_balance = get_balance(uid)
-    new_balance = current_balance - float(amount)
-    
-    # حفظ في Firebase
     try:
-        if db:
-            db.collection('users').document(uid).set({
-                'balance': new_balance,
-                'telegram_id': uid,
-                'updated_at': firestore.SERVER_TIMESTAMP
-            }, merge=True)
+        if db and firestore:
+            transaction = db.transaction()
+            doc_ref = db.collection('users').document(uid)
+            
+            @firestore.transactional
+            def update_in_transaction(txn, ref):
+                snapshot = ref.get(transaction=txn)
+                current_balance = snapshot.get('balance') if snapshot.exists else 0.0
+                current_balance = float(current_balance or 0.0)
+                new_bal = current_balance - float(amount)
+                txn.set(ref, {
+                    'balance': new_bal,
+                    'telegram_id': uid,
+                    'updated_at': firestore.SERVER_TIMESTAMP
+                }, merge=True)
+                return current_balance, new_bal
+            
+            current_balance, new_balance = update_in_transaction(transaction, doc_ref)
             print(f"✅ تم خصم {amount} ريال من المستخدم {uid}. الرصيد الجديد: {new_balance}")
             
             # تسجيل العملية في balance_logs
@@ -208,7 +222,7 @@ def deduct_balance(user_id, amount, users_wallets=None, description='خصم رص
     except Exception as e:
         print(f"❌ خطأ في خصم الرصيد: {e}")
     
-    return new_balance
+    return get_balance(uid)
 
 # === دوال المنتجات ===
 def get_products(sold=False, use_cache=True):

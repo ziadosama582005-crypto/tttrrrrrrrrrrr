@@ -1529,10 +1529,9 @@ _محاولة اختراق واضحة!_
                     except:
                         pass
                 
-                # إذا لم يتطابق الـ Hash - تسجيل تحذير (لكن لا نرفض لأن الصيغة قد تختلف)
+                # إذا لم يتطابق الـ Hash - رفض الطلب
                 if not hash_verified:
-                    print(f"⚠️ Hash لم يتطابق - received: {received_hash[:20]}...")
-                    # تسجيل التحذير للمراجعة لاحقاً
+                    print(f"🚫 Hash لم يتطابق - received: {received_hash[:20]}... - رفض الطلب!")
                     try:
                         db.collection('security_logs').add({
                             'type': 'webhook_hash_mismatch',
@@ -1544,6 +1543,13 @@ _محاولة اختراق واضحة!_
                         })
                     except:
                         pass
+                    try:
+                        if BOT_ACTIVE:
+                            client_ip = req.headers.get('X-Forwarded-For', req.remote_addr)
+                            bot.send_message(ADMIN_ID, f"⚠️ *تنبيه أمني - Hash غير صحيح!*\n\n📋 Order: `{order_id}`\n🌐 IP: `{client_ip}`", parse_mode='Markdown')
+                    except:
+                        pass
+                    return jsonify({'status': 'error', 'message': 'Invalid signature'}), 403
                 else:
                     print(f"✅ Hash تم التحقق منه بنجاح")
         
