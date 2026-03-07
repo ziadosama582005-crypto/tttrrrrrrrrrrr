@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شحن محفظتك</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .balance-box {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .balance-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .balance-amount {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .form-group {
+            margin: 25px 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .amount-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .amount-btn {
+            padding: 12px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: #333;
+        }
+        
+        .amount-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+        
+        .amount-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .custom-amount {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        .custom-amount:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin: 35px 0;
+        }
+        
+        .btn {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn-direct {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-direct:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-link {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .btn-link:hover {
+            background: #f0f4ff;
+        }
+        
+        .separator {
+            text-align: center;
+            color: #999;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        
+        /* Modal للرابط */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .modal-title {
+            color: #333;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .link-box {
+            background: #f0f4ff;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            word-break: break-all;
+            color: #333;
+            font-size: 13px;
+        }
+        
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: all 0.3s;
+        }
+        
+        .copy-btn:hover {
+            background: #764ba2;
+        }
+        
+        .close-btn {
+            background: white;
+            color: #667eea;
+            padding: 12px 30px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        
+        .close-btn:hover {
+            background: #f0f4ff;
+        }
+        
+        .success-msg {
+            color: #00b894;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .error-msg {
+            color: #ff6b6b;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+        }
+        
+        .spinner {
+            border: 4px solid #f0f0f0;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 شحن محفظتك</h1>
+        
+        <!-- رصيد المستخدم -->
+        <div class="balance-box">
+            <div class="balance-label">رصيدك الحالي</div>
+            <div class="balance-amount" id="currentBalance">0</div>
+            <div class="balance-label">ريال سعودي</div>
+        </div>
+        
+        <!-- اختيار المبلغ -->
+        <form id="rechargeForm">
+            <div class="form-group">
+                <label>اختر المبلغ:</label>
+                <div class="amount-buttons">
+                    <button type="button" class="amount-btn" data-amount="50">50 ريال</button>
+                    <button type="button" class="amount-btn" data-amount="100">100 ريال</button>
+                    <button type="button" class="amount-btn" data-amount="500">500 ريال</button>
+                    <button type="button" class="amount-btn" data-amount="1000">1000 ريال</button>
+                </div>
+                <input type="number" id="customAmount" class="custom-amount" placeholder="أو أدخل مبلغاً آخر" min="10" max="50000">
+            </div>
+            
+            <input type="hidden" id="selectedAmount" value="">
+            
+            <!-- الأزرار -->
+            <div class="action-buttons">
+                <button type="button" class="btn btn-direct" id="directChargeBtn" onclick="handleDirectCharge()">
+                    💳 اشحن مباشرة (فوري)
+                </button>
+                
+                <div class="separator">أو</div>
+                
+                <button type="button" class="btn btn-link" id="createLinkBtn" onclick="handleCreateLink()">
+                    🔗 أنشئ رابط شحن
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Modal للرابط -->
+    <div class="modal" id="linkModal">
+        <div class="modal-content">
+            <div class="modal-title">🔗 رابط الشحن جاهز!</div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>جاري إنشاء الرابط...</p>
+            </div>
+            
+            <div id="linkContent" style="display: none;">
+                <p style="color: #666; margin-bottom: 15px;">
+                    شارك هذا الرابط مع أي شخص أو انسخه
+                </p>
+                
+                <div class="link-box" id="linkBox">
+                    https://yoursite.com/invoice/...
+                </div>
+                
+                <button class="copy-btn" onclick="copyLink()">📋 نسخ الرابط</button>
+                
+                <div class="success-msg" id="copySuccess">✅ تم النسخ بنجاح!</div>
+            </div>
+            
+            <div class="error-msg" id="linkError"></div>
+            
+            <button class="close-btn" onclick="closeModal()">إغلاق</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedAmount = null;
+        let currentLink = null;
+        
+        // جلب الرصيد الحالي
+        fetch('/api/wallet/balance')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('currentBalance').textContent = data.balance;
+                }
+            });
+        
+        // اختيار المبلغ
+        document.querySelectorAll('.amount-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                selectedAmount = this.dataset.amount;
+                document.getElementById('selectedAmount').value = selectedAmount;
+                document.getElementById('customAmount').value = '';
+            });
+        });
+        
+        // عند الكتابة في المبلغ المخصص
+        document.getElementById('customAmount').addEventListener('input', function() {
+            if (this.value) {
+                document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
+                selectedAmount = this.value;
+                document.getElementById('selectedAmount').value = selectedAmount;
+            }
+        });
+        
+        // شحن مباشر
+        async function handleDirectCharge() {
+            const amount = document.getElementById('customAmount').value || 
+                          document.getElementById('selectedAmount').value;
+            
+            if (!amount || amount < 10) {
+                alert('الرجاء إدخال مبلغ صحيح (10 ريال على الأقل)');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/wallet/recharge', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `amount=${amount}`
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.href = data.payment_url;
+                } else {
+                    alert('خطأ: ' + data.error);
+                }
+            } catch (error) {
+                alert('حدث خطأ ما');
+            }
+        }
+        
+        // إنشاء رابط
+        async function handleCreateLink() {
+            const amount = document.getElementById('customAmount').value || 
+                          document.getElementById('selectedAmount').value;
+            
+            if (!amount || amount < 10) {
+                alert('الرجاء إدخال مبلغ صحيح (10 ريال على الأقل)');
+                return;
+            }
+            
+            document.getElementById('linkModal').classList.add('active');
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('linkContent').style.display = 'none';
+            document.getElementById('linkError').style.display = 'none';
+            
+            try {
+                const response = await fetch('/wallet/create-link', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `amount=${amount}`
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentLink = data.link;
+                    document.getElementById('linkBox').textContent = data.link;
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('linkContent').style.display = 'block';
+                } else {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('linkError').style.display = 'block';
+                    document.getElementById('linkError').textContent = data.error || 'حدث خطأ';
+                }
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('linkError').style.display = 'block';
+                document.getElementById('linkError').textContent = 'خطأ في الاتصال';
+            }
+        }
+        
+        // نسخ الرابط
+        function copyLink() {
+            if (currentLink) {
+                navigator.clipboard.writeText(currentLink).then(() => {
+                    const msg = document.getElementById('copySuccess');
+                    msg.style.display = 'block';
+                    setTimeout(() => {
+                        msg.style.display = 'none';
+                    }, 3000);
+                });
+            }
+        }
+        
+        // إغلاق Modal
+        function closeModal() {
+            document.getElementById('linkModal').classList.remove('active');
+        }
+        
+        // إغلاق عند الضغط خارج
+        document.getElementById('linkModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -218,6 +218,89 @@ def payment_success():
             order_id=order_id)
 
 
+# ============ 🆕 API: التحقق من حالة الدفع عبر AJAX ============
+@payment_bp.route('/api/payment/check-status')
+def api_check_payment_status():
+    """التحقق من حالة الدفع عبر AJAX بدون إعادة تحميل الصفحة"""
+    order_id = request.args.get('order_id', '')
+    invoice_id = request.args.get('invoice', '')
+    
+    if not order_id and not invoice_id:
+        return jsonify({'status': 'error', 'message': 'بيانات غير صحيحة'})
+    
+    try:
+        # 1️⃣ التحقق من pending_payments
+        if order_id:
+            try:
+                doc = db.collection('pending_payments').document(order_id).get()
+                if doc.exists:
+                    payment_data = doc.to_dict()
+                    payment_status = payment_data.get('status', '')
+                    expires_at = payment_data.get('expires_at', 0)
+                    
+                    # التحقق من انتهاء الصلاحية
+                    if expires_at and time.time() > expires_at:
+                        return jsonify({
+                            'status': 'failed',
+                            'message': 'انتهت صلاحية رابط الدفع'
+                        })
+                    elif payment_status == 'completed':
+                        return jsonify({
+                            'status': 'paid',
+                            'message': 'تم الدفع بنجاح',
+                            'amount': str(payment_data.get('amount', '')),
+                            'currency': 'SAR',
+                            'invoice_id': payment_data.get('invoice_id', invoice_id or '')
+                        })
+                    elif payment_status == 'failed':
+                        return jsonify({
+                            'status': 'failed',
+                            'message': payment_data.get('failure_reason', 'فشلت عملية الدفع')
+                        })
+            except Exception as e:
+                print(f"⚠️ API check - خطأ pending_payments: {e}")
+        
+        # 2️⃣ التحقق من merchant_invoices
+        if invoice_id:
+            try:
+                inv_doc = db.collection('merchant_invoices').document(invoice_id).get()
+                if inv_doc.exists:
+                    inv_data = inv_doc.to_dict()
+                    inv_status = inv_data.get('status', '')
+                    expires_at = inv_data.get('expires_at', 0)
+                    
+                    if expires_at and time.time() > expires_at and inv_status != 'completed':
+                        return jsonify({
+                            'status': 'failed',
+                            'message': 'انتهت صلاحية الفاتورة'
+                        })
+                    elif inv_status in ('completed', 'paid'):
+                        return jsonify({
+                            'status': 'paid',
+                            'message': 'تم الدفع بنجاح',
+                            'amount': str(inv_data.get('amount', '')),
+                            'currency': 'SAR',
+                            'invoice_id': invoice_id
+                        })
+                    elif inv_status in ('failed', 'declined'):
+                        return jsonify({
+                            'status': 'failed',
+                            'message': 'فشلت عملية الدفع'
+                        })
+            except Exception as e:
+                print(f"⚠️ API check - خطأ merchant_invoices: {e}")
+        
+        # 3️⃣ لا يزال pending
+        return jsonify({
+            'status': 'pending',
+            'message': 'جاري معالجة الدفع'
+        })
+    
+    except Exception as e:
+        print(f"❌ خطأ في API check-status: {e}")
+        return jsonify({'status': 'pending', 'message': 'جاري التحقق'})
+
+
 @payment_bp.route('/payment/cancel')
 def payment_cancel():
     """صفحة إلغاء الدفع"""

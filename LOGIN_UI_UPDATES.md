@@ -1,98 +1,246 @@
-# تحديثات واجهة تسجيل الدخول 🎨
+# ============================================
+# === routes/payment_routes.py ===
+# === مسارات الدفع والفواتير ===
+# ============================================
 
-## التغييرات المُجراة
+from flask import Blueprint, render_template, redirect, request, jsonify
+import time
+from extensions import db, BOT_USERNAME, logger
 
-### 1️⃣ تصحيح المدة الزمنية للكود
-- ✅ تم تغيير مدة صلاحية الكود من **10 دقائق (600 ثانية)** إلى **2 دقيقة (120 ثانية)**
-- ✅ العداد الزمني يعرض الآن `2:00` بدل `10:00`
-- ✅ الرسالة المعروضة تتطابق مع الكود المرسل من الخادم ("2 دقائق")
+# استيراد الدوال المطلوبة
+from telegram.bot_handlers import create_customer_invoice
 
-### 2️⃣ تحسينات التصميم والواجهة
+payment_bp = Blueprint('payment', __name__)
 
-#### الألوان والتدرجات
-- تم تحديث ألوان الـ gradient الخلفي إلى `#667eea` و `#764ba2` (بنفسجي أفضل وأكثر حداثة)
-- تم تحديث ألوان الأزرار إلى نفس الـ gradient الحديث
-- تحسين ألوان الرسائل والإشعارات
+# تخزين الفواتير في الذاكرة (يُستورد من app.py)
+merchant_invoices = {}
 
-#### الصناديق والحاويات
-- تحسين ظل الـ Container (من 60px إلى 80px بقدر أكبر)
-- إضافة حدود خفيفة بألوان الـ gradient للحاويات
-- تحسين شامل للظلال والتأثيرات
+def set_merchant_invoices(invoices_dict):
+    """تعيين قاموس الفواتير من app.py"""
+    global merchant_invoices
+    merchant_invoices = invoices_dict
 
-#### العناصر التفاعلية
-- تحسين أنماط التفاعل عند التمرير على الأزرار
-- إضافة تأثير `active` للأزرار عند الضغط
-- تحسين رسائل الخطأ والنجاح بألوان أكثر وضوحاً
-- إضافة حدود ملونة للرسائل
 
-#### عرض الكود
-- صفقة الكود الآن بلون `#667eea` لتبرز أكثر
-- حجم أكبر للخط والتباعد الأفضل
+# ============ صفحة الفاتورة للعميل ============
+@payment_bp.route('/invoice/<invoice_id>')
+def show_invoice(invoice_id):
+    """عرض صفحة الفاتورة للعميل"""
+    
+    # البحث عن الفاتورة في الذاكرة
+    invoice_data = merchant_invoices.get(invoice_id)
+    
+    # البحث في Firebase إذا لم توجد
+    if not invoice_data:
+        try:
+            doc = db.collection('merchant_invoices').document(invoice_id).get()
+            if doc.exists:
+                invoice_data = doc.to_dict()
+                merchant_invoices[invoice_id] = invoice_data
+        except Exception as e:
+            print(f"⚠️ خطأ في جلب الفاتورة: {e}")
+    
+    # إذا لم توجد الفاتورة
+    if not invoice_data:
+        return render_template('invoice/not_found.html'), 404
+    
+    # التحقق من انتهاء صلاحية الفاتورة (ساعة واحدة)
+    expires_at = invoice_data.get('expires_at', 0)
+    current_time = time.time()
+    
+    # إذا انتهت صلاحية الفاتورة
+    if expires_at > 0 and current_time > expires_at and invoice_data.get('status') != 'completed':
+        # تحديث الحالة إلى منتهية
+        try:
+            invoice_data['status'] = 'expired'
+            merchant_invoices[invoice_id] = invoice_data
+            db.collection('merchant_invoices').document(invoice_id).update({'status': 'expired'})
+        except:
+            pass
+        
+        return render_template('invoice/expired.html', 
+            invoice_id=invoice_id, 
+            amount=invoice_data.get('amount', 0)), 410
+    
+    # إذا كانت الفاتورة مرفوضة أو فاشلة
+    if invoice_data.get('status') in ['failed', 'declined']:
+        return render_template('invoice/declined.html',
+            invoice_id=invoice_id,
+            amount=invoice_data.get('amount', 0)), 410
+    
+    # إذا كانت الفاتورة مدفوعة مسبقاً
+    if invoice_data.get('status') == 'completed':
+        return render_template('invoice/paid.html')
+    
+    # عرض صفحة الفاتورة
+    merchant_name = invoice_data.get('merchant_name', 'التاجر')
+    amount = invoice_data.get('amount', 0)
+    
+    # جلب وقت الانتهاء المحفوظ (10 دقائق)
+    expires_at_ts = invoice_data.get('expires_at')
+    if not expires_at_ts:
+        created_at = invoice_data.get('created_at')
+        if created_at:
+            if hasattr(created_at, 'timestamp'):
+                expires_at_ts = created_at.timestamp() + 600  # 10 دقائق
+            elif isinstance(created_at, (int, float)):
+                expires_at_ts = created_at + 600  # 10 دقائق
+            else:
+                expires_at_ts = time.time()
+        else:
+            expires_at_ts = time.time()
+    
+    remaining_seconds = int(expires_at_ts - time.time())
+    if remaining_seconds < 0:
+        remaining_seconds = 0
+    
+    return render_template('invoice/show.html',
+        merchant_name=merchant_name,
+        amount=amount,
+        invoice_id=invoice_id,
+        remaining_seconds=remaining_seconds)
 
-#### العد التنازلي
-- خلفية مميزة للعد التنازلي بلون أزرق فاتح
-- حد أيسر بلون مميز (border-left) لجذب الانتباه
-- حشوة أفضل والمزيد من المساحة حول الوقت
 
-#### العودة الخلفية
-- تحسين مظهر زر "رجوع" مع حدود شفافة
-- تأثير بصري أفضل عند التمرير
+@payment_bp.route('/invoice/<invoice_id>/pay', methods=['POST'])
+def process_invoice_payment(invoice_id):
+    """معالجة دفع الفاتورة"""
+    
+    # جلب رقم الهاتف الكامل (مع رمز الدولة)
+    phone = request.form.get('full_phone', '').strip()
+    if not phone:
+        phone = request.form.get('phone', '').strip()
+    
+    # البحث عن الفاتورة
+    invoice_data = merchant_invoices.get(invoice_id)
+    
+    if not invoice_data:
+        try:
+            doc = db.collection('merchant_invoices').document(invoice_id).get()
+            if doc.exists:
+                invoice_data = doc.to_dict()
+        except:
+            pass
+    
+    if not invoice_data:
+        return redirect(f'/invoice/{invoice_id}')
+    
+    # التحقق من انتهاء صلاحية الفاتورة
+    expires_at = invoice_data.get('expires_at', 0)
+    if expires_at > 0 and time.time() > expires_at:
+        return redirect(f'/invoice/{invoice_id}')
+    
+    # التحقق من أن الفاتورة لم تدفع
+    if invoice_data.get('status') == 'completed':
+        return redirect(f'/invoice/{invoice_id}')
+    
+    # إنشاء طلب الدفع
+    merchant_id = invoice_data.get('merchant_id')
+    merchant_name = invoice_data.get('merchant_name')
+    amount = invoice_data.get('amount')
+    
+    result = create_customer_invoice(merchant_id, merchant_name, amount, phone, invoice_id)
+    
+    if result['success']:
+        # تحديث الفاتورة الأصلية
+        try:
+            merchant_invoices[invoice_id]['customer_phone'] = phone
+            merchant_invoices[invoice_id]['order_id'] = result['order_id']
+            
+            db.collection('merchant_invoices').document(invoice_id).update({
+                'customer_phone': phone,
+                'order_id': result['order_id']
+            })
+        except:
+            pass
+        
+        return redirect(result['payment_url'])
+    else:
+        return render_template('invoice/error.html',
+            error=result.get('error', 'خطأ غير معروف'),
+            invoice_id=invoice_id)
 
-### 3️⃣ تأثيرات الحركة
-- إضافة عملية صعود سلس للرسائل (`slideDown animation`)
-- تحسين انتقالات الألوان والحالات
 
-## الملفات المحدثة ✏️
+@payment_bp.route('/payment/success', methods=['GET', 'POST'])
+def payment_success():
+    """صفحة نتيجة الدفع - تتحقق من الحالة الفعلية في Firebase"""
+    
+    data = {}
+    if request.method == 'POST':
+        data = request.form.to_dict() or request.json or {}
+    else:
+        data = request.args.to_dict() or {}
+    
+    print(f"📄 Payment Result Page: {data}")
+    
+    order_id = data.get('order_id', '')
+    invoice_id = data.get('invoice', '')
+    decline_reason = data.get('decline_reason', '')
+    
+    is_success = False
+    is_failed = False
+    is_expired = False
+    
+    # ✅ التحقق من الحالة الفعلية في Firebase (الأهم!)
+    if order_id:
+        try:
+            doc = db.collection('pending_payments').document(order_id).get()
+            if doc.exists:
+                payment_data = doc.to_dict()
+                payment_status = payment_data.get('status', '')
+                expires_at = payment_data.get('expires_at', 0)
+                
+                # التحقق من انتهاء الصلاحية
+                if expires_at and time.time() > expires_at:
+                    is_expired = True
+                    is_failed = True
+                    decline_reason = 'انتهت صلاحية رابط الدفع'
+                elif payment_status == 'completed':
+                    is_success = True
+                elif payment_status == 'failed':
+                    is_failed = True
+                    decline_reason = payment_data.get('failure_reason', 'فشلت العملية')
+                # إذا pending - ننتظر الـ webhook
+        except Exception as e:
+            print(f"⚠️ خطأ في التحقق من Firebase: {e}")
+    
+    # إذا لم نجد في Firebase، نتحقق من invoice
+    if not is_success and not is_failed and invoice_id:
+        try:
+            inv_doc = db.collection('merchant_invoices').document(invoice_id).get()
+            if inv_doc.exists:
+                inv_data = inv_doc.to_dict()
+                inv_status = inv_data.get('status', '')
+                expires_at = inv_data.get('expires_at', 0)
+                
+                if expires_at and time.time() > expires_at:
+                    is_expired = True
+                    is_failed = True
+                    decline_reason = 'انتهت صلاحية الفاتورة'
+                elif inv_status == 'paid':
+                    is_success = True
+                elif inv_status == 'failed':
+                    is_failed = True
+        except Exception as e:
+            print(f"⚠️ خطأ في التحقق من الفاتورة: {e}")
+    
+    if is_success:
+        return render_template('payment/success.html', bot_username=BOT_USERNAME)
+    elif is_expired:
+        return render_template('payment/expired.html', 
+            bot_username=BOT_USERNAME,
+            error_msg=decline_reason)
+    elif is_failed:
+        error_msg = decline_reason or "فشلت عملية الدفع"
+        return render_template('payment/failed.html', 
+            bot_username=BOT_USERNAME, 
+            error_msg=error_msg)
+    else:
+        # الحالة pending - ننتظر
+        return render_template('payment/pending.html',
+            bot_username=BOT_USERNAME,
+            order_id=order_id)
 
-1. **templates/login_user.html**
-   - صفحة الدخول الرئيسية
-   - تحديث كامل للـ CSS والـ JavaScript
 
-2. **templates/categories.html**
-   - نموذج الدخول داخل صفحة المنتجات
-   - تحديث التوقيتات والعدادات الزمنية
-
-## التحقق من التطابق
-
-### الخادم (Backend)
-```python
-# app.py - verify_code()
-if time.time() - code_data['created_at'] > 120:  # ✅ 2 minutes
-    del verification_codes[user_id]
-    return None
-
-# app.py - /api/send_code
-message_text = f"...صالح لمدة 2 دقائق ✅..."
-```
-
-### الواجهة (Frontend)
-```javascript
-// login_user.html & categories.html
-let secondsLeft = 120;  // ✅ 2 minutes
-
-function startCountdown() {
-    secondsLeft = 120;  // ✅ 2 minutes
-    updateCountdown();
-    // countdown يعرض: "2:00"
-}
-```
-
-## اختبار الميزات 🧪
-
-✅ اختبر صفحة الدخول:
-1. افتح صفحة الدخول
-2. أدخل رقم Telegram ID
-3. تحقق من أن العد التنازلي يبدأ من "2:00"
-4. تحقق من الألوان والتصميم الجديد
-5. اختبر رسالة انتهاء الصلاحية بعد دقيقتين
-
-✅ تحقق من التصميم:
-- الألوان متناسقة ومحدثة
-- الظلال تعطي عمقاً أفضل
-- الأزرار تستجيب عند التمرير والضغط
-- الرسائل تظهر بسلاسة
-
-## توافقية المتصفح 🌐
-- ✅ متوافق مع جميع المتصفحات الحديثة
-- ✅ تصميم مستجيب (Responsive) على الأجهزة المختلفة
-- ✅ دعم RTL (اتجاه النصوص من اليمين لليسار)
+@payment_bp.route('/payment/cancel')
+def payment_cancel():
+    """صفحة إلغاء الدفع"""
+    return render_template('payment/cancel.html', bot_username=BOT_USERNAME)
