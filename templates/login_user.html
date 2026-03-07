@@ -70,12 +70,13 @@
             width: 64px;
             height: 64px;
             margin: 0 auto 16px;
-            background: linear-gradient(135deg, #00ff88, #00cc6a);
             border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
+            overflow: hidden;
+        }
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            border-radius: 18px;
         }
         .logo-section h1 {
             font-size: 22px;
@@ -264,7 +265,7 @@
         <!-- ===== الخطوة 1: إدخال المعرف ===== -->
         <div id="step1" class="step active">
             <div class="logo-section">
-                <div class="logo-icon">🔐</div>
+                <div class="logo-icon"><img src="/static/icons/app-icon-128.png" alt="TR Store"></div>
                 <h1>تسجيل الدخول</h1>
                 <p id="loginSubtitle">سجّل دخولك للمتابعة</p>
             </div>
@@ -330,7 +331,7 @@
         <!-- ===== الخطوة 2: كود التحقق ===== -->
         <div id="step2" class="step">
             <div class="logo-section">
-                <div class="logo-icon">✉️</div>
+                <div class="logo-icon"><img src="/static/icons/app-icon-128.png" alt="TR Store"></div>
                 <h1>كود التحقق</h1>
                 <p>أدخل الكود المرسل لك</p>
             </div>
@@ -354,7 +355,7 @@
         <!-- ===== الخطوة 3: المصادقة الثنائية ===== -->
         <div id="step3" class="step">
             <div class="logo-section">
-                <div class="logo-icon">🛡️</div>
+                <div class="logo-icon"><img src="/static/icons/app-icon-128.png" alt="TR Store"></div>
                 <h1>المصادقة الثنائية</h1>
                 <p>أدخل الكود من Google Authenticator</p>
             </div>
@@ -376,7 +377,7 @@
         <!-- ===== الخطوة 4: تسجيل حساب جديد ===== -->
         <div id="step4" class="step">
             <div class="logo-section">
-                <div class="logo-icon">🆕</div>
+                <div class="logo-icon"><img src="/static/icons/app-icon-128.png" alt="TR Store"></div>
                 <h1>حساب جديد</h1>
                 <p>أكمل بياناتك لإنشاء حسابك</p>
             </div>
@@ -401,7 +402,7 @@
         <!-- ===== الخطوة 5: كود التحقق للتسجيل ===== -->
         <div id="step5" class="step">
             <div class="logo-section">
-                <div class="logo-icon">�</div>
+                <div class="logo-icon"><img src="/static/icons/app-icon-128.png" alt="TR Store"></div>
                 <h1>تأكيد الحساب</h1>
                 <p>أدخل الكود المرسل برسالة SMS</p>
             </div>
