@@ -2,10 +2,11 @@
 from flask import Blueprint, render_template, request, jsonify
 import time
 import uuid
-from extensions import db, logger
+from extensions import db, logger, SITE_URL
 from firebase_utils import get_balance, add_balance
 from payment import create_wallet_payment
 from notifications import notify_new_charge
+from security_utils import require_session_user, get_session_user_id
 
 recharge_bp = Blueprint('recharge', __name__, url_prefix='/wallet')
 
@@ -20,14 +21,11 @@ def recharge_page():
 
 # ============ API: جلب الرصيد ============
 @recharge_bp.route('/api/balance')
+@require_session_user()
 def get_wallet_balance():
     """جلب رصيد الحساب الحالي"""
     try:
-        from flask_login import current_user
-        if not current_user.is_authenticated:
-            return jsonify({'success': False, 'error': 'غير مصرح'}), 401
-        
-        user_id = str(current_user.id)
+        user_id = get_session_user_id()
         balance = get_balance(user_id)
         
         return jsonify({
@@ -41,19 +39,15 @@ def get_wallet_balance():
 
 # ============ شحن مباشر (الطريقة الحالية) ============
 @recharge_bp.route('/recharge', methods=['POST'])
+@require_session_user()
 def direct_recharge():
     """شحن مباشر من EdfaPay"""
     try:
-        from flask_login import current_user
-        
-        if not current_user.is_authenticated:
-            return jsonify({'success': False, 'error': 'غير مصرح'})
-        
         # قراءة البيانات من JSON أو form
         data = request.get_json() or request.form
         amount = str(data.get('amount', '')).strip()
-        user_id = str(current_user.id)
-        user_name = current_user.username or f"User {user_id}"
+        user_id = get_session_user_id()
+        user_name = f"User {user_id}"
         
         # التحقق من المبلغ
         if not amount:
@@ -90,19 +84,15 @@ def direct_recharge():
 
 # ============ إنشاء رابط شحن (جديد) ============
 @recharge_bp.route('/create-link', methods=['POST'])
+@require_session_user()
 def create_recharge_link():
     """إنشاء رابط شحن يشاركه أي شخص"""
     try:
-        from flask_login import current_user
-        
-        if not current_user.is_authenticated:
-            return jsonify({'success': False, 'error': 'غير مصرح'})
-        
         # قراءة البيانات من JSON أو form
         data = request.get_json() or request.form
         amount = str(data.get('amount', '')).strip()
-        user_id = str(current_user.id)
-        user_name = current_user.username or f"User {user_id}"
+        user_id = get_session_user_id()
+        user_name = f"User {user_id}"
         
         # التحقق من المبلغ
         if not amount:
@@ -141,7 +131,6 @@ def create_recharge_link():
             return jsonify({'success': False, 'error': 'خطأ في حفظ الرابط'})
         
         # إنشاء الرابط
-        from extensions import SITE_URL
         link = f"{SITE_URL}/invoice/{invoice_id}"
         
         return jsonify({
