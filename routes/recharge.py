@@ -49,7 +49,9 @@ def direct_recharge():
         if not current_user.is_authenticated:
             return jsonify({'success': False, 'error': 'غير مصرح'})
         
-        amount = request.form.get('amount', '').strip()
+        # قراءة البيانات من JSON أو form
+        data = request.get_json() or request.form
+        amount = str(data.get('amount', '')).strip()
         user_id = str(current_user.id)
         user_name = current_user.username or f"User {user_id}"
         
@@ -58,10 +60,10 @@ def direct_recharge():
             return jsonify({'success': False, 'error': 'المبلغ مطلوب'})
         
         try:
-            amount_int = int(amount)
+            amount_int = int(float(amount))
             if amount_int < 10 or amount_int > 50000:
                 return jsonify({'success': False, 'error': 'المبلغ يجب أن يكون بين 10 و 50000 ريال'})
-        except ValueError:
+        except (ValueError, TypeError):
             return jsonify({'success': False, 'error': 'المبلغ يجب أن يكون رقماً'})
         
         # إنشاء طلب دفع في EdfaPay
@@ -96,7 +98,9 @@ def create_recharge_link():
         if not current_user.is_authenticated:
             return jsonify({'success': False, 'error': 'غير مصرح'})
         
-        amount = request.form.get('amount', '').strip()
+        # قراءة البيانات من JSON أو form
+        data = request.get_json() or request.form
+        amount = str(data.get('amount', '')).strip()
         user_id = str(current_user.id)
         user_name = current_user.username or f"User {user_id}"
         
@@ -105,10 +109,10 @@ def create_recharge_link():
             return jsonify({'success': False, 'error': 'المبلغ مطلوب'})
         
         try:
-            amount_int = int(amount)
+            amount_int = int(float(amount))
             if amount_int < 10 or amount_int > 50000:
                 return jsonify({'success': False, 'error': 'المبلغ يجب أن يكون بين 10 و 50000 ريال'})
-        except ValueError:
+        except (ValueError, TypeError):
             return jsonify({'success': False, 'error': 'المبلغ يجب أن يكون رقماً'})
         
         # إنشاء معرف فريد للفاتورة

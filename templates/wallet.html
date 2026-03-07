@@ -218,6 +218,134 @@
         margin-bottom: 15px;
         opacity: 0.5;
     }
+    /* التاب البتونز */
+    .tab-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .tab-btn {
+        flex: 1;
+        padding: 12px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        background: transparent;
+        color: var(--text-muted);
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+        transition: all 0.3s;
+        font-family: 'Tajawal', sans-serif;
+    }
+    .tab-btn.active {
+        background: linear-gradient(135deg, var(--green) 0%, #00cec9 100%);
+        color: white;
+        border-color: var(--green);
+    }
+    .tab-btn:hover {
+        border-color: var(--primary);
+        color: var(--primary-light);
+    }
+    .tab-content {
+        display: none;
+    }
+    .tab-content.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    /* Modal للرابط */
+    .link-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+    .link-modal.show {
+        display: flex;
+    }
+    .link-modal-content {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 30px;
+        max-width: 450px;
+        width: 90%;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .modal-title {
+        color: var(--primary-light);
+        font-size: 22px;
+        margin-bottom: 20px;
+    }
+    .link-box {
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 15px;
+        margin: 20px 0;
+        word-break: break-all;
+        color: #fff;
+        font-size: 13px;
+    }
+    .copy-btn {
+        background: linear-gradient(135deg, var(--green) 0%, #00cec9 100%);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        margin: 10px 5px;
+        transition: all 0.3s;
+        font-weight: 600;
+        font-family: 'Tajawal', sans-serif;
+    }
+    .copy-btn:hover {
+        transform: translateY(-2px);
+    }
+    .close-modal-btn {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--primary-light);
+        padding: 12px 30px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        cursor: pointer;
+        margin: 10px 5px;
+        font-weight: 600;
+        font-family: 'Tajawal', sans-serif;
+        transition: all 0.3s;
+    }
+    .close-modal-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+    }
+    .success-msg {
+        color: #55efc4;
+        font-size: 14px;
+        margin-top: 10px;
+        display: none;
+    }
+    .spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.2);
+        border-top-color: var(--green);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 8px;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
 </style>
 {% endblock %}
 {% block content %}
@@ -243,57 +371,108 @@
         </div>
         <div class="section-card">
             <div class="section-title">
-                <span></span>
+                <span>💳</span>
                 شحن رصيدك
             </div>
-            <form id="chargeForm" onsubmit="processPayment(event)">
-                <div style="margin-bottom: 20px;">
-                    <label class="form-label"> رقم الجوال</label>
-                    <div style="display: flex; gap: 10px; direction: ltr;">
-                        <select id="countryCode" class="form-input" style="width: 110px; padding: 12px 8px;">
-                            <option value="966">🇸🇦 +966</option>
-                            <option value="971">🇦🇪 +971</option>
-                            <option value="965">🇰🇼 +965</option>
-                            <option value="973">🇧🇭 +973</option>
-                            <option value="974">🇶🇦 +974</option>
-                            <option value="968">🇴🇲 +968</option>
-                            <option value="962">🇯🇴 +962</option>
-                            <option value="20">🇪🇬 +20</option>
-                            <option value="212">🇲🇦 +212</option>
-                            <option value="216">🇹🇳 +216</option>
-                            <option value="213">🇩🇿 +213</option>
-                            <option value="964">🇮🇶 +964</option>
-                            <option value="963">🇸🇾 +963</option>
-                            <option value="961">🇱🇧 +961</option>
-                            <option value="967">🇾🇪 +967</option>
-                            <option value="90">🇹🇷 +90</option>
-                        </select>
-                        <input type="tel" id="phoneNumber" placeholder="5xxxxxxxx" required maxlength="10"
-                               class="form-input" style="flex: 1; text-align: center;">
+            
+            <!-- التاب البتونز -->
+            <div class="tab-buttons">
+                <button type="button" class="tab-btn active" onclick="switchTab('direct')">💰 شحن مباشر</button>
+                <button type="button" class="tab-btn" onclick="switchTab('link')">🔗 إنشاء رابط</button>
+            </div>
+            
+            <!-- التاب الأول: الشحن المباشر -->
+            <div id="direct-tab" class="tab-content active">
+                <form id="chargeForm" onsubmit="processPayment(event)">
+                    <div style="margin-bottom: 20px;">
+                        <label class="form-label"> رقم الجوال</label>
+                        <div style="display: flex; gap: 10px; direction: ltr;">
+                            <select id="countryCode" class="form-input" style="width: 110px; padding: 12px 8px;">
+                                <option value="966">🇸🇦 +966</option>
+                                <option value="971">🇦🇪 +971</option>
+                                <option value="965">🇰🇼 +965</option>
+                                <option value="973">🇧🇭 +973</option>
+                                <option value="974">🇶🇦 +974</option>
+                                <option value="968">🇴🇲 +968</option>
+                                <option value="962">🇯🇴 +962</option>
+                                <option value="20">🇪🇬 +20</option>
+                                <option value="212">🇲🇦 +212</option>
+                                <option value="216">🇹🇳 +216</option>
+                                <option value="213">🇩🇿 +213</option>
+                                <option value="964">🇮🇶 +964</option>
+                                <option value="963">🇸🇾 +963</option>
+                                <option value="961">🇱🇧 +961</option>
+                                <option value="967">🇾🇪 +967</option>
+                                <option value="90">🇹🇷 +90</option>
+                            </select>
+                            <input type="tel" id="phoneNumber" placeholder="5xxxxxxxx" required maxlength="10"
+                                   class="form-input" style="flex: 1; text-align: center;">
+                        </div>
                     </div>
-                </div>
-                <div style="margin-bottom: 20px;">
-                    <label class="form-label"> المبلغ المراد شحنه</label>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <input type="number" id="chargeAmount" placeholder="100" min="10" max="5000" required
-                               class="form-input" style="flex: 1; text-align: center; font-size: 18px;">
-                        <span style="color: #b2bec3; font-size: 16px;">ريال</span>
+                    <div style="margin-bottom: 20px;">
+                        <label class="form-label"> المبلغ المراد شحنه</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="number" id="chargeAmount" placeholder="100" min="10" max="5000" required
+                                   class="form-input" style="flex: 1; text-align: center; font-size: 18px;">
+                            <span style="color: #b2bec3; font-size: 16px;">ريال</span>
+                        </div>
+                        <p class="form-hint">الحد الأدنى: 10 ريال | الحد الأقصى: 5000 ريال</p>
                     </div>
-                    <p class="form-hint">الحد الأدنى: 10 ريال | الحد الأقصى: 5000 ريال</p>
+                    <div class="amount-buttons">
+                        <button type="button" class="amount-btn" onclick="setAmount(25)">25</button>
+                        <button type="button" class="amount-btn" onclick="setAmount(50)">50</button>
+                        <button type="button" class="amount-btn" onclick="setAmount(100)">100</button>
+                        <button type="button" class="amount-btn" onclick="setAmount(200)">200</button>
+                    </div>
+                    <button type="submit" id="payBtn" class="pay-btn">
+                         إتمام الدفع
+                    </button>
+                </form>
+                <p style="text-align: center; color: #666; font-size: 12px; margin-top: 15px;">
+                     دفع آمن عبر <span style="color: #00cec9;">EdfaPay</span>
+                </p>
+            </div>
+            
+            <!-- التاب الثاني: إنشاء رابط -->
+            <div id="link-tab" class="tab-content">
+                <form id="linkForm" onsubmit="createRechargeLink(event)">
+                    <div style="margin-bottom: 20px;">
+                        <label class="form-label"> المبلغ المراد إرساله</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="number" id="linkAmount" placeholder="100" min="10" max="5000" required
+                                   class="form-input" style="flex: 1; text-align: center; font-size: 18px;">
+                            <span style="color: #b2bec3; font-size: 16px;">ريال</span>
+                        </div>
+                        <p class="form-hint">الحد الأدنى: 10 ريال | الحد الأقصى: 5000 ريال</p>
+                    </div>
+                    <div class="amount-buttons">
+                        <button type="button" class="amount-btn" onclick="setLinkAmount(25)">25</button>
+                        <button type="button" class="amount-btn" onclick="setLinkAmount(50)">50</button>
+                        <button type="button" class="amount-btn" onclick="setLinkAmount(100)">100</button>
+                        <button type="button" class="amount-btn" onclick="setLinkAmount(200)">200</button>
+                    </div>
+                    <button type="submit" id="linkBtn" class="pay-btn">
+                        <span id="linkBtnText">إنشاء رابط قابل للمشاركة</span>
+                    </button>
+                </form>
+                <p style="text-align: center; color: #999; font-size: 13px; margin-top: 15px;">
+                    💡 أنشئ رابطاً وشاركه مع أصدقائك. يصلح الرابط لمدة ساعة واحدة فقط
+                </p>
+            </div>
+        </div>
+        
+        <!-- Modal لعرض الرابط -->
+        <div id="linkModal" class="link-modal">
+            <div class="link-modal-content">
+                <h3 class="modal-title">✅ تم إنشاء الرابط بنجاح!</h3>
+                <p style="color: var(--text-muted); margin-bottom: 15px;">أرسل هذا الرابط لأي شخص ليقوم بالدفع:</p>
+                <div class="link-box" id="generatedLink"></div>
+                <div>
+                    <button class="copy-btn" type="button" onclick="copyToClipboard()">📋 نسخ الرابط</button>
+                    <button class="close-modal-btn" type="button" onclick="closeLinkModal()">إغلاق</button>
                 </div>
-                <div class="amount-buttons">
-                    <button type="button" class="amount-btn" onclick="setAmount(25)">25</button>
-                    <button type="button" class="amount-btn" onclick="setAmount(50)">50</button>
-                    <button type="button" class="amount-btn" onclick="setAmount(100)">100</button>
-                    <button type="button" class="amount-btn" onclick="setAmount(200)">200</button>
-                </div>
-                <button type="submit" id="payBtn" class="pay-btn">
-                     إتمام الدفع
-                </button>
-            </form>
-            <p style="text-align: center; color: #666; font-size: 12px; margin-top: 15px;">
-                 دفع آمن عبر <span style="color: #00cec9;">EdfaPay</span>
-            </p>
+                <div class="success-msg" id="successMsg">✅ تم نسخ الرابط إلى الحافظة!</div>
+            </div>
         </div>
         <div class="section-card">
             <div class="section-title">
@@ -376,6 +555,96 @@
             btn.textContent = ' إتمام الدفع';
         }
     }
-    window.categoriesData = [];
+    
+    // دوال التاب السوتش
+    function switchTab(tabName) {
+        // إخفاء كل التاب كونتينت
+        document.getElementById('direct-tab').classList.remove('active');
+        document.getElementById('link-tab').classList.remove('active');
+        
+        // إزالة الـ active من جميع البتونز
+        const tabs = document.querySelectorAll('.tab-btn');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        
+        // إضافة active للتاب المختار
+        if(tabName === 'direct') {
+            document.getElementById('direct-tab').classList.add('active');
+            tabs[0].classList.add('active');
+        } else if(tabName === 'link') {
+            document.getElementById('link-tab').classList.add('active');
+            tabs[1].classList.add('active');
+        }
+    }
+    
+    function setLinkAmount(amount) {
+        document.getElementById('linkAmount').value = amount;
+    }
+    
+    async function createRechargeLink(event) {
+        event.preventDefault();
+        const amount = document.getElementById('linkAmount').value;
+        const btn = document.getElementById('linkBtn');
+        const btnText = document.getElementById('linkBtnText');
+        
+        if(!amount || amount < 10 || amount > 5000) {
+            showToast(' المبلغ يجب أن يكون بين 10 و 5000 ريال', 'error');
+            return;
+        }
+        
+        btn.disabled = true;
+        btnText.innerHTML = '<span class="spinner"></span>جاري الإنشاء...';
+        
+        try {
+            const response = await fetch('/wallet/create-link', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    amount: parseFloat(amount)
+                })
+            });
+            const result = await response.json();
+            
+            if(result.success && result.link) {
+                showToast(' تم إنشاء الرابط بنجاح', 'success');
+                document.getElementById('generatedLink').textContent = result.link;
+                document.getElementById('linkModal').classList.add('show');
+                document.getElementById('linkForm').reset();
+            } else {
+                showToast(' ' + (result.message || 'حدث خطأ'), 'error');
+            }
+        } catch(error) {
+            console.error('Error:', error);
+            showToast(' حدث خطأ في الاتصال', 'error');
+        } finally {
+            btn.disabled = false;
+            btnText.innerHTML = 'إنشاء رابط قابل للمشاركة';
+        }
+    }
+    
+    function copyToClipboard() {
+        const link = document.getElementById('generatedLink').textContent;
+        navigator.clipboard.writeText(link).then(() => {
+            document.getElementById('successMsg').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('successMsg').style.display = 'none';
+            }, 3000);
+        }).catch(() => {
+            showToast(' فشل نسخ الرابط', 'error');
+        });
+    }
+    
+    function closeLinkModal() {
+        document.getElementById('linkModal').classList.remove('show');
+    }
+    
+    // إغلاق الـ Modal عند النقر خارجه
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('linkModal');
+        modal.addEventListener('click', function(event) {
+            if(event.target === modal) {
+                closeLinkModal();
+            }
+        });
+    });
 </script>
 {% endblock %}
