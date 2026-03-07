@@ -1040,7 +1040,7 @@ def create_edfapay_invoice(user_id, amount, user_name):
             'payer_phone': '966500000000',
             'payer_ip': payer_ip,
             'term_url_3ds': f"{SITE_URL}/payment/success?order_id={order_id}",
-            'auth': 'N',
+            'auth': 'Y',
             'recurring_init': 'N',
             'hash': final_hash
         }
@@ -1494,7 +1494,7 @@ def create_customer_invoice(merchant_id, merchant_name, amount, customer_phone, 
             'payer_phone': phone,
             'payer_ip': '176.44.76.222',
             'term_url_3ds': f"{SITE_URL}/payment/success?order_id={order_id}&invoice={invoice_id}",
-            'auth': 'N',
+            'auth': 'Y',
             'recurring_init': 'N',
             'hash': final_hash
         }
