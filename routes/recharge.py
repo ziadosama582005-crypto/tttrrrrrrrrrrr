@@ -1,7 +1,8 @@
 # نسخ من wallet routes
 from flask import Blueprint, render_template, request, jsonify
 import time
-import uuid
+import secrets
+import string
 from extensions import db, logger, SITE_URL
 from firebase_utils import get_balance, add_balance
 from payment import create_wallet_payment
@@ -105,8 +106,9 @@ def create_recharge_link():
         except (ValueError, TypeError):
             return jsonify({'success': False, 'error': 'المبلغ يجب أن يكون رقماً'})
         
-        # إنشاء معرف فريد للفاتورة
-        invoice_id = f"LINK_{int(time.time())}_{user_id}_{uuid.uuid4().hex[:6]}"
+        # إنشاء معرف فريد قصير للفاتورة
+        short_id = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(8))
+        invoice_id = f"L{short_id}"  # مثلاً: La1b2c3d4
         
         # بيانات الفاتورة
         invoice_data = {
